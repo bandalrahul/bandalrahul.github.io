@@ -22,7 +22,21 @@ struct PublishSBR: Website {
 }
 
 // This will generate your website using the built-in Foundation theme:
-try PublishSBR().publish(withTheme: .myTheme, additionalSteps: [.deploy(using: .git("bandalrahul/bandalrahul.github.io")), .installPlugin(.splash(withClassPrefix: ""))])
+try PublishSBR().publish(
+    withTheme: .myTheme,
+    additionalSteps: [
+        .deploy(
+            using: .git(
+                "bandalrahul/bandalrahul.github.io"
+            )
+        ),
+        .installPlugin(
+            .splash(
+                withClassPrefix: ""
+            )
+        )
+    ]
+)
 
 extension Theme where Site == PublishSBR {
     static var myTheme: Self {
