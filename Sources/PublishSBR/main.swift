@@ -27,7 +27,7 @@ try PublishSBR().publish(
     additionalSteps: [
         .deploy(
             using: .git(
-                "bandalrahul/bandalrahul.github.io"
+                "git@github.com:bandalrahul/bandalrahul.github.io.git" // Change to SSH URL
             )
         ),
         .installPlugin(
