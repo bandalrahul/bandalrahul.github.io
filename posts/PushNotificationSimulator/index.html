@@ -1,0 +1,47 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"/><meta property="og:site_name" content="PublishSBR"/><link rel="canonical" href="https://your-website-url.com/posts/PushNotificationSimulator"/><meta name="twitter:url" content="https://your-website-url.com/posts/PushNotificationSimulator"/><meta property="og:url" content="https://your-website-url.com/posts/PushNotificationSimulator"/><title>How to send push notifications on the iOS simulator? | PublishSBR</title><meta name="twitter:title" content="How to send push notifications on the iOS simulator? | PublishSBR"/><meta property="og:title" content="How to send push notifications on the iOS simulator? | PublishSBR"/><meta name="description" content="Push notifications are the best way to fascinate the audience towards your iOS app. It’s like an alarm to convey your message to your user. Push notifications in ios are handled and authorized by APNs( Apple Push notification services)."/><meta name="twitter:description" content="Push notifications are the best way to fascinate the audience towards your iOS app. It’s like an alarm to convey your message to your user. Push notifications in ios are handled and authorized by APNs( Apple Push notification services)."/><meta property="og:description" content="Push notifications are the best way to fascinate the audience towards your iOS app. It’s like an alarm to convey your message to your user. Push notifications in ios are handled and authorized by APNs( Apple Push notification services)."/><meta name="twitter:card" content="summary"/><link rel="stylesheet" href="/styles.css" type="text/css"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><link rel="shortcut icon" href="/images/favicon.png" type="image/png"/><link rel="alternate" href="/feed.rss" type="application/rss+xml" title="Subscribe to PublishSBR"/></head><head><link rel="stylesheet" href="/css/prism.css" type="text/css"/><script src="/js/prism.js"></script></head><body class="item-page"><header><div class="wrapper"><a href="/" class="site-name">PublishSBR</a></div></header><div class="wrapper"><article><div class="content"><h1>How to send push notifications on the iOS simulator?</h1><p>Push notifications are the best way to fascinate the audience towards your iOS app. It’s like an alarm to convey your message to your user. Push notifications in ios are handled and authorized by APNs( Apple Push notification services).</p><div style="text-align: center;">
+    <img src="/Images/demo.png" alt="Swift Logo">
+</div><p>In any organization, there may be hundreds or thousands of developers and testers, sometimes organizations could not afford to give iOS devices for each and every developer or tester. But iOS push notifications can only be sent on devices. Don’t worry bro, In iOS 13 / Xcode 11.4 Apple introduced some new features which are very beneficial for the user’s and developer’s perspective and sending push notifications on simulators is one of them.</p><p>We will go through each and every step one by one, we need a few primary kinds of stuff like Xcode 11.4 and Catalina OS or more than that version.</p><p>How to do Project setup and take permission from the user to receive the push notifications :</p><ol><li>Create a new project.</li><li>Submit the required data such as project names like ‘PushNotifications‘.</li><li>Import UserNotification framework in Appdelegate class.</li></ol><pre><code class="language-swift">‘import UserNotifications’
+
+4. Copy below code in Appdelegate to take authorization from the user to receive the push notification. 
+func registerForSendPushNotifications() {
+            UNUserNotificationCenter.current()
+                .requestAuthorization(options: [.alert, .sound, .badge]) {(granted, error) in
+                    print("Push Notification Permission granted: \(granted)")
+            }
+    }
+</code></pre><ol start="5"><li>Call the same function from didFinishLaunchingWithOptions, which is the first function in Appdelegate.</li></ol><pre><code class="language-swift">func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -&gt; Bool {
+        // Override point for customization after application launch.
+        registerForSendPushNotifications()
+        return true
+    }
+</code></pre><ol start="6"><li>Run the project on the simulator and just pause your running project. Now take a sip of water, your half of the work is done. Now we just have to collect some data which requires sending push notification on the simulator.</li></ol><p>Let’s collect for more information to get notifications over simulator:</p><h4>Simulators Device Identifier </h4><p>Select Window from the menu -&gt; Devices and simulators -&gt; Here you can see the whole list of physical devices and simulators -&gt; Select Device and copy it. And save somewhere in the Notes/ TextEdit.</p><div style="text-align: center;">
+    <img src="/Images/PushNotificationSimulator/configure.gif" alt="Swift Logo" class="responsive-image">
+</div><h4>Get Simulator Identifier: </h4><p>Example : 8E1C327E-4B05-4190-AEA1-0646E73A3A49</p><h4>Bundle Identifier : </h4><p>Select Project -&gt; Tap General Tab -&gt; Copy Bundle Identifier -&gt; Paste somewhere in the Notes/TextEdit</p><div style="text-align: center;">
+    <img src="/Images/PushNotificationSimulator/appdelegate.gif" alt="Swift Logo" class="responsive-image">
+</div><p>Get Bundle Identifier Example: ‘com.PushNotifications’</p><h4>.APNs File :  </h4><p>We need a JSON payload. The payload contains custom data which include a basic alert, badge count or sound, you can also add your own key-values. I will give you the demo content of the payload file.</p><p>Note: Payload contents should not more than 4 kb (4096 bytes).</p><pre><code class="language-swift">{
+    "aps":{
+        "alert":"Test drop",
+        "sound":"default",
+        "badge":3
+    }
+}
+</code></pre><p>Copy this JSON new file change extension of this file ‘.apns’ and save it.</p><p>Now, here we have everything that needs to send push notification on the simulator. Follow the given steps to send notifications.</p><p>Open terminal.</p><p>Enter into the folder where you saved ‘.apns’ file. Like ‘cd Document’.</p><p>Enter this command.</p><p>xcrun simctl push <Device Identifier> <Bundle Identifier> <.apns file name> 
+
+<h4>Example: </h4>
+<b>xcrun simctl push 8E1C327E-4B05-4190-AEA1-0646E73A3A49 com.Pushnotification test.apns.</b>
+
+<p> <i>Result : Notification sent to ‘com.Pushnotification’ </i></p>
+
+<div style="text-align: center;">
+    <img src="/Images/PushNotificationSimulator/terminal.png" alt="Swift Logo" class="responsive-image">
+</div>
+
+If you receive this message in the console: “Notification sent to com.PushNotification” Congratulations, You got push notifications on your simulator.
+
+If you face any difficulty during implementation, please comment below or you can email me: blogswithrahul@gmail.com .
+
+
+<h4>Conclusion: </h4>
+
+Apple did a great job, No need to create development certificates and provisional profiles. No need to depend on API developer. Build push notification functionality and move further. Once everything gets configured, you can move it on production.
+</p></div><div class="ads-container"><ins class="adsbygoogle" style="display:block" data-ad-client="pub-9268892677399703" data-ad-slot="8133392181" data-ad-format="auto" data-full-width-responsive="true"></ins><script>(adsbygoogle = window.adsbygoogle || []).push({});</script></div></article></div></body></html>
