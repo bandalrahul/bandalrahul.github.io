@@ -14,9 +14,9 @@ struct PublishSBR: Website {
     }
 
     // Update these properties to configure your website:
-    var url = URL(string: "https://your-website-url.com")!
-    var name = "PublishSBR"
-    var description = "A description of PublishSBR"
+    var url = URL(string: "bandalrahul.github.io")!
+    var name = "Swift By Rahul"
+    var description = ""
     var language: Language { .english }
     var imagePath: Path? { nil }
 }

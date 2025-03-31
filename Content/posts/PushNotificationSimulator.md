@@ -4,6 +4,7 @@ description: Push notifications are the best way to fascinate the audience towar
 tags: first, article
 ---
 # How to send push notifications on the iOS simulator?
+
 Push notifications are the best way to fascinate the audience towards your iOS app. It’s like an alarm to convey your message to your user. Push notifications in ios are handled and authorized by APNs( Apple Push notification services). 
 
 <div style="text-align: center;">
@@ -109,3 +110,15 @@ If you face any difficulty during implementation, please comment below or you ca
 <h4>Conclusion: </h4>
 
 Apple did a great job, No need to create development certificates and provisional profiles. No need to depend on API developer. Build push notification functionality and move further. Once everything gets configured, you can move it on production.
+<div style="text-align:center;">
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+  <ins class="adsbygoogle"
+       style="display:block"
+       data-ad-client="ca-pub-9268892677399703"
+       data-ad-slot="1234567890"
+       data-ad-format="auto"
+       data-full-width-responsive="true"></ins>
+  <script>
+       (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+</div>
