@@ -1,4 +1,293 @@
-<?xml version="1.0" encoding="UTF-8"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><title>Swift By Rahul</title><description></description><link>bandalrahul.github.io</link><language>en</language><lastBuildDate>Sat, 21 Jun 2025 14:46:52 +0530</lastBuildDate><pubDate>Sat, 21 Jun 2025 14:46:52 +0530</pubDate><ttl>250</ttl><atom:link href="bandalrahul.github.io/feed.rss" rel="self" type="application/rss+xml"/><item><guid isPermaLink="true">bandalrahul.github.io/posts/WWDC2025</guid><title>WWDC 2025: Revolutionary Updates in SwiftUI and Apple's Design Language</title><description>Explore the groundbreaking announcements from WWDC 2025, including the new Liquid Glass design system, enhanced SwiftUI capabilities, and major framework updates that are reshaping the future of Apple development.</description><link>bandalrahul.github.io/posts/WWDC2025</link><pubDate>Sat, 21 Jun 2025 10:00:00 +0530</pubDate><content:encoded><![CDATA[<h1>WWDC 2025: Revolutionary Updates in SwiftUI and Apple's Design Language</h1><p>Apple's Worldwide Developers Conference 2025 has introduced groundbreaking changes to the development ecosystem, with SwiftUI taking center stage alongside a revolutionary new design system called Liquid Glass. Let's dive into the most significant announcements that will shape the future of Apple platform development.</p><h2>Liquid Glass: A New Era in Design</h2><p>The highlight of WWDC 2025 is the introduction of Liquid Glass, a transformative new design material that brings unprecedented fluidity and elegance to Apple's platforms. This new design system:</p><ul><li>Combines optical glass properties with dynamic fluidity</li><li>Adapts intelligently between light and dark environments</li><li>Features real-time rendering with specular highlights</li><li>Seamlessly integrates across iOS 26, iPadOS 26, macOS Tahoe 26, watchOS 26, and tvOS 26</li></ul><h3>SwiftUI Integration with Liquid Glass</h3><p>SwiftUI has been enhanced to fully embrace the Liquid Glass design system, offering developers:</p><ul><li>Native support for all Liquid Glass UI elements</li><li>Fluid transitions and animations</li><li>Automatic adaptation to platform-specific behaviors</li><li>Enhanced control over transparency and refraction effects</li></ul><h2>Major SwiftUI Enhancements</h2><h3>1. Spatial Layout Support</h3><ul><li>New APIs for visionOS integration</li><li>Enhanced 3D view support</li><li>Improved animations and state management for spatial apps</li><li>Seamless blending with RealityKit</li></ul><h3>2. Enhanced Navigation</h3><ul><li>Redesigned tab bars with dynamic shrinking behavior</li><li>Fluid sidebar transitions with content refraction</li><li>Improved navigation state management</li><li>New navigation customization options</li></ul><h3>3. Rich Text Improvements</h3><ul><li>Advanced text editing capabilities</li><li>Custom controls for content manipulation</li><li>Enhanced AttributedString support</li><li>Improved text rendering with Liquid Glass effects</li></ul><h2>Framework Integration</h2><h3>WebKit for SwiftUI</h3><ul><li>Native SwiftUI components for web content</li><li>Simplified sharing of in-app browsers</li><li>Programmatic web content control</li><li>Enhanced web integration capabilities</li></ul><h3>Foundation Models Framework</h3><ul><li>Native Swift support with minimal code requirements</li><li>Built-in guided generation</li><li>Tool calling capabilities</li><li>Privacy-focused AI features</li></ul><h2>Developer Tools and Performance</h2><h3>Xcode 26 Integration</h3><ul><li>Built-in ChatGPT support</li><li>Enhanced code completion</li><li>Improved preview system</li><li>Advanced debugging tools</li></ul><h3>Performance Optimizations</h3><ul><li>Better memory management</li><li>Improved rendering pipeline</li><li>Enhanced compile-time checks</li><li>Optimized asset loading</li></ul><h2>Cross-Platform Consistency</h2><p>The new updates ensure a consistent experience across all Apple platforms while maintaining platform-specific features:</p><ul><li>Universal design language</li><li>Platform-specific optimizations</li><li>Shared component library</li><li>Consistent animation behaviors</li></ul><h2>What This Means for Developers</h2><p>These updates represent a significant leap forward for Apple platform development:</p><ol><li><strong>Simplified Development</strong>: The new APIs and tools make it easier to create sophisticated apps</li><li><strong>Enhanced User Experience</strong>: Liquid Glass brings a new level of polish to apps</li><li><strong>Better Performance</strong>: Optimized frameworks deliver improved app performance</li><li><strong>Future-Ready</strong>: Support for the latest technologies like AI and spatial computing</li></ol><h2>Conclusion</h2><p>WWDC 2025 marks a pivotal moment in Apple's development ecosystem. The combination of Liquid Glass design system, enhanced SwiftUI capabilities, and improved framework integration provides developers with powerful tools to create the next generation of apps. As these technologies mature, we can expect to see increasingly sophisticated and engaging applications across all Apple platforms.</p><p>The future of Apple development looks brighter than ever, with SwiftUI leading the charge into a new era of intuitive, beautiful, and powerful applications. Whether you're building for iOS, macOS, or visionOS, these new tools and frameworks will help you create experiences that truly delight users.</p>]]></content:encoded></item><item><guid isPermaLink="true">bandalrahul.github.io/posts/ApplePay</guid><title>Apple Pay Integration Guide</title><description>Apple Pay is a mobile payment and digital wallet service developed by Apple Inc. It allows users to make payments in person, in iOS apps, and on the web using Safari. Users can add their credit, debit, or prepaid cards to their Apple devices, enabling them to make payments using these devices instead of physical cards.</description><link>bandalrahul.github.io/posts/ApplePay</link><pubDate>Sun, 22 Dec 2024 17:08:00 +0530</pubDate><content:encoded><![CDATA[<h1>Apple Pay Integration Guide</h1><p>Apple Pay is a mobile payment and digital wallet service developed by Apple Inc. It allows users to make payments in person, in iOS apps, and on the web using Safari. Users can add their credit, debit, or prepaid cards to their Apple devices, enabling them to make payments using these devices instead of physical cards.</p><p><strong>Note:</strong> Apple Pay only works with the Safari browser. It is not compatible with Google Chrome and has never been.</p><hr><h2>Key Features of Apple Pay</h2><ul><li><strong>Contactless Payments</strong> Users can make secure, contactless payments at retail locations equipped with near-field communication (NFC) by holding their Apple device near the terminal.</li></ul><ul><li><strong>In-App Purchases</strong> Apple Pay can be used within supported apps on iOS devices for fast, secure checkouts.</li></ul><ul><li><strong>Web Payments</strong> On Safari, Apple Pay allows users to pay on websites without needing to re-enter card details.</li></ul><ul><li><strong>Security</strong> Apple Pay uses a feature called <em>tokenization</em> where the actual card number is not stored on the device or Apple servers. Instead, a unique Device Account Number is encrypted and securely stored.</li></ul><ul><li><strong>Privacy</strong> Apple does not track users’ transactions, offering greater privacy.</li></ul><h2>Apple Developer Setup for Apple Pay</h2><p>To implement Apple Pay in your apps, follow these steps:</p><h3>1. Create a Merchant Identifier</h3><p>Register a merchant ID with Apple to uniquely identify your business for accepting Apple Pay. This ID does not expire and can be reused across websites and apps.</p><h3>2. Create a Payment Processing Certificate</h3><p>Using your merchant identifier, generate a certificate to secure transaction data. Apple Pay servers use the public key to encrypt the data. You or your payment provider use the private key to decrypt and process the payment.</p><p>Check which payment merchants are available for Apple Pay.</p><h3>3. Enable Apple Pay in Xcode</h3><ol><li>Open your project in Xcode.</li><li>Select your project from the Project navigator.</li><li>Choose your app target.</li><li>Click the <strong>Signing &amp; Capabilities</strong> tab.</li><li>Click the <strong>+</strong> button and select <strong>Apple Pay</strong> from the Capabilities library.</li><li>Click the refresh icon to sync your merchant identifiers.</li><li>Select your desired merchant ID.</li></ol><h2>Create a Sandbox Apple ID</h2><h3>1. Create a New Apple ID</h3><p>Go to <a href="https://appleid.apple.com/">Apple ID</a> and register a new account. Use an unused email address. Verify your email by following the instructions sent to your inbox.</p><h3>2. Sign In to App Store Connect</h3><p>Visit <a href="https://appstoreconnect.apple.com/">App Store Connect</a>. Sign in using your main Apple Developer account.</p><h3>3. Add Sandbox Testers</h3><p>Navigate to <strong>Users and Access</strong> in App Store Connect. Click the <strong>+</strong> button. Add the sandbox Apple ID. Choose any role (role does not impact testing). Click <strong>Invite</strong>.</p><h3>4. Sign In on Your iOS Device</h3><p>On your device, sign out of your current Apple ID. Sign in using the sandbox account. Go to <strong>Settings &gt; iTunes &amp; App Store</strong> and sign in again with the sandbox ID.</p><p>Add sandbox cards to Apple Wallet: <a href="https://developer.apple.com/apple-pay/sandbox-testing/">Apple Pay Sandbox Testing</a></p><h2>Apple Pay Payment Workflow</h2><div style="text-align: center;">
+<?xml version="1.0" encoding="UTF-8"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><title>Swift By Rahul</title><description></description><link>bandalrahul.github.io</link><language>en</language><lastBuildDate>Mon, 23 Jun 2025 19:54:09 +0530</lastBuildDate><pubDate>Mon, 23 Jun 2025 19:54:09 +0530</pubDate><ttl>250</ttl><atom:link href="bandalrahul.github.io/feed.rss" rel="self" type="application/rss+xml"/><item><guid isPermaLink="true">bandalrahul.github.io/posts/WWDC2025</guid><title>WWDC 2025: Revolutionary Updates in SwiftUI and Apple's Design Language</title><description>Explore the groundbreaking announcements from WWDC 2025, including the new Liquid Glass design system, enhanced SwiftUI capabilities, and major framework updates that are reshaping the future of Apple development.</description><link>bandalrahul.github.io/posts/WWDC2025</link><pubDate>Sat, 21 Jun 2025 10:00:00 +0530</pubDate><content:encoded><![CDATA[<h1>WWDC 2025: Revolutionary Updates in SwiftUI and Apple's Design Language</h1><p>Apple's Worldwide Developers Conference 2025 has introduced groundbreaking changes to the development ecosystem, with SwiftUI taking center stage alongside a revolutionary new design system called Liquid Glass. Let's dive into the most significant announcements that will shape the future of Apple platform development.</p><h2>Liquid Glass: A New Era in Design</h2><p>The highlight of WWDC 2025 is the introduction of Liquid Glass, a transformative new design material that brings unprecedented fluidity and elegance to Apple's platforms. This new design system:</p><ul><li>Combines optical glass properties with dynamic fluidity</li><li>Adapts intelligently between light and dark environments</li><li>Features real-time rendering with specular highlights</li><li>Seamlessly integrates across iOS 26, iPadOS 26, macOS Tahoe 26, watchOS 26, and tvOS 26</li></ul><h3>SwiftUI Integration with Liquid Glass</h3><p>SwiftUI has been enhanced to fully embrace the Liquid Glass design system, offering developers:</p><ul><li>Native support for all Liquid Glass UI elements</li><li>Fluid transitions and animations</li><li>Automatic adaptation to platform-specific behaviors</li><li>Enhanced control over transparency and refraction effects</li></ul><h2>Major SwiftUI Enhancements</h2><h3>1. Spatial Layout Support</h3><ul><li>New APIs for visionOS integration</li><li>Enhanced 3D view support</li><li>Improved animations and state management for spatial apps</li><li>Seamless blending with RealityKit</li></ul><h3>2. Enhanced Navigation</h3><ul><li>Redesigned tab bars with dynamic shrinking behavior</li><li>Fluid sidebar transitions with content refraction</li><li>Improved navigation state management</li><li>New navigation customization options</li></ul><h3>3. Rich Text Improvements</h3><ul><li>Advanced text editing capabilities</li><li>Custom controls for content manipulation</li><li>Enhanced AttributedString support</li><li>Improved text rendering with Liquid Glass effects</li></ul><h2>Framework Integration</h2><h3>WebKit for SwiftUI</h3><ul><li>Native SwiftUI components for web content</li><li>Simplified sharing of in-app browsers</li><li>Programmatic web content control</li><li>Enhanced web integration capabilities</li></ul><h3>Foundation Models Framework</h3><ul><li>Native Swift support with minimal code requirements</li><li>Built-in guided generation</li><li>Tool calling capabilities</li><li>Privacy-focused AI features</li></ul><h2>Developer Tools and Performance</h2><h3>Xcode 26 Integration</h3><ul><li>Built-in ChatGPT support</li><li>Enhanced code completion</li><li>Improved preview system</li><li>Advanced debugging tools</li></ul><h3>Performance Optimizations</h3><ul><li>Better memory management</li><li>Improved rendering pipeline</li><li>Enhanced compile-time checks</li><li>Optimized asset loading</li></ul><h2>Cross-Platform Consistency</h2><p>The new updates ensure a consistent experience across all Apple platforms while maintaining platform-specific features:</p><ul><li>Universal design language</li><li>Platform-specific optimizations</li><li>Shared component library</li><li>Consistent animation behaviors</li></ul><h2>What This Means for Developers</h2><p>These updates represent a significant leap forward for Apple platform development:</p><ol><li><strong>Simplified Development</strong>: The new APIs and tools make it easier to create sophisticated apps</li><li><strong>Enhanced User Experience</strong>: Liquid Glass brings a new level of polish to apps</li><li><strong>Better Performance</strong>: Optimized frameworks deliver improved app performance</li><li><strong>Future-Ready</strong>: Support for the latest technologies like AI and spatial computing</li></ol><h2>Conclusion</h2><p>WWDC 2025 marks a pivotal moment in Apple's development ecosystem. The combination of Liquid Glass design system, enhanced SwiftUI capabilities, and improved framework integration provides developers with powerful tools to create the next generation of apps. As these technologies mature, we can expect to see increasingly sophisticated and engaging applications across all Apple platforms.</p><p>The future of Apple development looks brighter than ever, with SwiftUI leading the charge into a new era of intuitive, beautiful, and powerful applications. Whether you're building for iOS, macOS, or visionOS, these new tools and frameworks will help you create experiences that truly delight users.</p>]]></content:encoded></item><item><guid isPermaLink="true">bandalrahul.github.io/posts/AdvancedCuncurrencyInSwift</guid><title>Mastering Advanced Concurrency in Swift: A Comprehensive Guide</title><description>Dive deep into Swift's advanced concurrency features including structured concurrency, actors, async/await patterns, and task management. Learn how to write efficient concurrent code that's safe and maintainable.</description><link>bandalrahul.github.io/posts/AdvancedCuncurrencyInSwift</link><pubDate>Sun, 22 Dec 2024 17:08:00 +0530</pubDate><content:encoded><![CDATA[<h1>Mastering Advanced Concurrency in Swift: A Comprehensive Guide</h1><p>Concurrency is one of the most powerful features in Swift, enabling developers to write efficient, parallel code while maintaining safety and readability. Modern applications demand concurrent programming to deliver smooth user experiences, handle complex background tasks, and efficiently utilize multi-core processors. In this comprehensive guide, we'll explore advanced concurrency concepts, best practices, and real-world examples that will help you master Swift's modern concurrency system.</p><h2>Table of Contents</h2><ol><li>Understanding Structured Concurrency</li><li>Working with Actors</li><li>Advanced Async/Await Patterns</li><li>Task Management and Cancellation</li><li>Custom Executors and Task Priority</li><li>Error Handling in Concurrent Code</li><li>Performance Optimization</li><li>Real-world Examples</li></ol><h2>1. Understanding Structured Concurrency</h2><p>Structured concurrency in Swift ensures that all async operations have a well-defined lifetime and scope. This model helps prevent memory leaks, makes code easier to reason about, and ensures proper resource cleanup. The structured approach means that child tasks are guaranteed to complete before their parent task finishes, providing better control over concurrent operations.</p><h3>Basic Task Structure</h3><p>The Task API provides a fundamental building block for concurrent operations. Here's how to work with basic tasks:</p><pre><code class="language-swift">func fetchUserData() async throws -&gt; User {
+    // Create a child task
+    let userTask = Task {
+        try await networkService.fetchUser(id: userId)
+    }
+    
+    // Wait for the result
+    return try await userTask.value
+}
+</code></pre><p>In this example, the Task creates an asynchronous operation that can be monitored and controlled. The <code>await</code> keyword indicates potential suspension points where other code can execute.</p><h3>Task Groups</h3><p>Task groups provide a powerful way to handle multiple concurrent operations while maintaining structured relationships:</p><pre><code class="language-swift">func fetchMultipleUsers(ids: [String]) async throws -&gt; [User] {
+    try await withThrowingTaskGroup(of: User.self) { group in
+        var users: [User] = []
+        
+        // Add tasks to the group
+        for id in ids {
+            group.addTask {
+                try await networkService.fetchUser(id: id)
+            }
+        }
+        
+        // Collect results in order of completion
+        for try await user in group {
+            users.append(user)
+        }
+        
+        return users
+    }
+}
+</code></pre><p>Task groups automatically handle:</p><ul><li>Concurrent execution of multiple tasks</li><li>Proper cancellation propagation</li><li>Resource cleanup</li><li>Collection of results</li><li>Error propagation</li></ul><h2>2. Working with Actors</h2><p>Actors represent a revolutionary approach to handling shared mutable state in concurrent programs. They provide thread-safe access to their internal state without explicit locking mechanisms.</p><h3>Basic Actor Implementation</h3><pre><code class="language-swift">actor UserManager {
+    private var users: [String: User] = [:]
+    private var activeUsers: Set&lt;String&gt; = []
+    
+    func addUser(_ user: User) {
+        users[user.id] = user
+    }
+    
+    func markUserActive(_ userId: String) {
+        activeUsers.insert(userId)
+    }
+    
+    func getActiveUsers() -&gt; [User] {
+        return activeUsers.compactMap { users[$0] }
+    }
+}
+</code></pre><p>Key benefits of actors:</p><ul><li>Automatic synchronization of access to internal state</li><li>Prevention of data races</li><li>Clear boundaries for shared resources</li><li>Simplified reasoning about concurrent code</li></ul><h3>Actor Isolation and Nonisolated Methods</h3><p>Understanding actor isolation is crucial for performance optimization:</p><pre><code class="language-swift">actor DataCache {
+    private var cache: [String: Any] = [:]
+    
+    func store(_ value: Any, forKey key: String) {
+        cache[key] = value
+    }
+    
+    func retrieve(_ key: String) -&gt; Any? {
+        return cache[key]
+    }
+    
+    nonisolated func validateKey(_ key: String) -&gt; Bool {
+        // This method can be called without actor isolation
+        // Use for operations that don't need access to actor's state
+        return !key.isEmpty &amp;&amp; key.count &lt;= 100
+    }
+}
+</code></pre><p>The <code>nonisolated</code> keyword allows methods that don't access actor state to execute without synchronization overhead.</p><h2>3. Advanced Async/Await Patterns</h2><h3>Custom Async Sequences</h3><p>Async sequences provide a powerful way to handle streams of asynchronous data:</p><pre><code class="language-swift">struct EventStream: AsyncSequence {
+    typealias Element = Event
+    
+    let events: [Event]
+    
+    struct AsyncIterator: AsyncIteratorProtocol {
+        var index = 0
+        let events: [Event]
+        
+        mutating func next() async throws -&gt; Event? {
+            guard index &lt; events.count else { return nil }
+            
+            // Simulate network delay
+            try await Task.sleep(nanoseconds: 1_000_000_000)
+            
+            let event = events[index]
+            index += 1
+            return event
+        }
+    }
+    
+    func makeAsyncIterator() -&gt; AsyncIterator {
+        return AsyncIterator(events: events)
+    }
+}
+
+// Usage example showing event processing
+func processEvents() async throws {
+    let eventStream = EventStream(events: sampleEvents)
+    
+    for try await event in eventStream {
+        await processEvent(event)
+    }
+}
+</code></pre><p>Benefits of async sequences:</p><ul><li>Natural handling of asynchronous data streams</li><li>Built-in backpressure handling</li><li>Cancellation support</li><li>Integration with async/await syntax</li></ul><h3>Async Property Wrapper</h3><p>Custom property wrappers can enhance async functionality:</p><pre><code class="language-swift">@propertyWrapper
+struct AsyncComputed&lt;Value&gt; {
+    let wrappedValue: () async -&gt; Value
+    
+    init(wrappedValue: @escaping () async -&gt; Value) {
+        self.wrappedValue = wrappedValue
+    }
+}
+
+class UserViewModel {
+    @AsyncComputed var userCount = {
+        await database.fetchUserCount()
+    }
+    
+    func displayUserCount() async {
+        let count = await userCount()
+        print("Total users: \(count)")
+    }
+}
+</code></pre><p>This pattern provides:</p><ul><li>Lazy evaluation of async properties</li><li>Clean syntax for async computations</li><li>Reusable async computation patterns</li></ul><h2>4. Task Management and Cancellation</h2><p>Proper task management is crucial for resource efficiency and responsiveness.</p><h3>Implementing Cancellable Tasks</h3><pre><code class="language-swift">class DataProcessor {
+    var currentTask: Task&lt;Void, Error&gt;?
+    
+    func startProcessing() {
+        currentTask = Task {
+            try await processLargeDataSet()
+        }
+    }
+    
+    func cancelProcessing() {
+        currentTask?.cancel()
+    }
+    
+    private func processLargeDataSet() async throws {
+        let chunks = try await fetchDataChunks()
+        
+        for chunk in chunks {
+            // Regular cancellation check
+            try Task.checkCancellation()
+            
+            try await processChunk(chunk)
+        }
+    }
+}
+</code></pre><p>Important aspects of cancellation:</p><ul><li>Cooperative cancellation model</li><li>Explicit cancellation checks</li><li>Clean resource cleanup</li><li>Proper error propagation</li></ul><h3>Task Priority Management</h3><p>Understanding and managing task priorities is essential for optimal performance:</p><pre><code class="language-swift">class BackgroundTaskManager {
+    func scheduleTask(priority: TaskPriority) async {
+        let task = Task(priority: priority) {
+            try await performBackgroundWork()
+        }
+        
+        // Handle task completion
+        do {
+            try await task.value
+            print("Task completed successfully")
+        } catch {
+            print("Task failed: \(error)")
+        }
+    }
+    
+    private func performBackgroundWork() async throws {
+        // Check current task priority
+        if Task.currentPriority == .background {
+            // Perform longer-running operations
+            try await longRunningOperation()
+        } else {
+            // Perform quick operations
+            try await quickOperation()
+        }
+    }
+}
+</code></pre><p>Priority considerations:</p><ul><li>User interaction tasks should have higher priority</li><li>Background tasks should yield to more important work</li><li>Priority inheritance prevents priority inversion</li><li>System resources are allocated based on priority</li></ul><h2>5. Custom Executors and Task Priority</h2><h3>Implementing a Custom Executor</h3><p>Custom executors provide fine-grained control over task execution:</p><pre><code class="language-swift">final class CustomSerialExecutor: SerialExecutor {
+    private let queue: DispatchQueue
+    
+    init(label: String) {
+        self.queue = DispatchQueue(label: label)
+    }
+    
+    func enqueue(_ job: UnownedJob) {
+        queue.async {
+            job.runSynchronously()
+        }
+    }
+    
+    func asUnownedSerialExecutor() -&gt; UnownedSerialExecutor {
+        UnownedSerialExecutor(ordinary: self)
+    }
+}
+
+// Usage with an actor
+actor CustomActor: GlobalActor {
+    static let shared = CustomActor()
+    static var sharedUnownedExecutor: UnownedSerialExecutor {
+        CustomSerialExecutor(label: "com.example.customactor").asUnownedSerialExecutor()
+    }
+}
+</code></pre><p>Benefits of custom executors:</p><ul><li>Control over task execution environment</li><li>Custom scheduling policies</li><li>Performance optimization opportunities</li><li>Integration with existing systems</li></ul><h2>6. Error Handling in Concurrent Code</h2><p>Robust error handling is crucial in concurrent applications:</p><pre><code class="language-swift">enum NetworkError: Error {
+    case connectionFailed
+    case timeout
+    case invalidResponse
+}
+
+struct ConcurrentOperation {
+    func executeWithRetry(maxAttempts: Int) async throws -&gt; Result {
+        var attempts = 0
+        
+        while attempts &lt; maxAttempts {
+            do {
+                return try await performOperation()
+            } catch NetworkError.connectionFailed where attempts &lt; maxAttempts - 1 {
+                attempts += 1
+                // Exponential backoff
+                try await Task.sleep(nanoseconds: UInt64(pow(2.0, Double(attempts))) * 1_000_000_000)
+                continue
+            } catch {
+                throw error
+            }
+        }
+        
+        throw NetworkError.timeout
+    }
+}
+</code></pre><p>Error handling strategies:</p><ul><li>Retry with exponential backoff</li><li>Error categorization</li><li>Graceful degradation</li><li>User feedback mechanisms</li></ul><h2>7. Performance Optimization</h2><h3>Batch Processing with Task Groups</h3><p>Efficient batch processing can significantly improve performance:</p><pre><code class="language-swift">struct BatchProcessor {
+    func processBatch&lt;T&gt;(_ items: [T], batchSize: Int) async throws -&gt; [Result] {
+        var results: [Result] = []
+        
+        try await withThrowingTaskGroup(of: [Result].self) { group in
+            // Split items into batches
+            let batches = items.chunked(into: batchSize)
+            
+            for batch in batches {
+                group.addTask {
+                    try await processBatchItems(batch)
+                }
+            }
+            
+            // Collect results from all batches
+            for try await batchResults in group {
+                results.append(contentsOf: batchResults)
+            }
+        }
+        
+        return results
+    }
+}
+</code></pre><p>Optimization techniques:</p><ul><li>Appropriate batch sizing</li><li>Resource utilization monitoring</li><li>Memory management</li><li>Progress tracking</li></ul><h2>8. Real-world Examples</h2><h3>Image Processing Pipeline</h3><p>A practical example of concurrent image processing:</p><pre><code class="language-swift">actor ImageProcessor {
+    private var cache: [String: ProcessedImage] = [:]
+    
+    func processImage(_ url: URL) async throws -&gt; ProcessedImage {
+        // Check cache
+        if let cached = cache[url.absoluteString] {
+            return cached
+        }
+        
+        // Download and process image concurrently
+        async let downloadedData = downloadImage(url)
+        async let filters = prepareFilters()
+        
+        let image = try await ProcessedImage(
+            data: downloadedData,
+            filters: filters
+        )
+        
+        // Cache the result
+        cache[url.absoluteString] = image
+        return image
+    }
+}
+
+// Usage example with batch processing
+class ImageViewModel {
+    private let processor = ImageProcessor()
+    
+    func loadImages(_ urls: [URL]) async throws -&gt; [ProcessedImage] {
+        try await withThrowingTaskGroup(of: ProcessedImage.self) { group in
+            for url in urls {
+                group.addTask {
+                    try await self.processor.processImage(url)
+                }
+            }
+            
+            return try await group.reduce(into: []) { $0.append($1) }
+        }
+    }
+}
+</code></pre><p>This example demonstrates:</p><ul><li>Concurrent resource downloading</li><li>Cache management</li><li>Error handling</li><li>Progress tracking</li><li>Resource cleanup</li></ul><h2>Conclusion</h2><p>Swift's concurrency system provides powerful tools for writing efficient, safe, and maintainable concurrent code. By understanding and properly implementing these advanced concepts, you can create robust applications that take full advantage of modern hardware capabilities while maintaining code clarity and safety.</p><p>Remember these key points: 1. Use structured concurrency to manage task lifetimes 2. Leverage actors for safe state management 3. Implement proper error handling and cancellation 4. Optimize performance with task groups and batch processing 5. Consider custom executors for specific use cases</p><p>The examples provided in this article demonstrate practical implementations of these concepts, but remember that each use case may require different approaches and optimizations. Always consider your specific requirements and constraints when implementing concurrent solutions.</p><p>If you face any difficulties implementing these patterns or have questions, feel free to reach out at blogswithrahul@gmail.com.</p><div style="text-align:center;">
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+  <ins class="adsbygoogle"
+       style="display:block"
+       data-ad-client="ca-pub-9268892677399703"
+       data-ad-slot="1234567890"
+       data-ad-format="auto"
+       data-full-width-responsive="true"></ins>
+  <script>
+       (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+</div>]]></content:encoded></item><item><guid isPermaLink="true">bandalrahul.github.io/posts/ApplePay</guid><title>Apple Pay Integration Guide</title><description>Apple Pay is a mobile payment and digital wallet service developed by Apple Inc. It allows users to make payments in person, in iOS apps, and on the web using Safari. Users can add their credit, debit, or prepaid cards to their Apple devices, enabling them to make payments using these devices instead of physical cards.</description><link>bandalrahul.github.io/posts/ApplePay</link><pubDate>Sun, 22 Dec 2024 17:08:00 +0530</pubDate><content:encoded><![CDATA[<h1>Apple Pay Integration Guide</h1><p>Apple Pay is a mobile payment and digital wallet service developed by Apple Inc. It allows users to make payments in person, in iOS apps, and on the web using Safari. Users can add their credit, debit, or prepaid cards to their Apple devices, enabling them to make payments using these devices instead of physical cards.</p><p><strong>Note:</strong> Apple Pay only works with the Safari browser. It is not compatible with Google Chrome and has never been.</p><hr><h2>Key Features of Apple Pay</h2><ul><li><strong>Contactless Payments</strong> Users can make secure, contactless payments at retail locations equipped with near-field communication (NFC) by holding their Apple device near the terminal.</li></ul><ul><li><strong>In-App Purchases</strong> Apple Pay can be used within supported apps on iOS devices for fast, secure checkouts.</li></ul><ul><li><strong>Web Payments</strong> On Safari, Apple Pay allows users to pay on websites without needing to re-enter card details.</li></ul><ul><li><strong>Security</strong> Apple Pay uses a feature called <em>tokenization</em> where the actual card number is not stored on the device or Apple servers. Instead, a unique Device Account Number is encrypted and securely stored.</li></ul><ul><li><strong>Privacy</strong> Apple does not track users’ transactions, offering greater privacy.</li></ul><h2>Apple Developer Setup for Apple Pay</h2><p>To implement Apple Pay in your apps, follow these steps:</p><h3>1. Create a Merchant Identifier</h3><p>Register a merchant ID with Apple to uniquely identify your business for accepting Apple Pay. This ID does not expire and can be reused across websites and apps.</p><h3>2. Create a Payment Processing Certificate</h3><p>Using your merchant identifier, generate a certificate to secure transaction data. Apple Pay servers use the public key to encrypt the data. You or your payment provider use the private key to decrypt and process the payment.</p><p>Check which payment merchants are available for Apple Pay.</p><h3>3. Enable Apple Pay in Xcode</h3><ol><li>Open your project in Xcode.</li><li>Select your project from the Project navigator.</li><li>Choose your app target.</li><li>Click the <strong>Signing &amp; Capabilities</strong> tab.</li><li>Click the <strong>+</strong> button and select <strong>Apple Pay</strong> from the Capabilities library.</li><li>Click the refresh icon to sync your merchant identifiers.</li><li>Select your desired merchant ID.</li></ol><h2>Create a Sandbox Apple ID</h2><h3>1. Create a New Apple ID</h3><p>Go to <a href="https://appleid.apple.com/">Apple ID</a> and register a new account. Use an unused email address. Verify your email by following the instructions sent to your inbox.</p><h3>2. Sign In to App Store Connect</h3><p>Visit <a href="https://appstoreconnect.apple.com/">App Store Connect</a>. Sign in using your main Apple Developer account.</p><h3>3. Add Sandbox Testers</h3><p>Navigate to <strong>Users and Access</strong> in App Store Connect. Click the <strong>+</strong> button. Add the sandbox Apple ID. Choose any role (role does not impact testing). Click <strong>Invite</strong>.</p><h3>4. Sign In on Your iOS Device</h3><p>On your device, sign out of your current Apple ID. Sign in using the sandbox account. Go to <strong>Settings &gt; iTunes &amp; App Store</strong> and sign in again with the sandbox ID.</p><p>Add sandbox cards to Apple Wallet: <a href="https://developer.apple.com/apple-pay/sandbox-testing/">Apple Pay Sandbox Testing</a></p><h2>Apple Pay Payment Workflow</h2><div style="text-align: center;">
     <img src="bandalrahul.github.io/Images/ApplepayFlow.png" alt="Swift Logo" class="responsive-image">
 </div><h3>Prerequisites</h3><ul><li>Apple Pay should be available in the country: <a href="https://support.apple.com/en-in/102775">Supported Countries</a></li><li>Supported networks (from API): <code>.quicPay</code>, <code>.masterCard</code>, <code>.visa</code>, <code>.discover</code>, <code>.amex</code></li><li>Country code (e.g., <code>US</code>) and currency code (e.g., <code>USD</code>)</li><li>Summary of items for purchase (e.g., product and price)</li></ul><h3>Payment Process</h3><p>Once a user authorizes Apple Pay, the app receives a payment token, which is sent to your backend API. The server validates and authorizes the token via the merchant gateway and sends the result back to the app.</p><p><strong>Example Token Data:</strong></p><pre><code class="language-json">{
   "data": "...",
