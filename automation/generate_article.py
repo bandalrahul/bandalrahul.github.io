@@ -16,8 +16,43 @@ TOPICS_FILE = ROOT / "automation" / "topics.json"
 PUBLISHED_FILE = ROOT / "automation" / "published-topics.json"
 SYSTEM_INSTRUCTION = (
     "You are an expert Swift and iOS developer who writes accurate, "
-    "high-quality technical blog posts. Output only markdown."
+    "high-quality technical blog posts with clear inline SVG diagrams. "
+    "Output markdown with embedded HTML/SVG visuals where specified."
 )
+
+VISUAL_GUIDELINES = """
+Visual content requirements (VERY IMPORTANT):
+- Include at least 2 inline SVG diagrams and 1 ASCII diagram
+- SVG diagrams must be wrapped exactly like this:
+
+<div style="text-align: center; margin: 2em 0;">
+<svg viewBox="0 0 600 220" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Short description">
+  <title>Short description</title>
+  <!-- simple shapes, labels, arrows; use blog colors #2A8367 green, #F04B3E red, #1565c0 blue -->
+</svg>
+</div>
+
+- SVG rules:
+  - Self-contained (no external images or scripts)
+  - Use viewBox for responsive scaling
+  - Include role="img", aria-label, and <title>
+  - Label all boxes/text clearly
+  - Prefer flowcharts, comparison diagrams, architecture boxes, before/after visuals
+  - Use simple rects, circles, lines, and text only
+
+- ASCII diagram example (put in a plain fenced code block, not swift):
+
+```
+┌─────────────┐     ┌─────────────┐
+│   View      │ ──► │  ViewModel  │
+└─────────────┘     └─────────────┘
+```
+
+- Place one SVG after the introduction and one SVG in the middle of the article
+- Add a comparison or flow diagram before the Summary section when helpful
+- Do NOT use external image URLs (no hotlinked photos)
+- Do NOT use Mermaid — use SVG or ASCII only
+"""
 GEMINI_MODELS = [
     "gemini-2.5-flash",
     "gemini-2.0-flash-lite",
@@ -93,14 +128,16 @@ Rules:
 - Write for intermediate iOS developers
 - Include practical Swift code examples in fenced ```swift blocks
 - Use clear markdown headings (## and ###)
-- Length: 700-1000 words
+- Length: 900-1300 words (excluding SVG/ASCII diagrams)
 - Tone: tutorial-style, clear, accurate, friendly
 - Do NOT write about these existing topics:
 {avoid_list}
-- Do NOT include HTML unless necessary; prefer markdown
-- Do NOT wrap the response in markdown code fences
+- Use markdown for text; use inline HTML only for SVG diagram wrappers
+- Do NOT wrap the entire response in markdown code fences
 - Verify Swift APIs you mention are real and current
 - End with a short "Summary" section and sign off with "Happy Swifting!"
+
+{VISUAL_GUIDELINES}
 
 Return ONLY the full markdown file including YAML front matter in this exact format:
 
@@ -227,6 +264,12 @@ def validate_markdown(content: str) -> None:
         raise ValueError("Generated content is missing a title heading")
     if "```swift" not in content:
         raise ValueError("Generated content is missing Swift code examples")
+    if content.count("<svg") < 2:
+        raise ValueError("Generated content must include at least 2 SVG diagrams")
+    if "aria-label=" not in content:
+        raise ValueError("SVG diagrams must include aria-label for accessibility")
+    if "┌" not in content and "->" not in content and "──" not in content:
+        raise ValueError("Generated content must include at least 1 ASCII diagram")
 
 
 def extract_title(content: str) -> str:

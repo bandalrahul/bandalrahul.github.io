@@ -69,9 +69,10 @@ Existing manual posts are pre-marked in `published-topics.json` to reduce overla
 ## Safety checks
 
 - Skips if a post with today's date already exists
-- Validates front matter and Swift code blocks before saving
+- Validates front matter, Swift code blocks, SVG diagrams, and ASCII diagrams before saving
 - Avoids regenerating titles already on the blog
 - Only generates Swift / iOS / Apple platform content
+- Each article includes **2+ SVG diagrams** and **1+ ASCII diagram** for visual learning
 
 ## Cost
 
