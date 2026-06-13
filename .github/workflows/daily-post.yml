@@ -1,0 +1,62 @@
+name: Daily Swift Blog Post
+
+on:
+  schedule:
+    # Runs every day at 09:00 UTC
+    - cron: "0 9 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  publish-daily-post:
+    runs-on: macos-14
+    steps:
+      - name: Checkout source branch
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Python dependencies
+        run: pip install -r automation/requirements.txt
+
+      - name: Generate Swift/iOS article
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          OPENAI_MODEL: ${{ vars.OPENAI_MODEL }}
+        run: python automation/generate_article.py
+
+      - name: Set up Swift
+        uses: swift-actions/setup-swift@v2
+        with:
+          swift-version: "5.10"
+
+      - name: Build and generate site
+        run: swift run PublishSBR
+
+      - name: Deploy site to GitHub Pages branch
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          folder: Output
+          branch: master
+          single-commit: true
+          clean: true
+
+      - name: Commit generated article to main
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add Content/posts automation/published-topics.json
+          if git diff --staged --quiet; then
+            echo "No source changes to commit."
+            exit 0
+          fi
+          git commit -m "Auto-publish: daily Swift/iOS article $(date +'%Y-%m-%d')"
+          git push origin main

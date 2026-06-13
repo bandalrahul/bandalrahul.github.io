@@ -10,7 +10,6 @@ import Publish
 import Plot
 import SplashPublishPlugin
 
-
 private struct Wrapper: ComponentContainer {
     @ComponentBuilder var content: ContentProvider
 
@@ -26,8 +25,17 @@ struct MyHTMLFactory<Site: Website>: HTMLFactory {
             .lang(context.site.language),
             .head(for: index, on: context.site),
             .body {
+                SiteHeader(context: context, selectedSelectionID: nil)
                 Wrapper {
-                    H1(index.title)
+                    Div {
+                        H1(index.title)
+                        Paragraph("Swift tutorials & iOS development")
+                            .class("site-tagline")
+                        Paragraph("by Rahul Bandal")
+                            .class("site-author")
+                    }
+                    .class("hero")
+
                     ItemList(
                         items: context.allItems(
                             sortedBy: \.date,
@@ -36,10 +44,10 @@ struct MyHTMLFactory<Site: Website>: HTMLFactory {
                         site: context.site
                     )
                 }
+                SiteFooter()
             }
         )
     }
-    
 
     func makeSectionHTML(for section: Section<Site>,
                          context: PublishingContext<Site>) throws -> HTML {
@@ -63,8 +71,9 @@ struct MyHTMLFactory<Site: Website>: HTMLFactory {
             .lang(context.site.language),
             .head(for: item, on: context.site),
             .head(
-                .stylesheet("/css/prism.css"),  // Add Prism.css
-                .script(.src("/js/prism.js"))   // Add Prism.js
+                .stylesheet("/css/prism.css"),
+                .script(.src("/js/prism.js")),
+                .script(.src("/js/article.js"))
             ),
             .body(
                 .class("item-page"),
@@ -72,14 +81,38 @@ struct MyHTMLFactory<Site: Website>: HTMLFactory {
                     SiteHeader(context: context, selectedSelectionID: item.sectionID)
                     Wrapper {
                         Article {
-                            Div(item.content.body).class("content")
-                            adsenseBanner()
-//                            Span("Tagged with: ")
-//                            ItemTagList(item: item, site: context.site)
-                            
+                            Div {
+                                tocToggleButton()
+
+                                Div {
+                                    Aside {
+                                        Paragraph("On this page")
+                                            .class("toc-heading")
+                                        Navigation()
+                                            .class("toc-nav")
+                                            .id("article-toc-nav")
+                                    }
+                                    .class("toc")
+                                    .id("article-toc")
+
+                                    Div {
+                                        ArticleMeta(item: item, site: context.site)
+                                        Div(item.content.body).class("content")
+                                        Div {
+                                            Span("Tagged: ")
+                                                .class("tags-label")
+                                            ItemTagList(item: item, site: context.site)
+                                        }
+                                        .class("article-tags")
+                                        adsenseBanner()
+                                    }
+                                    .class("article-main")
+                                }
+                                .class("article-layout")
+                            }
                         }
                     }
-//                    SiteFooter()
+                    SiteFooter()
                 }
             )
         )
@@ -155,9 +188,6 @@ struct MyHTMLFactory<Site: Website>: HTMLFactory {
     }
 }
 
-// This will generate your website using the built-in Foundation theme:
-
-
 private struct SiteHeader<Site: Website>: Component {
     var context: PublishingContext<Site>
     var selectedSelectionID: Site.SectionID?
@@ -168,27 +198,29 @@ private struct SiteHeader<Site: Website>: Component {
                 Link(context.site.name, url: "/")
                     .class("site-name")
 
-                if Site.SectionID.allCases.count > 1 {
-                    navigation
+                Navigation {
+                    List {
+                        ListItem {
+                            Link("Home", url: "/")
+                                .class(selectedSelectionID == nil ? "selected" : "")
+                        }
+                        ListItem {
+                            Link("Posts", url: "/posts/")
+                                .class(selectedSelectionID != nil ? "selected" : "")
+                        }
+                        ListItem {
+                            Link("Tags", url: context.site.tagListPath.absoluteString)
+                        }
+                        ListItem {
+                            Link("GitHub", url: "https://github.com/bandalrahul")
+                        }
+                    }
                 }
-            }
-        }
-    }
-
-    private var navigation: Component {
-        Navigation {
-            List(Site.SectionID.allCases) { sectionID in
-                let section = context.sections[sectionID]
-
-                return Link(section.title,
-                    url: section.path.absoluteString
-                )
-                .class(sectionID == selectedSelectionID ? "selected" : "")
+                .class("site-nav")
             }
         }
     }
 }
-
 
 private struct ItemList<Site: Website>: Component {
     var items: [Item<Site>]
@@ -197,13 +229,50 @@ private struct ItemList<Site: Website>: Component {
     var body: Component {
         List(items) { item in
             Article {
-                H1(Link(item.title, url: item.path.absoluteString))
-                Paragraph(item.description)
-                Paragraph("")
-                Span(" - Published on \(item.date.formatted(.dateTime.month().day().year()))")
+                Div {
+                    if item.path == items.first?.path {
+                        Span("Latest")
+                            .class("post-badge")
+                    }
+
+                    H2(Link(item.title, url: item.path.absoluteString))
+
+                    Paragraph(item.description)
+
+                    Div {
+                        Span(item.date.formatted(.dateTime.day().month(.wide).year()))
+                        Span(" · ")
+                        Span("\(readingTimeMinutes(for: item)) min read")
+                    }
+                    .class("post-meta")
+
+                    if !item.tags.isEmpty {
+                        ItemTagList(item: item, site: site)
+                    }
+                }
+                .class(item.path == items.first?.path ? "post-card latest" : "post-card")
             }
         }
         .class("item-list")
+    }
+}
+
+private struct ArticleMeta<Site: Website>: Component {
+    var item: Item<Site>
+    var site: Site
+
+    var body: Component {
+        Div {
+            Span(item.date.formatted(.dateTime.day().month(.wide).year()))
+            Span(" · ")
+            Span("\(readingTimeMinutes(for: item)) min read")
+
+            if !item.tags.isEmpty {
+                Span(" · ")
+                ItemTagList(item: item, site: site)
+            }
+        }
+        .class("article-meta")
     }
 }
 
@@ -222,15 +291,40 @@ private struct ItemTagList<Site: Website>: Component {
 private struct SiteFooter: Component {
     var body: Component {
         Footer {
-            Paragraph {
-                Text("Generated using ")
-                Link("Publish", url: "https://github.com/johnsundell/publish")
-            }
-            Paragraph {
-                Link("RSS feed", url: "/feed.rss")
+            Wrapper {
+                Paragraph {
+                    Text("© Swift By Rahul · ")
+                    Link("RSS", url: "/feed.rss")
+                    Text(" · ")
+                    Link("GitHub", url: "https://github.com/bandalrahul")
+                    Text(" · Built with ")
+                    Link("Publish", url: "https://github.com/johnsundell/publish")
+                }
             }
         }
     }
+}
+
+private func readingTimeMinutes<Site: Website>(for item: Item<Site>) -> Int {
+    let plainText = item.content.body.html
+        .replacingOccurrences(of: "<[^>]+>", with: " ", options: .regularExpression)
+    let wordCount = plainText
+        .split(whereSeparator: \.isWhitespace)
+        .count
+    return max(1, wordCount / 200)
+}
+
+private func tocToggleButton() -> Component {
+    Node<HTML.BodyContext>.element(
+        named: "button",
+        nodes: [
+            .class("toc-toggle"),
+            .id("toc-toggle"),
+            .attribute(named: "type", value: "button"),
+            .attribute(named: "aria-expanded", value: "false"),
+            .text("On this page")
+        ]
+    )
 }
 
 func adsenseBanner() -> Node<HTML.BodyContext> {
@@ -247,10 +341,3 @@ func adsenseBanner() -> Node<HTML.BodyContext> {
         .script(.raw("(adsbygoogle = window.adsbygoogle || []).push({});"))
     )
 }
-
-func newsArticlePage() -> HTML {
-    return HTML {
-         Content.Body.init(html:"<html><body><h1>My First Heading</h1><p>My first paragraph.</p></body></html>" )
-    }
-}
-
