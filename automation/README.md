@@ -15,23 +15,33 @@ Every day at **09:00 UTC**, GitHub Actions will:
 
 ## One-time setup
 
-### 1. Add your Gemini API key
+### 1. Add a free AI API key
+
+Use **one or both** providers below.
+
+#### Option A: Google Gemini (recommended)
 
 Get a free key at [Google AI Studio](https://aistudio.google.com/apikey).
-
-In GitHub repo settings:
-
-**Settings → Secrets and variables → Actions → New repository secret**
 
 | Name | Value |
 |------|-------|
 | `GEMINI_API_KEY` | Your Google Gemini API key |
 
-Optional variable (not secret):
+Optional variable:
 
 | Name | Value |
 |------|-------|
-| `GEMINI_MODEL` | `gemini-1.5-flash` (default, with automatic fallbacks) |
+| `GEMINI_MODEL` | Override default Gemini model |
+
+#### Option B: Groq (free backup)
+
+If Gemini quota fails, add a free Groq key from [console.groq.com](https://console.groq.com).
+
+| Name | Value |
+|------|-------|
+| `GROQ_API_KEY` | Your Groq API key |
+
+The workflow tries **Gemini first**, then **Groq** automatically.
 
 ### 2. Enable GitHub Actions
 

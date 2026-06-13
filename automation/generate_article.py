@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate a daily Swift/iOS blog article using the Google Gemini API."""
+"""Generate a daily Swift/iOS blog article using free AI APIs."""
 
 from __future__ import annotations
 
@@ -10,12 +10,6 @@ import sys
 from datetime import datetime
 from pathlib import Path
 
-try:
-    import google.generativeai as genai
-except ImportError:
-    print("Missing dependency: pip install google-generativeai")
-    sys.exit(1)
-
 ROOT = Path(__file__).resolve().parent.parent
 POSTS_DIR = ROOT / "Content" / "posts"
 TOPICS_FILE = ROOT / "automation" / "topics.json"
@@ -24,6 +18,16 @@ SYSTEM_INSTRUCTION = (
     "You are an expert Swift and iOS developer who writes accurate, "
     "high-quality technical blog posts. Output only markdown."
 )
+GEMINI_MODELS = [
+    "gemini-2.5-flash",
+    "gemini-2.0-flash-lite",
+    "gemini-1.5-flash-8b",
+    "gemini-2.0-flash",
+]
+GROQ_MODELS = [
+    "llama-3.3-70b-versatile",
+    "llama-3.1-8b-instant",
+]
 
 
 def load_json(path: Path) -> dict | list:
@@ -89,7 +93,7 @@ Rules:
 - Write for intermediate iOS developers
 - Include practical Swift code examples in fenced ```swift blocks
 - Use clear markdown headings (## and ###)
-- Length: 900-1400 words
+- Length: 700-1000 words
 - Tone: tutorial-style, clear, accurate, friendly
 - Do NOT write about these existing topics:
 {avoid_list}
@@ -121,16 +125,17 @@ def strip_code_fences(content: str) -> str:
     return trimmed
 
 
-def generate_article(topic: dict, avoid_titles: list[str]) -> str:
-    configured_model = os.environ.get("GEMINI_MODEL")
-    model_names = [configured_model] if configured_model else [
-        "gemini-1.5-flash",
-        "gemini-2.0-flash-lite",
-        "gemini-2.0-flash",
-    ]
-    model_names = [name for name in model_names if name]
+def generate_with_gemini(prompt: str) -> str:
+    import google.generativeai as genai
 
-    prompt = build_prompt(topic, avoid_titles)
+    api_key = os.environ.get("GEMINI_API_KEY")
+    if not api_key:
+        raise RuntimeError("GEMINI_API_KEY is not set")
+
+    genai.configure(api_key=api_key)
+    configured_model = os.environ.get("GEMINI_MODEL")
+    model_names = [configured_model] if configured_model else GEMINI_MODELS
+    model_names = [name for name in model_names if name]
     errors: list[str] = []
 
     for model_name in model_names:
@@ -143,24 +148,76 @@ def generate_article(topic: dict, avoid_titles: list[str]) -> str:
                 prompt,
                 generation_config=genai.types.GenerationConfig(temperature=0.7),
             )
-
             if not response.candidates:
                 errors.append(f"{model_name}: no candidates returned")
                 continue
-
             content = response.text
             if not content:
                 errors.append(f"{model_name}: empty response")
                 continue
-
-            print(f"Generated article using model: {model_name}")
+            print(f"Generated article using Gemini model: {model_name}")
             return strip_code_fences(content)
         except Exception as error:
             errors.append(f"{model_name}: {error}")
-            continue
 
-    joined_errors = "\n".join(errors)
-    raise RuntimeError(f"All Gemini models failed:\n{joined_errors}")
+    raise RuntimeError("Gemini failed:\n" + "\n".join(errors))
+
+
+def generate_with_groq(prompt: str) -> str:
+    from groq import Groq
+
+    api_key = os.environ.get("GROQ_API_KEY")
+    if not api_key:
+        raise RuntimeError("GROQ_API_KEY is not set")
+
+    configured_model = os.environ.get("GROQ_MODEL")
+    model_names = [configured_model] if configured_model else GROQ_MODELS
+    model_names = [name for name in model_names if name]
+    client = Groq(api_key=api_key)
+    errors: list[str] = []
+
+    for model_name in model_names:
+        try:
+            response = client.chat.completions.create(
+                model=model_name,
+                temperature=0.7,
+                messages=[
+                    {"role": "system", "content": SYSTEM_INSTRUCTION},
+                    {"role": "user", "content": prompt},
+                ],
+            )
+            content = response.choices[0].message.content
+            if not content:
+                errors.append(f"{model_name}: empty response")
+                continue
+            print(f"Generated article using Groq model: {model_name}")
+            return strip_code_fences(content)
+        except Exception as error:
+            errors.append(f"{model_name}: {error}")
+
+    raise RuntimeError("Groq failed:\n" + "\n".join(errors))
+
+
+def generate_article(topic: dict, avoid_titles: list[str]) -> str:
+    prompt = build_prompt(topic, avoid_titles)
+    errors: list[str] = []
+
+    if os.environ.get("GEMINI_API_KEY"):
+        try:
+            return generate_with_gemini(prompt)
+        except Exception as error:
+            errors.append(str(error))
+
+    if os.environ.get("GROQ_API_KEY"):
+        try:
+            return generate_with_groq(prompt)
+        except Exception as error:
+            errors.append(str(error))
+
+    if not os.environ.get("GEMINI_API_KEY") and not os.environ.get("GROQ_API_KEY"):
+        raise RuntimeError("Set GEMINI_API_KEY and/or GROQ_API_KEY")
+
+    raise RuntimeError("All AI providers failed:\n\n" + "\n\n".join(errors))
 
 
 def validate_markdown(content: str) -> None:
@@ -184,12 +241,9 @@ def main() -> int:
         print("Article for today already exists. Skipping.")
         return 0
 
-    api_key = os.environ.get("GEMINI_API_KEY")
-    if not api_key:
-        print("GEMINI_API_KEY environment variable is required.")
+    if not os.environ.get("GEMINI_API_KEY") and not os.environ.get("GROQ_API_KEY"):
+        print("Set GEMINI_API_KEY and/or GROQ_API_KEY.")
         return 1
-
-    genai.configure(api_key=api_key)
 
     topic = pick_topic()
     avoid_titles = existing_post_titles()
