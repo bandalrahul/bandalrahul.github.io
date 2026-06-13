@@ -7,7 +7,7 @@ This folder powers fully automated daily publishing for [Swift By Rahul](https:/
 Every day at **09:00 UTC**, GitHub Actions will:
 
 1. Pick an unused Swift/iOS topic from `topics.json`
-2. Generate a new article with OpenAI
+2. Generate a new article with Google Gemini (free tier)
 3. Save it to `Content/posts/`
 4. Build the site with Publish
 5. Deploy to the `master` branch (GitHub Pages)
@@ -15,7 +15,9 @@ Every day at **09:00 UTC**, GitHub Actions will:
 
 ## One-time setup
 
-### 1. Add your OpenAI API key
+### 1. Add your Gemini API key
+
+Get a free key at [Google AI Studio](https://aistudio.google.com/apikey).
 
 In GitHub repo settings:
 
@@ -23,13 +25,13 @@ In GitHub repo settings:
 
 | Name | Value |
 |------|-------|
-| `OPENAI_API_KEY` | Your OpenAI API key |
+| `GEMINI_API_KEY` | Your Google Gemini API key |
 
 Optional variable (not secret):
 
 | Name | Value |
 |------|-------|
-| `OPENAI_MODEL` | `gpt-4o-mini` (default) or `gpt-4o` for higher quality |
+| `GEMINI_MODEL` | `gemini-2.0-flash` (default) |
 
 ### 2. Enable GitHub Actions
 
@@ -61,11 +63,9 @@ Existing manual posts are pre-marked in `published-topics.json` to reduce overla
 - Avoids regenerating titles already on the blog
 - Only generates Swift / iOS / Apple platform content
 
-## Cost estimate
+## Cost
 
-Using `gpt-4o-mini` at ~1 article/day:
-
-- Roughly **$0.05–0.20 per day** depending on article length
+Google Gemini free tier covers daily blog generation at no cost for typical usage.
 
 ## Disable automation
 
@@ -74,7 +74,7 @@ Pause the schedule by deleting or disabling `.github/workflows/daily-post.yml`, 
 ## Local test
 
 ```bash
-export OPENAI_API_KEY="your-key-here"
+export GEMINI_API_KEY="your-key-here"
 pip install -r automation/requirements.txt
 python automation/generate_article.py
 swift run PublishSBR

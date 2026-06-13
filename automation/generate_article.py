@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate a daily Swift/iOS blog article using the OpenAI API."""
+"""Generate a daily Swift/iOS blog article using the Google Gemini API."""
 
 from __future__ import annotations
 
@@ -11,15 +11,19 @@ from datetime import datetime
 from pathlib import Path
 
 try:
-    from openai import OpenAI
+    import google.generativeai as genai
 except ImportError:
-    print("Missing dependency: pip install openai")
+    print("Missing dependency: pip install google-generativeai")
     sys.exit(1)
 
 ROOT = Path(__file__).resolve().parent.parent
 POSTS_DIR = ROOT / "Content" / "posts"
 TOPICS_FILE = ROOT / "automation" / "topics.json"
 PUBLISHED_FILE = ROOT / "automation" / "published-topics.json"
+SYSTEM_INSTRUCTION = (
+    "You are an expert Swift and iOS developer who writes accurate, "
+    "high-quality technical blog posts. Output only markdown."
+)
 
 
 def load_json(path: Path) -> dict | list:
@@ -90,6 +94,7 @@ Rules:
 - Do NOT write about these existing topics:
 {avoid_list}
 - Do NOT include HTML unless necessary; prefer markdown
+- Do NOT wrap the response in markdown code fences
 - Verify Swift APIs you mention are real and current
 - End with a short "Summary" section and sign off with "Happy Swifting!"
 
@@ -108,26 +113,33 @@ tags: {tag_line}
 """
 
 
-def generate_article(client: OpenAI, topic: dict, avoid_titles: list[str]) -> str:
-    model = os.environ.get("OPENAI_MODEL") or "gpt-4o-mini"
-    response = client.chat.completions.create(
-        model=model,
-        temperature=0.7,
-        messages=[
-            {
-                "role": "system",
-                "content": (
-                    "You are an expert Swift and iOS developer who writes accurate, "
-                    "high-quality technical blog posts. Output only markdown."
-                ),
-            },
-            {"role": "user", "content": build_prompt(topic, avoid_titles)},
-        ],
+def strip_code_fences(content: str) -> str:
+    trimmed = content.strip()
+    match = re.match(r"^```(?:markdown|md)?\s*\n(.*)\n```\s*$", trimmed, re.DOTALL)
+    if match:
+        return match.group(1).strip()
+    return trimmed
+
+
+def generate_article(topic: dict, avoid_titles: list[str]) -> str:
+    model_name = os.environ.get("GEMINI_MODEL") or "gemini-2.0-flash"
+    model = genai.GenerativeModel(
+        model_name=model_name,
+        system_instruction=SYSTEM_INSTRUCTION,
     )
-    content = response.choices[0].message.content
+    response = model.generate_content(
+        build_prompt(topic, avoid_titles),
+        generation_config=genai.types.GenerationConfig(temperature=0.7),
+    )
+
+    if not response.candidates:
+        raise RuntimeError("Gemini returned no candidates")
+
+    content = response.text
     if not content:
-        raise RuntimeError("OpenAI returned empty content")
-    return content.strip()
+        raise RuntimeError("Gemini returned empty content")
+
+    return strip_code_fences(content)
 
 
 def validate_markdown(content: str) -> None:
@@ -151,17 +163,18 @@ def main() -> int:
         print("Article for today already exists. Skipping.")
         return 0
 
-    api_key = os.environ.get("OPENAI_API_KEY")
+    api_key = os.environ.get("GEMINI_API_KEY")
     if not api_key:
-        print("OPENAI_API_KEY environment variable is required.")
+        print("GEMINI_API_KEY environment variable is required.")
         return 1
+
+    genai.configure(api_key=api_key)
 
     topic = pick_topic()
     avoid_titles = existing_post_titles()
-    client = OpenAI(api_key=api_key)
 
     print(f"Generating article for topic: {topic['title']}")
-    markdown = generate_article(client, topic, avoid_titles)
+    markdown = generate_article(topic, avoid_titles)
     validate_markdown(markdown)
 
     title = extract_title(markdown)
