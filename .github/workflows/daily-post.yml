@@ -30,7 +30,6 @@ jobs:
       - name: Generate Swift/iOS article
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          OPENAI_MODEL: ${{ vars.OPENAI_MODEL }}
         run: python automation/generate_article.py
 
       - name: Set up Swift

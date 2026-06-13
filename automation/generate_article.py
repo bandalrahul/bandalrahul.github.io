@@ -109,7 +109,7 @@ tags: {tag_line}
 
 
 def generate_article(client: OpenAI, topic: dict, avoid_titles: list[str]) -> str:
-    model = os.environ.get("OPENAI_MODEL", "gpt-4o-mini")
+    model = os.environ.get("OPENAI_MODEL") or "gpt-4o-mini"
     response = client.chat.completions.create(
         model=model,
         temperature=0.7,
