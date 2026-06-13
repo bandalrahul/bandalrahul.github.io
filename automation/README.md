@@ -31,7 +31,7 @@ Optional variable (not secret):
 
 | Name | Value |
 |------|-------|
-| `GEMINI_MODEL` | `gemini-2.0-flash` (default) |
+| `GEMINI_MODEL` | `gemini-1.5-flash` (default, with automatic fallbacks) |
 
 ### 2. Enable GitHub Actions
 

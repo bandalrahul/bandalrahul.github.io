@@ -122,24 +122,45 @@ def strip_code_fences(content: str) -> str:
 
 
 def generate_article(topic: dict, avoid_titles: list[str]) -> str:
-    model_name = os.environ.get("GEMINI_MODEL") or "gemini-2.0-flash"
-    model = genai.GenerativeModel(
-        model_name=model_name,
-        system_instruction=SYSTEM_INSTRUCTION,
-    )
-    response = model.generate_content(
-        build_prompt(topic, avoid_titles),
-        generation_config=genai.types.GenerationConfig(temperature=0.7),
-    )
+    configured_model = os.environ.get("GEMINI_MODEL")
+    model_names = [configured_model] if configured_model else [
+        "gemini-1.5-flash",
+        "gemini-2.0-flash-lite",
+        "gemini-2.0-flash",
+    ]
+    model_names = [name for name in model_names if name]
 
-    if not response.candidates:
-        raise RuntimeError("Gemini returned no candidates")
+    prompt = build_prompt(topic, avoid_titles)
+    errors: list[str] = []
 
-    content = response.text
-    if not content:
-        raise RuntimeError("Gemini returned empty content")
+    for model_name in model_names:
+        try:
+            model = genai.GenerativeModel(
+                model_name=model_name,
+                system_instruction=SYSTEM_INSTRUCTION,
+            )
+            response = model.generate_content(
+                prompt,
+                generation_config=genai.types.GenerationConfig(temperature=0.7),
+            )
 
-    return strip_code_fences(content)
+            if not response.candidates:
+                errors.append(f"{model_name}: no candidates returned")
+                continue
+
+            content = response.text
+            if not content:
+                errors.append(f"{model_name}: empty response")
+                continue
+
+            print(f"Generated article using model: {model_name}")
+            return strip_code_fences(content)
+        except Exception as error:
+            errors.append(f"{model_name}: {error}")
+            continue
+
+    joined_errors = "\n".join(errors)
+    raise RuntimeError(f"All Gemini models failed:\n{joined_errors}")
 
 
 def validate_markdown(content: str) -> None:
