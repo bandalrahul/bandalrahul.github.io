@@ -59,7 +59,7 @@ Go to **Actions → Daily Swift Blog Post → Run workflow**.
 
 ## Topic management
 
-- **`topics.json`** — pool of Swift/iOS topics (100+ included)
+- **`topics.json`** — pool of **1,100+** Swift/iOS topics
 - **`published-topics.json`** — tracks which topics were used
 
 When all topics are used, add more entries to `topics.json`.
