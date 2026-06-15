@@ -6,7 +6,7 @@ on:
       delete_post_id:
         description: "Facebook post id to delete (optional)"
         required: false
-        default: "2187431381481377_1622794653185939"
+        default: ""
 
 permissions:
   contents: read
