@@ -24,6 +24,8 @@ GRAPH_API_VERSION = "v21.0"
 URL_VERIFY_ATTEMPTS = 6
 URL_VERIFY_DELAY_SECONDS = 10
 
+DEFAULT_OG_IMAGE = ROOT / "Resources" / "Images" / "og-default.png"
+
 
 def parse_front_matter(text: str) -> dict[str, str]:
     trimmed = text.lstrip()
@@ -238,6 +240,36 @@ def post_link_with_picture(
     return post_id
 
 
+
+def post_link(
+    page_id: str,
+    access_token: str,
+    message: str,
+    link: str,
+) -> str:
+    body = urllib.parse.urlencode(
+        {
+            "message": message,
+            "link": link,
+            "access_token": access_token,
+        }
+    ).encode("utf-8")
+    api_url = f"https://graph.facebook.com/{GRAPH_API_VERSION}/{page_id}/feed"
+    request = urllib.request.Request(api_url, data=body, method="POST")
+
+    try:
+        with urllib.request.urlopen(request, timeout=30) as response:
+            result = parse_facebook_response(response.read())
+    except urllib.error.HTTPError as error:
+        detail = error.read().decode("utf-8", errors="replace")
+        raise RuntimeError(f"Facebook link post failed ({error.code}): {detail}") from error
+
+    post_id = result.get("id")
+    if not post_id:
+        raise RuntimeError(f"Unexpected Facebook response: {result}")
+    return post_id
+
+
 def delete_facebook_post(post_id: str) -> None:
     page_id, access_token = facebook_credentials()
     query = urllib.parse.urlencode({"access_token": access_token})
@@ -259,8 +291,12 @@ def post_to_facebook(payload: dict[str, str]) -> str:
     verify_live_url(payload["link"])
 
     image_path = Path(payload["image_path"]) if payload["image_path"] else None
+    if not image_path or not image_path.exists():
+        if DEFAULT_OG_IMAGE.exists():
+            image_path = DEFAULT_OG_IMAGE
+
     if image_path and image_path.exists():
-        print(f"Posting with article image: {image_path.name}")
+        print(f"Posting with image upload: {image_path.name}")
         return post_photo_with_message(
             page_id,
             access_token,
@@ -268,13 +304,12 @@ def post_to_facebook(payload: dict[str, str]) -> str:
             image_path,
         )
 
-    print(f"Posting link preview with image URL: {payload['image_url']}")
-    return post_link_with_picture(
+    print(f"Posting link preview (no custom picture): {payload['link']}")
+    return post_link(
         page_id,
         access_token,
         payload["message"],
         payload["link"],
-        payload["image_url"],
     )
 
 
