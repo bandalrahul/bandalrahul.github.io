@@ -41,6 +41,11 @@ jobs:
       - name: Build and generate site
         run: swift run PublishSBR
 
+      - name: Generate social preview images
+        run: |
+          brew install cairo
+          python automation/generate_social_images.py
+
       - name: Deploy site to GitHub Pages branch
         uses: JamesIves/github-pages-deploy-action@v4
         with:

@@ -74,7 +74,11 @@ struct MyHTMLFactory<Site: Website>: HTMLFactory {
                 .stylesheet("/css/prism.css"),
                 .script(.src("/js/prism.js")),
                 .script(.src("/js/article.js")),
-                adsenseLoaderScript()
+                adsenseLoaderScript(),
+                .meta(.name("twitter:card"), .content("summary_large_image")),
+                .meta(.property("og:image"), .content(itemSocialImageURL(for: item, on: context.site))),
+                .meta(.property("og:image:alt"), .content(item.title)),
+                .meta(.name("twitter:image"), .content(itemSocialImageURL(for: item, on: context.site)))
             ),
             .body(
                 .class("item-page"),
@@ -326,6 +330,19 @@ private func tocToggleButton() -> Component {
             .text("On this page")
         ]
     )
+}
+
+private func itemSlug<Site: Website>(from item: Item<Site>) -> String {
+    item.path.absoluteString
+        .trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+        .split(separator: "/")
+        .last
+        .map(String.init) ?? ""
+}
+
+private func itemSocialImageURL<Site: Website>(for item: Item<Site>, on site: Site) -> String {
+    let slug = itemSlug(from: item)
+    return site.url.appendingPathComponent("images/posts/\(slug).png").absoluteString
 }
 
 private let adsenseClientID = "ca-pub-9268892677399703"

@@ -4,26 +4,25 @@
 from __future__ import annotations
 
 import json
+import mimetypes
 import os
 import re
 import sys
+import time
 import urllib.error
 import urllib.parse
 import urllib.request
+import uuid
 from datetime import datetime
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 POSTS_DIR = ROOT / "Content" / "posts"
+OUTPUT_IMAGES_DIR = ROOT / "Output" / "images" / "posts"
 SITE_URL = "https://www.swiftbyrahul.com"
 GRAPH_API_VERSION = "v21.0"
-
-
-def slugify(title: str) -> str:
-    words = re.findall(r"[A-Za-z0-9]+", title)
-    if not words:
-        raise ValueError(f"Cannot slugify title: {title}")
-    return "".join(word.capitalize() for word in words)
+URL_VERIFY_ATTEMPTS = 6
+URL_VERIFY_DELAY_SECONDS = 10
 
 
 def parse_front_matter(text: str) -> dict[str, str]:
@@ -80,30 +79,146 @@ def latest_post_path() -> Path:
     return candidates[0][1]
 
 
+def post_url_for_slug(slug: str) -> str:
+    return f"{SITE_URL}/posts/{slug}/"
+
+
+def verify_live_url(url: str) -> None:
+    for attempt in range(1, URL_VERIFY_ATTEMPTS + 1):
+        request = urllib.request.Request(url, method="HEAD")
+        try:
+            with urllib.request.urlopen(request, timeout=20) as response:
+                if response.status == 200:
+                    print(f"Verified live URL: {url}")
+                    return
+        except urllib.error.HTTPError as error:
+            if error.code == 200:
+                return
+            print(f"URL check attempt {attempt}/{URL_VERIFY_ATTEMPTS} failed ({error.code})")
+        except urllib.error.URLError as error:
+            print(f"URL check attempt {attempt}/{URL_VERIFY_ATTEMPTS} failed ({error.reason})")
+
+        if attempt < URL_VERIFY_ATTEMPTS:
+            time.sleep(URL_VERIFY_DELAY_SECONDS)
+
+    raise RuntimeError(f"Article URL is not live yet: {url}")
+
+
+def social_image_for_slug(slug: str) -> tuple[Path | None, str]:
+    local_path = OUTPUT_IMAGES_DIR / f"{slug}.png"
+    remote_url = f"{SITE_URL}/images/posts/{slug}.png"
+    if local_path.exists():
+        return local_path, remote_url
+    return None, remote_url
+
+
 def build_post_payload(post_path: Path) -> dict[str, str]:
     text = post_path.read_text(encoding="utf-8")
     meta = parse_front_matter(text)
     title = extract_title(text, meta)
     description = meta.get("description", "")
+    slug = post_path.stem
+    url = post_url_for_slug(slug)
+    image_path, image_url = social_image_for_slug(slug)
+    message = (
+        f"🚀 New on Swift By Rahul: {title}\n\n"
+        f"{description}\n\n"
+        f"Read more: {url}"
+    )
+    return {
+        "message": message,
+        "link": url,
+        "title": title,
+        "slug": slug,
+        "image_path": str(image_path) if image_path else "",
+        "image_url": image_url,
+    }
 
-    slug = slugify(title)
-    url = f"{SITE_URL}/posts/{slug}/"
-    message = f"🚀 New on Swift By Rahul: {title}\n\n{description}"
-    return {"message": message, "link": url, "title": title}
 
-
-def post_to_facebook(payload: dict[str, str]) -> str:
+def facebook_credentials() -> tuple[str, str]:
     page_id = os.environ.get("FACEBOOK_PAGE_ID")
     access_token = os.environ.get("FACEBOOK_PAGE_ACCESS_TOKEN")
     if not page_id or not access_token:
         raise RuntimeError(
             "Set FACEBOOK_PAGE_ID and FACEBOOK_PAGE_ACCESS_TOKEN environment variables."
         )
+    return page_id, access_token
 
+
+def parse_facebook_response(raw: bytes) -> dict:
+    result = json.loads(raw.decode("utf-8"))
+    if "error" in result:
+        raise RuntimeError(f"Facebook API error: {result['error']}")
+    return result
+
+
+def post_photo_with_message(
+    page_id: str,
+    access_token: str,
+    message: str,
+    image_path: Path,
+) -> str:
+    boundary = f"----CursorFormBoundary{uuid.uuid4().hex}"
+    mime_type = mimetypes.guess_type(image_path.name)[0] or "image/png"
+    file_bytes = image_path.read_bytes()
+
+    body = b"".join(
+        [
+            f"--{boundary}\r\n".encode(),
+            b'Content-Disposition: form-data; name="message"\r\n\r\n',
+            message.encode("utf-8"),
+            b"\r\n",
+            f"--{boundary}\r\n".encode(),
+            f'Content-Disposition: form-data; name="published"\r\n\r\n'.encode(),
+            b"true\r\n",
+            f"--{boundary}\r\n".encode(),
+            (
+                f'Content-Disposition: form-data; name="source"; '
+                f'filename="{image_path.name}"\r\n'
+            ).encode(),
+            f"Content-Type: {mime_type}\r\n\r\n".encode(),
+            file_bytes,
+            b"\r\n",
+            f"--{boundary}--\r\n".encode(),
+        ]
+    )
+
+    api_url = f"https://graph.facebook.com/{GRAPH_API_VERSION}/{page_id}/photos"
+    query = urllib.parse.urlencode({"access_token": access_token})
+    request = urllib.request.Request(
+        f"{api_url}?{query}",
+        data=body,
+        method="POST",
+        headers={
+            "Content-Type": f"multipart/form-data; boundary={boundary}",
+        },
+    )
+
+    try:
+        with urllib.request.urlopen(request, timeout=60) as response:
+            result = parse_facebook_response(response.read())
+    except urllib.error.HTTPError as error:
+        detail = error.read().decode("utf-8", errors="replace")
+        raise RuntimeError(f"Facebook photo upload failed ({error.code}): {detail}") from error
+
+    post_id = result.get("post_id") or result.get("id")
+    if not post_id:
+        raise RuntimeError(f"Unexpected Facebook photo response: {result}")
+    return post_id
+
+
+def post_link_with_picture(
+    page_id: str,
+    access_token: str,
+    message: str,
+    link: str,
+    picture_url: str,
+) -> str:
     body = urllib.parse.urlencode(
         {
-            "message": payload["message"],
-            "link": payload["link"],
+            "message": message,
+            "link": link,
+            "picture": picture_url,
             "access_token": access_token,
         }
     ).encode("utf-8")
@@ -112,10 +227,10 @@ def post_to_facebook(payload: dict[str, str]) -> str:
 
     try:
         with urllib.request.urlopen(request, timeout=30) as response:
-            result = json.loads(response.read().decode("utf-8"))
+            result = parse_facebook_response(response.read())
     except urllib.error.HTTPError as error:
         detail = error.read().decode("utf-8", errors="replace")
-        raise RuntimeError(f"Facebook API error ({error.code}): {detail}") from error
+        raise RuntimeError(f"Facebook link post failed ({error.code}): {detail}") from error
 
     post_id = result.get("id")
     if not post_id:
@@ -123,7 +238,54 @@ def post_to_facebook(payload: dict[str, str]) -> str:
     return post_id
 
 
+def delete_facebook_post(post_id: str) -> None:
+    page_id, access_token = facebook_credentials()
+    query = urllib.parse.urlencode({"access_token": access_token})
+    api_url = f"https://graph.facebook.com/{GRAPH_API_VERSION}/{post_id}?{query}"
+    request = urllib.request.Request(api_url, method="DELETE")
+    try:
+        with urllib.request.urlopen(request, timeout=30) as response:
+            result = parse_facebook_response(response.read())
+    except urllib.error.HTTPError as error:
+        detail = error.read().decode("utf-8", errors="replace")
+        raise RuntimeError(f"Facebook delete failed ({error.code}): {detail}") from error
+    if not result.get("success"):
+        raise RuntimeError(f"Could not delete Facebook post {post_id}: {result}")
+    print(f"Deleted Facebook post {post_id}")
+
+
+def post_to_facebook(payload: dict[str, str]) -> str:
+    page_id, access_token = facebook_credentials()
+    verify_live_url(payload["link"])
+
+    image_path = Path(payload["image_path"]) if payload["image_path"] else None
+    if image_path and image_path.exists():
+        print(f"Posting with article image: {image_path.name}")
+        return post_photo_with_message(
+            page_id,
+            access_token,
+            payload["message"],
+            image_path,
+        )
+
+    print(f"Posting link preview with image URL: {payload['image_url']}")
+    return post_link_with_picture(
+        page_id,
+        access_token,
+        payload["message"],
+        payload["link"],
+        payload["image_url"],
+    )
+
+
 def main() -> int:
+    if len(sys.argv) > 1 and sys.argv[1] == "--delete":
+        if len(sys.argv) != 3:
+            print("Usage: post_to_facebook.py --delete POST_ID")
+            return 1
+        delete_facebook_post(sys.argv[2])
+        return 0
+
     post_path = latest_post_path()
     payload = build_post_payload(post_path)
     post_id = post_to_facebook(payload)

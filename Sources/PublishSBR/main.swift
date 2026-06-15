@@ -14,7 +14,7 @@ struct PublishSBR: Website {
     }
 
     // Update these properties to configure your website:
-    var url = URL(string: "www.swiftbyrahul.com")!
+    var url = URL(string: "https://www.swiftbyrahul.com")!
     var name = "Swift By Rahul"
     var description = "Swift tutorials & iOS development by Rahul Bandal"
     var language: Language { .english }
@@ -42,7 +42,13 @@ extension Theme where Site == PublishSBR {
     static var myTheme: Self {
         Theme(
             htmlFactory: MyHTMLFactory(),
-            resourcePaths: ["Resources/MyTheme/styles.css","Resources/css/prism.css", "Resources/js/prism.js", "Resources/js/article.js"]
+            resourcePaths: [
+                "Resources/MyTheme/styles.css",
+                "Resources/css/prism.css",
+                "Resources/js/prism.js",
+                "Resources/js/article.js",
+                "Resources/Images/og-default.png"
+            ]
         )
     }
 }

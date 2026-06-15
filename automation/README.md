@@ -55,6 +55,27 @@ After each deploy, the workflow posts the latest article to [Swift By Rahul on F
 
 Use the **Page** token, not the App Secret. Get both values in [Graph API Explorer](https://developers.facebook.com/tools/explorer/) with `pages_manage_posts` permission, then call `GET /me/accounts`.
 
+
+### Social preview images
+
+After the site build, CI runs `automation/generate_social_images.py` to create **1200×630** PNGs under `Output/images/posts/` from each article’s first inline SVG (or copy `Resources/Images/og-default.png` when there is no SVG). Facebook posting prefers the local PNG when present.
+
+Local test (macOS):
+
+```bash
+brew install cairo
+pip install -r automation/requirements.txt
+python automation/generate_social_images.py
+```
+
+Delete a broken Page post (requires the same Facebook env vars):
+
+```bash
+export FACEBOOK_PAGE_ID="your-page-id"
+export FACEBOOK_PAGE_ACCESS_TOKEN="your-page-token"
+python automation/post_to_facebook.py --delete "PAGEID_POSTID"
+```
+
 Local test:
 
 ```bash

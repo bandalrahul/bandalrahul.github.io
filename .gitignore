@@ -62,3 +62,8 @@ fastlane/screenshots/**/*.png
 fastlane/test_output
 
 /Output
+
+# Python automation
+.venv/
+__pycache__/
+automation/__pycache__/
