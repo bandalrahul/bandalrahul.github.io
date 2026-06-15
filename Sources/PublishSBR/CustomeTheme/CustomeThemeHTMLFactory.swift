@@ -73,7 +73,8 @@ struct MyHTMLFactory<Site: Website>: HTMLFactory {
             .head(
                 .stylesheet("/css/prism.css"),
                 .script(.src("/js/prism.js")),
-                .script(.src("/js/article.js"))
+                .script(.src("/js/article.js")),
+                adsenseLoaderScript()
             ),
             .body(
                 .class("item-page"),
@@ -327,14 +328,24 @@ private func tocToggleButton() -> Component {
     )
 }
 
+private let adsenseClientID = "ca-pub-9268892677399703"
+private let adsenseSlotID = "8133392181"
+
+func adsenseLoaderScript() -> Node<HTML.HeadContext> {
+    .script(
+        .src("https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=\(adsenseClientID)"),
+        .async()
+    )
+}
+
 func adsenseBanner() -> Node<HTML.BodyContext> {
     return .div(
         .class("ads-container"),
         .element(named: "ins", nodes: [
             .attribute(named: "class", value: "adsbygoogle"),
             .attribute(named: "style", value: "display:block"),
-            .attribute(named: "data-ad-client", value: "pub-9268892677399703"),
-            .attribute(named: "data-ad-slot", value: "8133392181"),
+            .attribute(named: "data-ad-client", value: adsenseClientID),
+            .attribute(named: "data-ad-slot", value: adsenseSlotID),
             .attribute(named: "data-ad-format", value: "auto"),
             .attribute(named: "data-full-width-responsive", value: "true")
         ]),

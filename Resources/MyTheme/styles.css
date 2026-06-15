@@ -549,6 +549,8 @@ footer a:hover {
 
 .ads-container {
     margin-top: 2rem;
+    min-height: 90px;
+    text-align: center;
 }
 
 /* Dark mode */
