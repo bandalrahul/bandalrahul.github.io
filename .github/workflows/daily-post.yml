@@ -49,6 +49,12 @@ jobs:
           single-commit: true
           clean: true
 
+      - name: Share latest article on Facebook
+        env:
+          FACEBOOK_PAGE_ID: ${{ secrets.FACEBOOK_PAGE_ID }}
+          FACEBOOK_PAGE_ACCESS_TOKEN: ${{ secrets.FACEBOOK_PAGE_ACCESS_TOKEN }}
+        run: python automation/post_to_facebook.py
+
       - name: Commit generated article to main
         run: |
           git config user.name "github-actions[bot]"
