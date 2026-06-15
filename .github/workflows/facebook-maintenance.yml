@@ -1,0 +1,40 @@
+name: Facebook maintenance
+
+on:
+  workflow_dispatch:
+    inputs:
+      delete_post_id:
+        description: "Facebook post id to delete (optional)"
+        required: false
+        default: "2187431381481377_1622794653185939"
+
+permissions:
+  contents: read
+
+jobs:
+  facebook:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Python dependencies
+        run: pip install -r automation/requirements.txt
+
+      - name: Delete broken Facebook post
+        if: inputs.delete_post_id != ''
+        env:
+          FACEBOOK_PAGE_ID: ${{ secrets.FACEBOOK_PAGE_ID }}
+          FACEBOOK_PAGE_ACCESS_TOKEN: ${{ secrets.FACEBOOK_PAGE_ACCESS_TOKEN }}
+        run: python automation/post_to_facebook.py --delete "${{ inputs.delete_post_id }}"
+
+      - name: Repost latest article
+        env:
+          FACEBOOK_PAGE_ID: ${{ secrets.FACEBOOK_PAGE_ID }}
+          FACEBOOK_PAGE_ACCESS_TOKEN: ${{ secrets.FACEBOOK_PAGE_ACCESS_TOKEN }}
+        run: python automation/post_to_facebook.py
