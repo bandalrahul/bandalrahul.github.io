@@ -13,6 +13,7 @@ Every day at **09:00 UTC**, GitHub Actions will:
 5. Deploy to the `master` branch (GitHub Pages)
 6. Commit the new markdown back to `main`
 7. Cross-post to [Dev.to](https://dev.to) (optional, non-blocking)
+8. Share on [Facebook](https://www.facebook.com/swiftbyrahul) (optional, non-blocking)
 
 ## One-time setup
 
@@ -77,17 +78,43 @@ export DEVTO_API_KEY="your-key-here"
 python automation/post_to_devto.py
 ```
 
-### 4. Enable GitHub Actions
+### 4. Facebook Page sharing (optional)
+
+After each deploy, the workflow shares the latest article on [Swift By Rahul on Facebook](https://www.facebook.com/swiftbyrahul) with the article link and preview image. Failures do **not** block blog publishing.
+
+1. Get your Page ID and Page access token from [Graph API Explorer](https://developers.facebook.com/tools/explorer/) (`pages_manage_posts`, then `GET /me/accounts`)
+2. Add repository secrets (no extra spaces or newlines):
+
+| Name | Value |
+|------|-------|
+| `FACEBOOK_PAGE_ID` | Numeric Page ID |
+| `FACEBOOK_PAGE_ACCESS_TOKEN` | Page access token (not App Secret) |
+
+Local test:
+
+```bash
+export FACEBOOK_PAGE_ID="your-page-id"
+export FACEBOOK_PAGE_ACCESS_TOKEN="your-page-token"
+python automation/post_to_facebook.py
+```
+
+Delete a broken Page post:
+
+```bash
+python automation/post_to_facebook.py --delete "PAGEID_POSTID"
+```
+
+### 5. Enable GitHub Actions
 
 Ensure Actions are enabled for the repository:
 
 **Settings → Actions → General → Allow all actions**
 
-### 5. Push this code to `main`
+### 6. Push this code to `main`
 
 The workflow file lives at `.github/workflows/daily-post.yml`.
 
-### 6. Test manually
+### 7. Test manually
 
 Go to **Actions → Daily Swift Blog Post → Run workflow**.
 

@@ -84,3 +84,23 @@ jobs:
           fi
           git commit -m "Track Dev.to cross-post $(date +'%Y-%m-%d')"
           git push origin main
+
+      - name: Share latest article on Facebook
+        continue-on-error: true
+        env:
+          FACEBOOK_PAGE_ID: ${{ secrets.FACEBOOK_PAGE_ID }}
+          FACEBOOK_PAGE_ACCESS_TOKEN: ${{ secrets.FACEBOOK_PAGE_ACCESS_TOKEN }}
+        run: python automation/post_to_facebook.py
+
+      - name: Commit Facebook publish record
+        continue-on-error: true
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add automation/facebook-published.json
+          if git diff --staged --quiet; then
+            echo "No Facebook record to commit."
+            exit 0
+          fi
+          git commit -m "Track Facebook share $(date +'%Y-%m-%d')"
+          git push origin main
