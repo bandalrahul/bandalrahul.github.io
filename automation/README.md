@@ -66,7 +66,7 @@ After each deploy, the workflow can cross-post the latest article to your Dev.to
 
 | Name | Value |
 |------|-------|
-| `DEVTO_API_KEY` | Your Dev.to API key |
+| `DEVTO_API_KEY` | Your Dev.to API key (no extra spaces or newlines) |
 
 If the secret is missing, the Dev.to step is skipped. If Dev.to fails (rate limit, invalid tag, etc.), the blog publish still succeeds.
 

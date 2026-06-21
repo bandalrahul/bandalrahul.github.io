@@ -176,10 +176,15 @@ def record_publication(slug: str, article: dict) -> None:
     save_json(DEVTO_PUBLISHED_FILE, data)
 
 
-def create_devto_article(payload: dict) -> dict:
-    api_key = os.environ.get("DEVTO_API_KEY")
+def devto_api_key() -> str:
+    api_key = os.environ.get("DEVTO_API_KEY", "").strip()
     if not api_key:
         raise RuntimeError("Set DEVTO_API_KEY environment variable.")
+    return api_key
+
+
+def create_devto_article(payload: dict) -> dict:
+    api_key = devto_api_key()
 
     body = json.dumps({"article": payload}).encode("utf-8")
     request = urllib.request.Request(
@@ -246,7 +251,7 @@ def post_latest_to_devto() -> str:
 
 
 def main() -> int:
-    if not os.environ.get("DEVTO_API_KEY"):
+    if not os.environ.get("DEVTO_API_KEY", "").strip():
         print("DEVTO_API_KEY is not set. Skipping Dev.to cross-post.")
         return 0
 
