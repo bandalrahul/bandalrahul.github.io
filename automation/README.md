@@ -11,8 +11,7 @@ Every day at **09:00 UTC**, GitHub Actions will:
 3. Save it to `Content/posts/`
 4. Build the site with Publish
 5. Deploy to the `master` branch (GitHub Pages)
-6. Share the new article on [Facebook](https://www.facebook.com/swiftbyrahul)
-7. Commit the new markdown back to `main`
+6. Commit the new markdown back to `main`
 
 ## One-time setup
 
@@ -44,21 +43,9 @@ If Gemini quota fails, add a free Groq key from [console.groq.com](https://conso
 
 The workflow tries **Gemini first**, then **Groq** automatically.
 
-### 2. Facebook Page auto-share
+### 2. Social preview images
 
-After each deploy, the workflow posts the latest article to [Swift By Rahul on Facebook](https://www.facebook.com/swiftbyrahul).
-
-| Name | Value |
-|------|-------|
-| `FACEBOOK_PAGE_ID` | Numeric Page ID (from Graph API `GET /me/accounts`) |
-| `FACEBOOK_PAGE_ACCESS_TOKEN` | Page `access_token` from the same response |
-
-Use the **Page** token, not the App Secret. Get both values in [Graph API Explorer](https://developers.facebook.com/tools/explorer/) with `pages_manage_posts` permission, then call `GET /me/accounts`.
-
-
-### Social preview images
-
-After the site build, CI runs `automation/generate_social_images.py` to create **1200×630** PNGs under `Output/images/posts/` from each article’s first inline SVG (or copy `Resources/Images/og-default.png` when there is no SVG). Facebook posting prefers the local PNG when present.
+After the site build, CI runs `automation/generate_social_images.py` to create **1200×630** PNGs under `Output/images/posts/` from each article’s first inline SVG (or copy `Resources/Images/og-default.png` when there is no SVG). These images are used for Open Graph / Twitter card previews on article pages.
 
 Local test (macOS):
 
@@ -66,22 +53,6 @@ Local test (macOS):
 brew install cairo
 pip install -r automation/requirements.txt
 python automation/generate_social_images.py
-```
-
-Delete a broken Page post (requires the same Facebook env vars):
-
-```bash
-export FACEBOOK_PAGE_ID="your-page-id"
-export FACEBOOK_PAGE_ACCESS_TOKEN="your-page-token"
-python automation/post_to_facebook.py --delete "PAGEID_POSTID"
-```
-
-Local test:
-
-```bash
-export FACEBOOK_PAGE_ID="your-page-id"
-export FACEBOOK_PAGE_ACCESS_TOKEN="your-page-token"
-python automation/post_to_facebook.py
 ```
 
 ### 3. Enable GitHub Actions
