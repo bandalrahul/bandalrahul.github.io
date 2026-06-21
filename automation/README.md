@@ -58,7 +58,7 @@ python automation/generate_social_images.py
 
 ### 3. Dev.to cross-posting (optional)
 
-After each deploy, the workflow can cross-post the latest article to your Dev.to profile with a **canonical URL** pointing back to [swiftbyrahul.com](https://www.swiftbyrahul.com).
+After each deploy, the workflow cross-posts a **short teaser** to your Dev.to profile with a link to read the full article on [swiftbyrahul.com](https://www.swiftbyrahul.com). The canonical URL points search engines to your site.
 
 1. Open [Dev.to → Settings → Extensions](https://dev.to/settings/extensions)
 2. Generate an API key

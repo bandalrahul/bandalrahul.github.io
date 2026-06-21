@@ -159,14 +159,65 @@ def strip_duplicate_title(body: str, title: str) -> str:
     return body
 
 
-def build_body_markdown(body: str, title: str, canonical_url: str) -> str:
+def strip_non_prose_blocks(text: str) -> str:
+    without_html = re.sub(r"<div[\s\S]*?</div>", "", text, flags=re.IGNORECASE)
+    without_html = re.sub(r"<svg[\s\S]*?</svg>", "", without_html, flags=re.IGNORECASE)
+    without_code = re.sub(r"```[\s\S]*?```", "", without_html)
+    without_headings = re.sub(r"^#+\s+.+$", "", without_code, flags=re.MULTILINE)
+    return without_headings.strip()
+
+
+def extract_teaser_excerpt(body: str, title: str, max_paragraphs: int = 2, max_chars: int = 550) -> str:
     trimmed = strip_duplicate_title(body, title)
-    footer = (
-        f"\n\n---\n\n"
-        f"*Originally published at [{canonical_url}]({canonical_url}) "
-        f"on [Swift By Rahul]({SITE_URL}).*"
+    cleaned = strip_non_prose_blocks(trimmed)
+    paragraphs: list[str] = []
+
+    for block in re.split(r"\n\s*\n", cleaned):
+        block = block.strip()
+        if not block:
+            continue
+        if block.startswith(("- ", "* ", "|", "!", "[")):
+            continue
+        if block.startswith("```"):
+            continue
+        paragraphs.append(block)
+        if len(paragraphs) >= max_paragraphs:
+            break
+
+    excerpt = "\n\n".join(paragraphs)
+    if len(excerpt) > max_chars:
+        excerpt = excerpt[:max_chars].rsplit(" ", 1)[0] + "…"
+    return excerpt
+
+
+def build_teaser_markdown(
+    excerpt: str,
+    canonical_url: str,
+) -> str:
+    sections: list[str] = []
+    if excerpt:
+        sections.append(excerpt)
+
+    sections.append(
+        "---\n\n"
+        "**Read the full article on Swift By Rahul** → "
+        f"[Continue reading]({canonical_url})\n\n"
+        "The complete tutorial includes Swift code examples, SVG diagrams, "
+        "and step-by-step explanations on our website."
     )
-    return trimmed + footer
+    return "\n\n".join(sections)
+
+
+def build_body_markdown(
+    body: str,
+    title: str,
+    description: str,
+    canonical_url: str,
+) -> str:
+    excerpt = extract_teaser_excerpt(body, title)
+    if not excerpt:
+        excerpt = description
+    return build_teaser_markdown(excerpt, canonical_url)
 
 
 def already_posted(slug: str) -> bool:
@@ -218,6 +269,33 @@ def create_devto_article(payload: dict) -> dict:
     return result
 
 
+def update_devto_article(article_id: int, payload: dict) -> dict:
+    api_key = devto_api_key()
+    url = f"{DEVTO_API_URL}/{article_id}"
+
+    body = json.dumps({"article": payload}).encode("utf-8")
+    headers = {**DEVTO_HEADERS, "api-key": api_key}
+    request = urllib.request.Request(
+        url,
+        data=body,
+        method="PUT",
+        headers=headers,
+    )
+
+    try:
+        with urllib.request.urlopen(request, timeout=60) as response:
+            result = json.loads(response.read().decode("utf-8"))
+    except urllib.error.HTTPError as error:
+        detail = error.read().decode("utf-8", errors="replace")
+        raise RuntimeError(f"Dev.to API failed ({error.code}): {detail}") from error
+
+    if "error" in result:
+        raise RuntimeError(f"Dev.to API error: {result['error']}")
+    if not result.get("url"):
+        raise RuntimeError(f"Unexpected Dev.to response: {result}")
+    return result
+
+
 def build_article_payload(post_path: Path) -> dict[str, object]:
     text = post_path.read_text(encoding="utf-8")
     meta, body = parse_front_matter(text)
@@ -228,7 +306,7 @@ def build_article_payload(post_path: Path) -> dict[str, object]:
 
     return {
         "title": title,
-        "body_markdown": build_body_markdown(body, title, canonical_url),
+        "body_markdown": build_body_markdown(body, title, description, canonical_url),
         "published": True,
         "canonical_url": canonical_url,
         "description": description,
@@ -238,21 +316,35 @@ def build_article_payload(post_path: Path) -> dict[str, object]:
     }
 
 
+def publish_payload_for_devto(payload: dict[str, object]) -> dict[str, object]:
+    return {key: value for key, value in payload.items() if key != "slug"}
+
+
 def post_latest_to_devto() -> str:
     post_path = latest_post_path()
     payload = build_article_payload(post_path)
     slug = str(payload.pop("slug"))
     url = post_url_for_slug(slug)
+    devto_payload = publish_payload_for_devto(payload)
+
+    verify_live_url(url)
 
     if already_posted(slug):
+        record = load_json(DEVTO_PUBLISHED_FILE).get("published", {}).get(slug, {})
+        devto_id = record.get("devto_id")
+        if devto_id:
+            print(f"Updating Dev.to teaser for: {payload['title']}")
+            article = update_devto_article(int(devto_id), devto_payload)
+            record_publication(slug, article)
+            print(f"Updated Dev.to teaser: {article['url']}")
+            return article["url"]
         print(f"Already posted to Dev.to: {slug}")
         return url
 
-    verify_live_url(url)
-    print(f"Cross-posting to Dev.to: {payload['title']}")
-    article = create_devto_article(payload)
+    print(f"Cross-posting teaser to Dev.to: {payload['title']}")
+    article = create_devto_article(devto_payload)
     record_publication(slug, article)
-    print(f"Published to Dev.to: {article['url']}")
+    print(f"Published Dev.to teaser: {article['url']}")
     return article["url"]
 
 
