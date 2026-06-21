@@ -82,8 +82,11 @@ python automation/post_to_devto.py
 
 After each deploy, the workflow shares the latest article on [Swift By Rahul on Facebook](https://www.facebook.com/swiftbyrahul) with the article link and preview image. Failures do **not** block blog publishing.
 
-1. Get your Page ID and Page access token from [Graph API Explorer](https://developers.facebook.com/tools/explorer/) (`pages_manage_posts`, then `GET /me/accounts`)
-2. Add repository secrets (no extra spaces or newlines):
+1. Open [Graph API Explorer](https://developers.facebook.com/tools/explorer/)
+2. Select your app → **Add permissions**: `pages_manage_posts`, `pages_read_engagement`
+3. Generate token → run **`GET /me/accounts`**
+4. Copy your Page's numeric **`id`** and **`access_token`** (Page token, not user token)
+5. Add repository secrets (no extra spaces or newlines):
 
 | Name | Value |
 |------|-------|

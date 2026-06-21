@@ -187,6 +187,32 @@ def record_publication(slug: str, post_id: str) -> None:
     save_json(FACEBOOK_PUBLISHED_FILE, data)
 
 
+def verify_page_access(page_id: str, access_token: str) -> None:
+    api_url = (
+        f"https://graph.facebook.com/{GRAPH_API_VERSION}/{page_id}"
+        f"?fields=id,name&{urllib.parse.urlencode({'access_token': access_token})}"
+    )
+    request = urllib.request.Request(api_url, headers={"User-Agent": USER_AGENT})
+    try:
+        with urllib.request.urlopen(request, timeout=20) as response:
+            result = json.loads(response.read().decode("utf-8"))
+    except urllib.error.HTTPError as error:
+        detail = error.read().decode("utf-8", errors="replace")
+        raise RuntimeError(
+            "Facebook Page token validation failed. "
+            "Use a Page access token from GET /me/accounts with "
+            "pages_manage_posts and pages_read_engagement permissions. "
+            f"API response ({error.code}): {detail}"
+        ) from error
+
+    if str(result.get("id")) != str(page_id):
+        raise RuntimeError(
+            f"Token is not valid for Page ID {page_id}. "
+            "Copy the access_token for your Page from GET /me/accounts."
+        )
+    print(f"Verified Facebook Page access: {result.get('name', page_id)}")
+
+
 def parse_facebook_response(raw: bytes) -> dict:
     result = json.loads(raw.decode("utf-8"))
     if "error" in result:
@@ -296,6 +322,7 @@ def delete_facebook_post(post_id: str) -> None:
 
 def post_to_facebook(payload: dict[str, str]) -> str:
     page_id, access_token = facebook_credentials()
+    verify_page_access(page_id, access_token)
     verify_live_url(payload["link"])
 
     image_path = Path(payload["image_path"]) if payload["image_path"] else None
