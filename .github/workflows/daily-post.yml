@@ -65,3 +65,23 @@ jobs:
           fi
           git commit -m "Auto-publish: daily Swift/iOS article $(date +'%Y-%m-%d')"
           git push origin main
+
+      - name: Cross-post to Dev.to
+        continue-on-error: true
+        env:
+          DEVTO_API_KEY: ${{ secrets.DEVTO_API_KEY }}
+        run: python automation/post_to_devto.py
+
+      - name: Commit Dev.to publish record
+        continue-on-error: true
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git pull --rebase origin main
+          git add automation/devto-published.json
+          if git diff --staged --quiet; then
+            echo "No Dev.to record to commit."
+            exit 0
+          fi
+          git commit -m "Track Dev.to cross-post $(date +'%Y-%m-%d')"
+          git push origin main

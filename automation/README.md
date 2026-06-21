@@ -12,6 +12,7 @@ Every day at **09:00 UTC**, GitHub Actions will:
 4. Build the site with Publish
 5. Deploy to the `master` branch (GitHub Pages)
 6. Commit the new markdown back to `main`
+7. Cross-post to [Dev.to](https://dev.to) (optional, non-blocking)
 
 ## One-time setup
 
@@ -55,17 +56,38 @@ pip install -r automation/requirements.txt
 python automation/generate_social_images.py
 ```
 
-### 3. Enable GitHub Actions
+### 3. Dev.to cross-posting (optional)
+
+After each deploy, the workflow can cross-post the latest article to your Dev.to profile with a **canonical URL** pointing back to [swiftbyrahul.com](https://www.swiftbyrahul.com).
+
+1. Open [Dev.to → Settings → Extensions](https://dev.to/settings/extensions)
+2. Generate an API key
+3. Add it as a repository secret:
+
+| Name | Value |
+|------|-------|
+| `DEVTO_API_KEY` | Your Dev.to API key |
+
+If the secret is missing, the Dev.to step is skipped. If Dev.to fails (rate limit, invalid tag, etc.), the blog publish still succeeds.
+
+Local test:
+
+```bash
+export DEVTO_API_KEY="your-key-here"
+python automation/post_to_devto.py
+```
+
+### 4. Enable GitHub Actions
 
 Ensure Actions are enabled for the repository:
 
 **Settings → Actions → General → Allow all actions**
 
-### 4. Push this code to `main`
+### 5. Push this code to `main`
 
 The workflow file lives at `.github/workflows/daily-post.yml`.
 
-### 5. Test manually
+### 6. Test manually
 
 Go to **Actions → Daily Swift Blog Post → Run workflow**.
 
