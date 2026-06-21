@@ -10,6 +10,7 @@
     "ios-security-vs-android",
     "swift-optionals-deep-dive",
     "swift-closures-explained",
-    "swift-protocol-oriented-programming"
+    "swift-protocol-oriented-programming",
+    "swift-generics-guide"
   ]
 }
