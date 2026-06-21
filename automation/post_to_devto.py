@@ -23,6 +23,15 @@ URL_VERIFY_ATTEMPTS = 6
 URL_VERIFY_DELAY_SECONDS = 10
 DEFAULT_TAGS = ["swift", "ios", "programming"]
 MAX_TAGS = 4
+USER_AGENT = (
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_4_1) "
+    "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+)
+DEVTO_HEADERS = {
+    "Accept": "application/vnd.forem.api-v1+json",
+    "Content-Type": "application/json",
+    "User-Agent": USER_AGENT,
+}
 
 
 def load_json(path: Path) -> dict:
@@ -103,7 +112,7 @@ def cover_image_url(slug: str) -> str:
 
 def verify_live_url(url: str) -> None:
     for attempt in range(1, URL_VERIFY_ATTEMPTS + 1):
-        request = urllib.request.Request(url, method="HEAD")
+        request = urllib.request.Request(url, method="HEAD", headers={"User-Agent": USER_AGENT})
         try:
             with urllib.request.urlopen(request, timeout=20) as response:
                 if response.status == 200:
@@ -187,15 +196,12 @@ def create_devto_article(payload: dict) -> dict:
     api_key = devto_api_key()
 
     body = json.dumps({"article": payload}).encode("utf-8")
+    headers = {**DEVTO_HEADERS, "api-key": api_key}
     request = urllib.request.Request(
         DEVTO_API_URL,
         data=body,
         method="POST",
-        headers={
-            "api-key": api_key,
-            "Content-Type": "application/json",
-            "Accept": "application/json",
-        },
+        headers=headers,
     )
 
     try:
