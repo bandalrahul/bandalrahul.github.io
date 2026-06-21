@@ -4,7 +4,6 @@
 from __future__ import annotations
 
 import json
-import mimetypes
 import os
 import re
 import sys
@@ -12,7 +11,6 @@ import time
 import urllib.error
 import urllib.parse
 import urllib.request
-import uuid
 from datetime import datetime
 from pathlib import Path
 
@@ -28,8 +26,6 @@ USER_AGENT = (
     "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_4_1) "
     "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
 )
-
-DEFAULT_OG_IMAGE = ROOT / "Resources" / "Images" / "og-default.png"
 
 
 def load_json(path: Path) -> dict:
@@ -188,29 +184,32 @@ def record_publication(slug: str, post_id: str) -> None:
 
 
 def verify_page_access(page_id: str, access_token: str) -> None:
-    api_url = (
-        f"https://graph.facebook.com/{GRAPH_API_VERSION}/{page_id}"
+    me_url = (
+        f"https://graph.facebook.com/{GRAPH_API_VERSION}/me"
         f"?fields=id,name&{urllib.parse.urlencode({'access_token': access_token})}"
     )
-    request = urllib.request.Request(api_url, headers={"User-Agent": USER_AGENT})
+    request = urllib.request.Request(me_url, headers={"User-Agent": USER_AGENT})
     try:
         with urllib.request.urlopen(request, timeout=20) as response:
-            result = json.loads(response.read().decode("utf-8"))
+            me = json.loads(response.read().decode("utf-8"))
     except urllib.error.HTTPError as error:
         detail = error.read().decode("utf-8", errors="replace")
         raise RuntimeError(
-            "Facebook Page token validation failed. "
-            "Use a Page access token from GET /me/accounts with "
-            "pages_manage_posts and pages_read_engagement permissions. "
+            "Facebook token validation failed. "
+            "Use the Page access_token from GET /me/accounts (not the user token "
+            "shown in Graph API Explorer). "
             f"API response ({error.code}): {detail}"
         ) from error
 
-    if str(result.get("id")) != str(page_id):
+    token_account_id = str(me.get("id", ""))
+    if token_account_id != str(page_id):
         raise RuntimeError(
-            f"Token is not valid for Page ID {page_id}. "
-            "Copy the access_token for your Page from GET /me/accounts."
+            f"FACEBOOK_PAGE_ACCESS_TOKEN belongs to account id {token_account_id} "
+            f"({me.get('name', 'unknown')}), but FACEBOOK_PAGE_ID is {page_id}. "
+            "Call GET /me/accounts in Graph API Explorer and copy the access_token "
+            "from the Page entry whose id matches FACEBOOK_PAGE_ID."
         )
-    print(f"Verified Facebook Page access: {result.get('name', page_id)}")
+    print(f"Verified Facebook Page token: {me.get('name', page_id)}")
 
 
 def parse_facebook_response(raw: bytes) -> dict:
@@ -220,54 +219,29 @@ def parse_facebook_response(raw: bytes) -> dict:
     return result
 
 
-def post_photo_with_message(
+def post_photo_with_url(
     page_id: str,
     access_token: str,
     message: str,
-    image_path: Path,
+    image_url: str,
 ) -> str:
-    boundary = f"----CursorFormBoundary{uuid.uuid4().hex}"
-    mime_type = mimetypes.guess_type(image_path.name)[0] or "image/png"
-    file_bytes = image_path.read_bytes()
-
-    body = b"".join(
-        [
-            f"--{boundary}\r\n".encode(),
-            b'Content-Disposition: form-data; name="message"\r\n\r\n',
-            message.encode("utf-8"),
-            b"\r\n",
-            f"--{boundary}\r\n".encode(),
-            f'Content-Disposition: form-data; name="published"\r\n\r\n'.encode(),
-            b"true\r\n",
-            f"--{boundary}\r\n".encode(),
-            (
-                f'Content-Disposition: form-data; name="source"; '
-                f'filename="{image_path.name}"\r\n'
-            ).encode(),
-            f"Content-Type: {mime_type}\r\n\r\n".encode(),
-            file_bytes,
-            b"\r\n",
-            f"--{boundary}--\r\n".encode(),
-        ]
-    )
-
+    body = urllib.parse.urlencode(
+        {
+            "url": image_url,
+            "message": message,
+            "published": "true",
+            "access_token": access_token,
+        }
+    ).encode("utf-8")
     api_url = f"https://graph.facebook.com/{GRAPH_API_VERSION}/{page_id}/photos"
-    query = urllib.parse.urlencode({"access_token": access_token})
-    request = urllib.request.Request(
-        f"{api_url}?{query}",
-        data=body,
-        method="POST",
-        headers={
-            "Content-Type": f"multipart/form-data; boundary={boundary}",
-        },
-    )
+    request = urllib.request.Request(api_url, data=body, method="POST")
 
     try:
         with urllib.request.urlopen(request, timeout=60) as response:
             result = parse_facebook_response(response.read())
     except urllib.error.HTTPError as error:
         detail = error.read().decode("utf-8", errors="replace")
-        raise RuntimeError(f"Facebook photo upload failed ({error.code}): {detail}") from error
+        raise RuntimeError(f"Facebook photo post failed ({error.code}): {detail}") from error
 
     post_id = result.get("post_id") or result.get("id")
     if not post_id:
@@ -285,6 +259,7 @@ def post_link(
         {
             "message": message,
             "link": link,
+            "published": "true",
             "access_token": access_token,
         }
     ).encode("utf-8")
@@ -325,29 +300,24 @@ def post_to_facebook(payload: dict[str, str]) -> str:
     verify_page_access(page_id, access_token)
     verify_live_url(payload["link"])
 
-    image_path = Path(payload["image_path"]) if payload["image_path"] else None
-    if not image_path or not image_path.exists():
-        if DEFAULT_OG_IMAGE.exists():
-            image_path = DEFAULT_OG_IMAGE
-
-    if image_path and image_path.exists():
-        print(f"Posting with image upload: {image_path.name}")
-        try:
-            return post_photo_with_message(
-                page_id,
-                access_token,
-                payload["message"],
-                image_path,
-            )
-        except RuntimeError as error:
-            print(f"Image upload failed, falling back to link post: {error}")
-
     print(f"Posting link preview: {payload['link']}")
-    return post_link(
+    try:
+        return post_link(
+            page_id,
+            access_token,
+            payload["message"],
+            payload["link"],
+        )
+    except RuntimeError as error:
+        print(f"Link post failed, trying photo with image URL: {error}")
+
+    image_url = payload.get("image_url") or f"{SITE_URL}/images/og-default.png"
+    print(f"Posting with image URL: {image_url}")
+    return post_photo_with_url(
         page_id,
         access_token,
         payload["message"],
-        payload["link"],
+        image_url,
     )
 
 

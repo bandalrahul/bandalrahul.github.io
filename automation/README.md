@@ -85,8 +85,12 @@ After each deploy, the workflow shares the latest article on [Swift By Rahul on 
 1. Open [Graph API Explorer](https://developers.facebook.com/tools/explorer/)
 2. Select your app → **Add permissions**: `pages_manage_posts`, `pages_read_engagement`
 3. Generate token → run **`GET /me/accounts`**
-4. Copy your Page's numeric **`id`** and **`access_token`** (Page token, not user token)
-5. Add repository secrets (no extra spaces or newlines):
+4. Copy your Page's numeric **`id`** → `FACEBOOK_PAGE_ID`
+5. Copy that same Page's **`access_token`** from the response → `FACEBOOK_PAGE_ACCESS_TOKEN`
+
+   Do **not** use the token shown in the Graph API Explorer header — that is your user token. You need the Page token inside the `/me/accounts` response.
+
+6. Add repository secrets (no extra spaces or newlines):
 
 | Name | Value |
 |------|-------|
