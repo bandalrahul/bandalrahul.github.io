@@ -12,6 +12,7 @@
     "swift-closures-explained",
     "swift-protocol-oriented-programming",
     "swift-generics-guide",
-    "swift-enums-power"
+    "swift-enums-power",
+    "swift-property-wrappers"
   ]
 }
