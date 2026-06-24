@@ -13,6 +13,7 @@
     "swift-protocol-oriented-programming",
     "swift-generics-guide",
     "swift-enums-power",
-    "swift-property-wrappers"
+    "swift-property-wrappers",
+    "swift-error-handling"
   ]
 }
