@@ -14,6 +14,7 @@
     "swift-generics-guide",
     "swift-enums-power",
     "swift-property-wrappers",
-    "swift-error-handling"
+    "swift-error-handling",
+    "swift-memory-management-arc"
   ]
 }
