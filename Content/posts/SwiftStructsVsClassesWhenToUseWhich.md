@@ -1,0 +1,345 @@
+---
+title: Swift Structs vs Classes: When to Use Which
+date: 2026-06-26 11:40
+description: Learn the fundamental differences between Swift structs and classes, and master the art of choosing the right type for your iOS app's data models and components.
+tags: Swift, iOS, Programming
+---
+
+# Swift Structs vs Classes: When to Use Which
+
+In Swift, you have two powerful tools for defining custom data types: structs and classes. While they share many similarities – both can define properties, methods, initializers, and conform to protocols – their fundamental difference lies in how they handle data: structs are **value types**, and classes are **reference types**. Understanding this distinction is crucial for writing robust, predictable, and efficient Swift code, especially in iOS development.
+
+Choosing between a struct and a class isn't just a matter of preference; it impacts memory management, how data is shared, and the overall architecture of your application. Let's dive deep into their characteristics, explore practical scenarios, and learn when to reach for each.
+
+<div style="text-align: center; margin: 2em 0;">
+<svg viewBox="0 0 700 300" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Visual comparison of value type (struct) vs reference type (class) memory behavior">
+  <title>Value Type (Struct) vs Reference Type (Class) Memory Behavior</title>
+
+  <!-- Styles -->
+  <style>
+    .label { font: 14px sans-serif; fill: #333; }
+    .code { font: 12px monospace; fill: #333; }
+    .box { stroke-width: 1; fill: #f9f9f9; }
+    .var-struct { stroke: #2A8367; } /* Green */
+    .var-class { stroke: #1565c0; } /* Blue */
+    .data-box { stroke: #888; }
+    .arrow { stroke: #F04B3E; stroke-width: 2; marker-end: url(#arrowhead); } /* Red */
+    .text-green { fill: #2A8367; font-weight: bold; }
+    .text-blue { fill: #1565c0; font-weight: bold; }
+    .text-red { fill: #F04B3E; font-weight: bold; }
+  </style>
+
+  <!-- Arrowhead definition -->
+  <defs>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="0" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#F04B3E" />
+    </marker>
+  </defs>
+
+  <!-- Struct Section -->
+  <text x="175" y="20" class="label text-green">STRUCT (Value Type)</text>
+  <rect x="25" y="40" width="300" height="250" class="box var-struct" />
+
+  <text x="35" y="65" class="code">struct Point { var x, y: Int }</text>
+  <text x="35" y="95" class="code text-green">var p1 = Point(x: 10, y: 20)</text>
+  <rect x="180" y="80" width="120" height="40" rx="5" ry="5" class="box data-box" />
+  <text x="190" y="105" class="code">x: 10, y: 20</text>
+  <line x1="165" y1="95" x2="180" y2="95" stroke="#2A8367" stroke-width="1" />
+
+  <text x="35" y="145" class="code text-blue">var p2 = p1</text>
+  <rect x="180" y="130" width="120" height="40" rx="5" ry="5" class="box data-box" />
+  <text x="190" y="155" class="code">x: 10, y: 20</text>
+  <line x1="165" y1="145" x2="180" y2="145" stroke="#1565c0" stroke-width="1" />
+  <text x="210" y="125" class="label" style="font-size: 11px;">(Copy of data)</text>
+
+  <text x="35" y="195" class="code text-green">p1.x = 30</text>
+  <rect x="180" y="180" width="120" height="40" rx="5" ry="5" class="box data-box" />
+  <text x="190" y="205" class="code">x: 30, y: 20</text>
+  <line x1="165" y1="195" x2="180" y2="195" stroke="#2A8367" stroke-width="1" />
+  <text x="210" y="175" class="label" style="font-size: 11px;">(Original data modified)</text>
+
+
+  <text x="35" y="245" class="code">p1 is {30, 20}</text>
+  <text x="35" y="265" class="code">p2 is {10, 20}</text>
+  <text x="175" y="285" class="label" style="font-size: 10px;">Independent copies: changing one doesn't affect the other.</text>
+
+  <!-- Class Section -->
+  <text x="525" y="20" class="label text-red">CLASS (Reference Type)</text>
+  <rect x="375" y="40" width="300" height="250" class="box var-class" />
+
+  <text x="385" y="65" class="code">class User { var name: String }</text>
+  <text x="385" y="95" class="code text-green">var u1 = User(name: "Alice")</text>
+  <rect x="530" y="110" width="120" height="40" rx="5" ry="5" class="box data-box" />
+  <text x="540" y="135" class="code">name: "Alice"</text>
+  <line x1="515" y1="95" x2="530" y2="110" class="arrow" />
+  <text x="560" y="105" class="label" style="font-size: 11px;">(Data in heap)</text>
+
+  <text x="385" y="145" class="code text-blue">var u2 = u1</text>
+  <line x1="515" y1="145" x2="530" y2="110" class="arrow" />
+  <text x="510" y="140" class="label" style="font-size: 11px;">(Copy of reference)</text>
+
+  <text x="385" y="195" class="code text-green">u1.name = "Bob"</text>
+  <rect x="530" y="160" width="120" height="40" rx="5" ry="5" class="box data-box" />
+  <text x="540" y="185" class="code">name: "Bob"</text>
+  <line x1="515" y1="195" x2="530" y2="160" class="arrow" />
+  <text x="560" y="155" class="label" style="font-size: 11px;">(Shared data modified)</text>
+
+  <text x="385" y="245" class="code">u1.name is "Bob"</text>
+  <text x="385" y="265" class="code">u2.name is "Bob"</text>
+  <text x="525" y="285" class="label" style="font-size: 10px;">Shared data: changing one affects all references.</text>
+</svg>
+</div>
+
+## Structs: The Power of Value Semantics
+
+When you define a `struct`, you're creating a blueprint for a **value type**. This means that whenever you create an instance of a struct and then assign it to another variable or pass it to a function, a *copy* of that instance is made. Each variable then holds its own distinct copy of the data.
+
+Think of it like photocopying a document. If you make a copy and then highlight a section in the original, the copy remains unchanged.
+
+Many of Swift's built-in types are structs: `Int`, `String`, `Array`, `Dictionary`, `Set`, `Bool`, `Double`, `Optional`, and even SwiftUI's `View` protocol often leverages structs for its conforming types. This design choice contributes significantly to Swift's safety and predictability.
+
+### Key Characteristics of Structs:
+
+*   **Value Types:** Instances are copied when assigned or passed.
+*   **No Inheritance:** Structs cannot inherit from other structs or classes.
+*   **Automatic Memberwise Initializers:** Swift automatically provides an initializer that takes values for all properties.
+*   **Mutating Methods:** If you need to modify a struct's properties from within one of its methods, that method must be marked with the `mutating` keyword. This is a clear indicator that the method will change the struct's value.
+*   **Thread Safety (often):** Because structs are copied, multiple threads can often work with their own copies of data without contention, simplifying concurrency management.
+*   **Memory:** Structs are typically stored on the stack (for local variables) or inline within other data structures, which can sometimes offer performance benefits due to cache locality.
+
+### When to Use Structs:
+
+1.  **Representing Simple Data Models:** For data types that encapsulate a few related values and don't require identity or inheritance. Examples: `Point`, `Size`, `Color`, `User` (if `User` is just ID and name, no complex behavior).
+
+    ```swift
+    struct UserProfile {
+        let id: String
+        var name: String
+        var email: String?
+    }
+
+    var user1 = UserProfile(id: "123", name: "Alice", email: "alice@example.com")
+    var user2 = user1 // user2 is a *copy* of user1
+
+    user1.name = "Alicia" // Modifies user1's copy
+    print("User1 name: \(user1.name)") // Output: User1 name: Alicia
+    print("User2 name: \(user2.name)") // Output: User2 name: Alice (unchanged)
+
+    struct Rectangle {
+        var width: Double
+        var height: Double
+
+        // Mutating method to change properties
+        mutating func scale(by factor: Double) {
+            width *= factor
+            height *= factor
+        }
+    }
+
+    var rect = Rectangle(width: 10, height: 5)
+    rect.scale(by: 2.0)
+    print("Scaled rectangle: \(rect.width)x\(rect.height)") // Output: Scaled rectangle: 20.0x10.0
+    ```
+
+2.  **Immutability and Predictability:** When you want to ensure that data passed around your application remains unchanged by other parts of the code. This makes reasoning about your code much easier. A `let` constant struct is fully immutable.
+
+3.  **Small Data Aggregations:** When the total size of the data is small. Copying large structs can be less efficient than referencing a single instance of a class.
+
+4.  **Conforming to Protocols:** Structs are excellent for conforming to protocols, especially when the protocol defines behavior for value-like types (e.g., `Equatable`, `Comparable`, `Hashable`).
+
+## Classes: The Power of Reference Semantics
+
+Classes, on the other hand, are **reference types**. When you create an instance of a class, you're creating an object in memory (on the heap), and the variable you assign it to holds a *reference* (or a pointer) to that object. When you assign one class instance to another variable or pass it to a function, you're copying the *reference*, not the actual object. Both variables then point to the *same* underlying object in memory.
+
+Think of it like giving someone directions to a specific house. If they follow those directions and paint the house red, anyone else who has the same directions will also find a red house.
+
+Classes are the building blocks of many traditional object-oriented patterns and are fundamental to frameworks like UIKit and AppKit. For instance, `UIViewController`, `UIView`, `UILabel`, `UIButton`, and `AppDelegate` are all classes.
+
+### Key Characteristics of Classes:
+
+*   **Reference Types:** Instances are referenced, not copied, when assigned or passed.
+*   **Inheritance:** Classes can inherit from other classes, allowing you to build hierarchies and reuse code.
+*   **Deinitializers:** Classes can define a `deinit` method, which is called just before an instance of the class is deallocated. This is useful for performing cleanup tasks.
+*   **Type Casting:** You can check and interpret the type of a class instance at runtime using type casting (`as?`, `as!`, `is`).
+*   **Identity:** Two class instances can be checked for identity using the `===` and `!==` operators, determining if they refer to the exact same instance in memory.
+*   **Memory:** Class instances are stored on the heap, and their memory is managed by Automatic Reference Counting (ARC).
+*   **Shared Mutable State:** Because multiple variables can refer to the same instance, classes are ideal for managing shared mutable state, where changes need to be reflected across different parts of your application.
+
+### When to Use Classes:
+
+1.  **Shared Mutable State:** When you need multiple parts of your application to share and potentially modify a single instance of data. Examples: A `NetworkManager`, a `DatabaseManager`, a `UserSession` object that needs to be updated globally.
+
+    ```swift
+    class BankAccount {
+        let accountNumber: String
+        var balance: Double
+
+        init(accountNumber: String, balance: Double) {
+            self.accountNumber = accountNumber
+            self.balance = balance
+        }
+
+        func deposit(amount: Double) {
+            balance += amount
+        }
+
+        func withdraw(amount: Double) {
+            if balance >= amount {
+                balance -= amount
+            } else {
+                print("Insufficient funds.")
+            }
+        }
+    }
+
+    let account1 = BankAccount(accountNumber: "12345", balance: 1000.0)
+    let account2 = account1 // account2 refers to the *same* instance as account1
+
+    account1.deposit(amount: 200.0)
+    print("Account1 balance: \(account1.balance)") // Output: Account1 balance: 1200.0
+    print("Account2 balance: \(account2.balance)") // Output: Account2 balance: 1200.0 (updated via account1)
+    ```
+
+2.  **Inheritance:** When you need to model an "is-a" relationship or build a hierarchy of types with shared behavior. Examples: `UIViewController` subclasses (`UITableViewController`, `UINavigationController`), custom base classes for UI elements.
+
+3.  **Objective-C Interoperability:** If you need to interact with Objective-C code, you must use classes, as Objective-C does not have structs with methods.
+
+4.  **Managing Resources or External Dependencies:** For objects that manage system resources, network connections, or database access, where a single, shared instance (often a singleton) is appropriate.
+
+5.  **Identity:** When the identity of an instance is important, meaning you care if two variables refer to the *exact same object* rather than just objects with the same data.
+
+## Key Differences at a Glance
+
+| Feature                 | Structs (Value Types)                                  | Classes (Reference Types)                                 |
+| :---------------------- | :----------------------------------------------------- | :-------------------------------------------------------- |
+| **Assignment/Copying**  | Copies the data                                        | Copies the reference to the same data                     |
+| **Inheritance**         | No inheritance                                         | Supports inheritance                                      |
+| **Deinitializers**      | No deinitializers                                      | Has deinitializers (`deinit`)                             |
+| **Type Casting**        | Not applicable                                         | Allows type casting (`is`, `as?`, `as!`)                  |
+| **Identity Operators**  | Not applicable (`===`, `!==`)                          | Applicable (`===`, `!==`) to check if references are identical |
+| **Mutability**          | `mutating` keyword for methods that modify properties  | Properties can be modified without special keywords       |
+| **Memory Management**   | Stack (often), inline. No ARC for the struct itself.   | Heap. Managed by ARC.                                     |
+
+## Making the Choice: A Decision Guide
+
+When you're faced with the struct vs. class dilemma, consider these questions:
+
+<div style="text-align: center; margin: 2em 0;">
+<svg viewBox="0 0 600 220" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Decision flowchart for choosing between Swift struct and class">
+  <title>Struct vs Class Decision Flowchart</title>
+
+  <style>
+    .node { fill: #f9f9f9; stroke: #333; stroke-width: 1; }
+    .decision { fill: #f9f9f9; stroke: #1565c0; stroke-width: 2; } /* Blue */
+    .result-struct { fill: #2A8367; stroke: #2A8367; } /* Green */
+    .result-class { fill: #F04B3E; stroke: #F04B3E; } /* Red */
+    .text { font: 14px sans-serif; fill: #333; text-anchor: middle; dominant-baseline: central; }
+    .text-white { fill: white; font-weight: bold; }
+    .arrow { stroke: #333; stroke-width: 1; marker-end: url(#arrowhead-black); }
+    .label-yes { fill: #2A8367; font-weight: bold; font-size: 12px; }
+    .label-no { fill: #F04B3E; font-weight: bold; font-size: 12px; }
+  </style>
+
+  <defs>
+    <marker id="arrowhead-black" markerWidth="10" markerHeight="7" refX="0" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#333" />
+    </marker>
+  </defs>
+
+  <!-- Start Node -->
+  <rect x="250" y="10" width="100" height="40" rx="5" ry="5" class="node" />
+  <text x="300" y="30" class="text">START</text>
+
+  <!-- Decision 1 -->
+  <polygon points="300,70 350,95 300,120 250,95" class="decision" />
+  <text x="300" y="95" class="text">Need inheritance or<tspan x="300" dy="16" font-size="10">Objective-C interop?</tspan></text>
+  <line x1="300" y1="50" x2="300" y2="70" class="arrow" />
+
+  <!-- Decision 1 - YES branch -->
+  <line x1="350" y1="95" x2="450" y2="95" class="arrow" />
+  <text x="380" y="85" class="label-yes">Yes</text>
+  <rect x="450" y="75" width="100" height="40" rx="5" ry="5" class="result-class" />
+  <text x="500" y="95" class="text text-white">CLASS</text>
+
+  <!-- Decision 1 - NO branch -->
+  <line x1="250" y1="95" x2="150" y2="95" class="arrow" />
+  <text x="220" y="85" class="label-no">No</text>
+
+  <!-- Decision 2 -->
+  <polygon points="150,95 100,120 150,145 200,120" class="decision" />
+  <text x="150" y="120" class="text">Need shared mutable<tspan x="150" dy="16" font-size="10">state or identity?</tspan></text>
+  <line x1="150" y1="95" x2="150" y2="100" class="arrow" />
+
+  <!-- Decision 2 - YES branch -->
+  <line x1="200" y1="120" x2="300" y2="120" class="arrow" />
+  <text x="230" y="110" class="label-yes">Yes</text>
+  <rect x="300" y="100" width="100" height="40" rx="5" ry="5" class="result-class" />
+  <text x="350" y="120" class="text text-white">CLASS</text>
+
+  <!-- Decision 2 - NO branch -->
+  <line x1="150" y1="145" x2="150" y2="170" class="arrow" />
+  <text x="160" y="155" class="label-no">No</text>
+
+  <!-- Result (Default) -->
+  <rect x="100" y="170" width="100" height="40" rx="5" ry="5" class="result-struct" />
+  <text x="150" y="190" class="text text-white">STRUCT</text>
+</svg>
+</div>
+
+1.  **Do you need inheritance?** If your type needs to inherit properties or methods from another type, or if you need to integrate with Objective-C APIs that rely on class hierarchies (like UIKit view controllers), you *must* use a class.
+2.  **Do you need shared mutable state or identity?** If you need multiple variables to refer to the *exact same instance* of data, and for changes made through one variable to be reflected in all others, then a class is appropriate. This implies that the identity of the object matters (e.g., "is this the same `UserSession` object?").
+3.  **Is the data small and simple?** For simple data structures that encapsulate a few properties and don't involve complex behavior or shared state, structs are generally preferred. They are easier to reason about due to their value semantics.
+4.  **The "Structs by Default" Principle:** A common Swift idiom is to "prefer structs over classes." If you're unsure, start with a struct. You can always refactor to a class later if your requirements change and demand reference semantics or inheritance. This approach encourages writing more predictable and safer code.
+
+## Practical Considerations and Best Practices
+
+*   **`let` with Structs vs. Classes:**
+    *   When you declare a `let` constant of a struct type, the entire struct instance is immutable. You cannot change any of its properties.
+    *   When you declare a `let` constant of a class type, the *reference* to the class instance is immutable. You cannot reassign the `let` variable to point to a different instance. However, the properties of the *referenced object* can still be changed if they are declared as `var` within the class.
+
+    ```swift
+    struct Person { var name: String }
+    class Dog { var name: String; init(name: String) { self.name = name } }
+
+    let p = Person(name: "Charlie")
+    // p.name = "Chaz" // ERROR: Cannot assign to property: 'p' is a 'let' constant
+
+    let d = Dog(name: "Buddy")
+    d.name = "Bud" // OK: The reference 'd' is constant, but the object it points to is mutable
+    // d = Dog(name: "Lucy") // ERROR: Cannot assign to value: 'd' is a 'let' constant
+    ```
+
+*   **Performance:** For small data types, structs can sometimes offer better performance due to being stored on the stack and improved cache locality. However, for larger structs, copying them can be more expensive than copying a reference to a class. Don't prematurely optimize; prioritize correctness and clarity first.
+
+*   **SwiftUI:** SwiftUI heavily leverages structs for `View` types. Because views are structs, they are lightweight and immutable by default, making UI updates more predictable. State management in SwiftUI often involves passing value types around, relying on the framework to re-render views efficiently when state changes.
+
+*   **UIKit:** UIKit, being an Objective-C framework, relies heavily on classes. View controllers (`UIViewController`), views (`UIView`), and many other components are classes. When bridging Swift code with UIKit, you'll naturally use classes for these components.
+
+*   **Models:** For your application's data models, consider whether the model represents a unique entity with a lifecycle and shared state (class) or a simple, immutable snapshot of data (struct). Often, simple data models can be structs, while more complex entities that manage relationships or have side effects might be classes.
+
+Consider a common scenario in an iOS app:
+
+```
+┌─────────────────┐      ┌─────────────────┐
+│   Post (Struct)   │◄───│  PostCellViewModel│
+└─────────────────┘      │     (Struct)    │
+                           └─────────────────┘
+                                   │
+                                   ▼
+                           ┌─────────────────┐
+                           │   PostListVC    │
+                           │     (Class)     │
+                           └─────────────────┘
+```
+
+Here, `Post` and `PostCellViewModel` are perfect candidates for structs because they primarily hold data. A `Post` struct holds the content of a post, and a `PostCellViewModel` might transform that `Post` data into a format suitable for a UI cell. Neither needs inheritance, and you often want copies of this data to be independent. The `PostListVC` (ViewController) is a class, as it's part of UIKit's class hierarchy and manages the lifecycle of the view.
+
+## Summary
+
+The choice between structs and classes is fundamental in Swift.
+*   **Structs (Value Types)** create independent copies of data. They are excellent for simple data models, promoting immutability, predictability, and often better performance for small types. Use them by default when you don't need inheritance or shared mutable state.
+*   **Classes (Reference Types)** create shared references to a single instance of data. They are essential for modeling complex entities with inheritance, shared mutable state, identity, and Objective-C interoperability.
+
+By understanding their core differences and applying the "structs by default" principle, you'll be well-equipped to make informed decisions that lead to cleaner, safer, and more maintainable Swift applications.
+
+Happy Swifting!

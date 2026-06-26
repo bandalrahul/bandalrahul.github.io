@@ -15,6 +15,7 @@
     "swift-enums-power",
     "swift-property-wrappers",
     "swift-error-handling",
-    "swift-memory-management-arc"
+    "swift-memory-management-arc",
+    "swift-structs-vs-classes"
   ]
 }
