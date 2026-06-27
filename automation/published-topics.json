@@ -16,6 +16,7 @@
     "swift-property-wrappers",
     "swift-error-handling",
     "swift-memory-management-arc",
-    "swift-structs-vs-classes"
+    "swift-structs-vs-classes",
+    "swift-extensions-guide"
   ]
 }
