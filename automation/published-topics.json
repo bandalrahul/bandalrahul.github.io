@@ -18,6 +18,7 @@
     "swift-memory-management-arc",
     "swift-structs-vs-classes",
     "swift-extensions-guide",
-    "swift-collections-performance"
+    "swift-collections-performance",
+    "swift-keypaths-explained"
   ]
 }
