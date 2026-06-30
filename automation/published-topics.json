@@ -19,6 +19,7 @@
     "swift-structs-vs-classes",
     "swift-extensions-guide",
     "swift-collections-performance",
-    "swift-keypaths-explained"
+    "swift-keypaths-explained",
+    "swift-type-erasure"
   ]
 }
