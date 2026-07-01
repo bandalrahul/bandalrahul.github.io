@@ -20,6 +20,7 @@
     "swift-extensions-guide",
     "swift-collections-performance",
     "swift-keypaths-explained",
-    "swift-type-erasure"
+    "swift-type-erasure",
+    "swift-observation-framework"
   ]
 }
