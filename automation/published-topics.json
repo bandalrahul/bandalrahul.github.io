@@ -21,6 +21,7 @@
     "swift-collections-performance",
     "swift-keypaths-explained",
     "swift-type-erasure",
-    "swift-observation-framework"
+    "swift-observation-framework",
+    "swift-macros-intro"
   ]
 }
