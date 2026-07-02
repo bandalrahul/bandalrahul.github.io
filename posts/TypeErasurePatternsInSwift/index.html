@@ -1,0 +1,182 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"/><meta property="og:site_name" content="Swift By Rahul"/><link rel="canonical" href="https://www.swiftbyrahul.com/posts/TypeErasurePatternsInSwift"/><meta name="twitter:url" content="https://www.swiftbyrahul.com/posts/TypeErasurePatternsInSwift"/><meta property="og:url" content="https://www.swiftbyrahul.com/posts/TypeErasurePatternsInSwift"/><title>Type Erasure Patterns in Swift | Swift By Rahul</title><meta name="twitter:title" content="Type Erasure Patterns in Swift | Swift By Rahul"/><meta property="og:title" content="Type Erasure Patterns in Swift | Swift By Rahul"/><meta name="description" content="Explore type erasure in Swift to overcome limitations of generics and protocols, enabling flexible, type-safe code for complex architectures."/><meta name="twitter:description" content="Explore type erasure in Swift to overcome limitations of generics and protocols, enabling flexible, type-safe code for complex architectures."/><meta property="og:description" content="Explore type erasure in Swift to overcome limitations of generics and protocols, enabling flexible, type-safe code for complex architectures."/><meta name="twitter:card" content="summary"/><link rel="stylesheet" href="/styles.css" type="text/css"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><link rel="shortcut icon" href="/images/favicon.png" type="image/png"/><link rel="alternate" href="/feed.rss" type="application/rss+xml" title="Subscribe to Swift By Rahul"/></head><head><link rel="stylesheet" href="/css/prism.css" type="text/css"/><script src="/js/prism.js"></script><script src="/js/article.js"></script><script src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9268892677399703" async></script><meta name="twitter:card" content="summary_large_image"/><meta property="og:image" content="https://www.swiftbyrahul.com/images/posts/TypeErasurePatternsInSwift.png"/><meta property="og:image:alt" content="Type Erasure Patterns in Swift"/><meta name="twitter:image" content="https://www.swiftbyrahul.com/images/posts/TypeErasurePatternsInSwift.png"/></head><body class="item-page"><header><div class="wrapper"><a href="/" class="site-name">Swift By Rahul</a><nav class="site-nav"><ul><li><a href="/">Home</a></li><li><a href="/posts/" class="selected">Posts</a></li><li><a href="/tags">Tags</a></li><li><a href="https://github.com/bandalrahul">GitHub</a></li></ul></nav></div></header><div class="wrapper"><article><div><button class="toc-toggle" id="toc-toggle" type="button" aria-expanded="false">On this page</button><div class="article-layout"><aside class="toc" id="article-toc"><p class="toc-heading">On this page</p><nav class="toc-nav" id="article-toc-nav"></nav></aside><div class="article-main"><div class="article-meta"><span>June 30, 2026</span><span> · </span><span>9 min read</span><span> · </span><ul class="tag-list"><li><a href="/tags/swift">Swift</a></li><li><a href="/tags/ios">iOS</a></li><li><a href="/tags/architecture">Architecture</a></li></ul></div><div class="content"><h1>Type Erasure Patterns in Swift</h1><p>Swift is a language that champions strong typing and protocol-oriented programming. Generics and protocols are powerful tools that allow us to write flexible, reusable, and type-safe code. However, there are specific scenarios where these powerful features seem to hit a wall, particularly when working with protocols that declare <code>associatedtype</code> requirements (often called "protocols with associated types" or PATs).</p><p>Imagine you're building a system where different components need to conform to a common protocol, but each component might handle a slightly different data type. How do you store these diverse components in a single collection, or pass them around uniformly, without losing type safety or resorting to <code>Any</code>? This is where type erasure comes to the rescue.</p><p>In this article, we'll dive deep into type erasure patterns in Swift, understanding the problem they solve, how to implement them, and when to wisely apply them in your iOS or Swift applications.</p><h2>The Problem: When Protocols Become Too Specific</h2><p>Let's start by illustrating the problem that type erasure aims to solve. Consider a common pattern: a <code>Validator</code> protocol.</p><pre><code class="language-swift">protocol Validator {
+    associatedtype Value
+    func isValid(_ value: Value) -&gt; Bool
+}
+</code></pre><p>This protocol is wonderfully flexible. We can create concrete validators for different types:</p><pre><code class="language-swift">struct EmailValidator: Validator {
+    func isValid(_ value: String) -&gt; Bool {
+        return value.contains("@") &amp;&amp; value.contains(".") // Simplified
+    }
+}
+
+struct PasswordValidator: Validator {
+    func isValid(_ value: String) -&gt; Bool {
+        return value.count &gt;= 8 &amp;&amp; value.rangeOfCharacter(from: .letters) != nil &amp;&amp; value.rangeOfCharacter(from: .decimalDigits) != nil
+    }
+}
+
+struct AgeValidator: Validator {
+    func isValid(_ value: Int) -&gt; Bool {
+        return value &gt;= 18
+    }
+}
+</code></pre><p>Now, suppose you want to create a collection of <code>Validator</code> instances. You might intuitively try to do this:</p><pre><code class="language-swift">// This won't compile!
+// let stringValidators: [any Validator] = [EmailValidator(), PasswordValidator()]
+// let allValidators: [any Validator] = [EmailValidator(), AgeValidator()]
+</code></pre><p>If you try the above, Swift's compiler will greet you with an error like: <strong>"Protocol 'Validator' can only be used as a generic constraint because it has Self or associated type requirements."</strong></p><p>Why does this happen? When a protocol has an <code>associatedtype</code>, it means the protocol's definition depends on a specific type that the conforming type provides. The <code>Validator</code> protocol, for example, isn't just a <code>Validator</code>; it's a <code>Validator where Value == String</code> or a <code>Validator where Value == Int</code>. The compiler needs to know the specific <code>Value</code> type at compile time to ensure type safety.</p><p>When you declare <code>[any Validator]</code>, you're asking for a collection where each element could be <em>any</em> <code>Validator</code>, regardless of its <code>Value</code> type. This ambiguity makes it impossible for the compiler to guarantee that <code>isValid(_:)</code> can be called safely on every element, as the <code>Value</code> type might differ.</p><div style="text-align: center; margin: 2em 0;">
+<svg viewBox="0 0 600 220" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram illustrating the compilation error when trying to store different concrete types of a protocol with an associated type in a collection without type erasure.">
+  <title>The Problem: Storing Protocol Types with Associated Types</title>
+
+  <!-- Protocol Box -->
+  <rect x="220" y="10" width="160" height="50" rx="5" ry="5" fill="#2A8367" stroke="#000" stroke-width="2"/>
+  <text x="300" y="40" font-family="Arial, sans-serif" font-size="16" fill="#FFF" text-anchor="middle">protocol <tspan font-weight="bold">Validator</tspan></text>
+  <text x="300" y="58" font-family="Arial, sans-serif" font-size="12" fill="#FFF" text-anchor="middle">associatedtype Value</text>
+
+  <!-- Concrete Type EmailValidator -->
+  <rect x="50" y="90" width="160" height="50" rx="5" ry="5" fill="#F0F0F0" stroke="#000" stroke-width="2"/>
+  <text x="130" y="120" font-family="Arial, sans-serif" font-size="16" fill="#000" text-anchor="middle">EmailValidator</text>
+  <text x="130" y="138" font-family="Arial, sans-serif" font-size="12" fill="#000" text-anchor="middle">conforms to Validator (Value=String)</text>
+
+  <!-- Concrete Type PasswordValidator -->
+  <rect x="390" y="90" width="160" height="50" rx="5" ry="5" fill="#F0F0F0" stroke="#000" stroke-width="2"/>
+  <text x="470" y="120" font-family="Arial, sans-serif" font-size="16" fill="#000" text-anchor="middle">PasswordValidator</text>
+  <text x="470" y="138" font-family="Arial, sans-serif" font-size="12" fill="#000" text-anchor="middle">conforms to Validator (Value=String)</text>
+
+  <!-- Arrows to Protocol -->
+  <line x1="130" y1="90" x2="270" y2="60" stroke="#000" stroke-width="2" marker-end="url(#arrowhead)"/>
+  <line x1="470" y1="90" x2="330" y2="60" stroke="#000" stroke-width="2" marker-end="url(#arrowhead)"/>
+
+  <!-- Collection Box (Problem) -->
+  <rect x="190" y="160" width="220" height="50" rx="5" ry="5" fill="#F04B3E" stroke="#000" stroke-width="2"/>
+  <text x="300" y="190" font-family="Arial, sans-serif" font-size="16" fill="#FFF" text-anchor="middle">let validators: [any Validator]</text>
+  <text x="300" y="208" font-family="Arial, sans-serif" font-size="12" fill="#FFF" text-anchor="middle">(Error: 'Validator' has associated type requirements)</text>
+
+  <!-- Arrow from types to collection (dashed, indicating attempt) -->
+  <line x1="130" y1="140" x2="240" y2="160" stroke="#F04B3E" stroke-width="2" stroke-dasharray="5,5"/>
+  <line x1="470" y1="140" x2="360" y2="160" stroke="#F04B3E" stroke-width="2" stroke-dasharray="5,5"/>
+
+  <!-- Arrowhead definition -->
+  <defs>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="0" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#000" />
+    </marker>
+  </defs>
+</svg>
+</div><h2>Swift's Existential Types (<code>any Protocol</code>) and Opaque Types (<code>some Protocol</code>)</h2><p>Before diving into type erasure, it's worth briefly clarifying Swift's built-in ways to handle protocols:</p><ul><li><strong><code>some Protocol</code> (Opaque Types):</strong> Introduced in Swift 5.1, <code>some Protocol</code> is used as a <em>return type</em> to indicate that a function returns a concrete type that conforms to a protocol, but the caller doesn't need to know the exact type. The <em>same</em> concrete type is always returned. It's like an "inverse generic." It doesn't solve the collection problem.</li><li><strong><code>any Protocol</code> (Existential Types):</strong> Introduced in Swift 5.6, <code>any Protocol</code> explicitly denotes an existential type, meaning "some value of <em>any</em> concrete type that conforms to this protocol." While it makes the intent clearer, it still cannot be used with protocols that have <code>Self</code> or <code>associatedtype</code> requirements because the compiler cannot guarantee the <code>associatedtype</code> at runtime across different concrete types.</li></ul><p>This is precisely the gap that type erasure fills.</p><h2>The Solution: Type Erasure</h2><p>Type erasure is a design pattern where you wrap a concrete type that conforms to a protocol with associated types inside a non-generic (or generically constrained) wrapper struct or class. This wrapper then conforms to the <em>same</em> protocol, but it "erases" the specific generic details of the wrapped type, presenting a uniform interface.</p><p>The wrapper essentially holds a reference to the underlying concrete type and forwards all protocol method calls to it. By making the wrapper generic over the associated types themselves (e.g., <code>AnyValidator&lt;Value&gt;</code>), we effectively fix the associated type, allowing us to store different concrete types that share that same associated type.</p><h3>Practical Example: Creating <code>AnyValidator</code></h3><p>Let's create our <code>AnyValidator</code> type eraser for the <code>Validator</code> protocol:</p><pre><code class="language-swift">struct AnyValidator&lt;V&gt;: Validator {
+    typealias Value = V
+
+    // A private closure that captures the 'isValid' method of the wrapped validator
+    private let _isValid: (V) -&gt; Bool
+
+    // The initializer takes any concrete type 'T' that conforms to Validator,
+    // as long as its 'Value' type matches 'V'.
+    init&lt;T: Validator&gt;(_ validator: T) where T.Value == V {
+        _isValid = validator.isValid
+    }
+
+    // Forward the protocol requirement to the captured closure
+    func isValid(_ value: V) -&gt; Bool {
+        return _isValid(value)
+    }
+}
+</code></pre><p>Let's break down <code>AnyValidator</code>:</p><ol><li><strong><code>struct AnyValidator&lt;V&gt;: Validator</code></strong>: It's a generic struct, where <code>V</code> represents the <code>Value</code> associated type of the <code>Validator</code> protocol. Crucially, <code>AnyValidator</code> itself conforms to <code>Validator</code>.</li><li><strong><code>typealias Value = V</code></strong>: This line explicitly tells the compiler that <code>AnyValidator</code>'s <code>Value</code> associated type is the generic type <code>V</code>. This "fixes" the associated type for <code>AnyValidator</code>, making it a concrete type for the <code>Validator</code> protocol (e.g., <code>AnyValidator&lt;String&gt;</code>).</li><li><strong><code>private let _isValid: (V) -&gt; Bool</code></strong>: This is the core of the type erasure. Instead of storing the <code>validator</code> instance directly, we store a closure that captures the <code>isValid</code> method of the concrete validator passed into the initializer. This allows us to invoke the original validator's logic without needing to know its specific type.</li><li><strong><code>init&lt;T: Validator&gt;(_ validator: T) where T.Value == V</code></strong>: The initializer is generic over <code>T</code>, the concrete validator type. The <code>where T.Value == V</code> clause is vital: it ensures that <em>only</em> validators whose <code>Value</code> type matches <code>AnyValidator</code>'s <code>V</code> can be wrapped. This preserves type safety.</li><li><strong><code>func isValid(_ value: V) -&gt; Bool</code></strong>: This simply calls the stored <code>_isValid</code> closure, forwarding the <code>value</code>.</li></ol><p>Now, we can use <code>AnyValidator</code> to solve our collection problem:</p><pre><code class="language-swift">let emailValidator = EmailValidator()
+let passwordValidator = PasswordValidator()
+let ageValidator = AgeValidator() // Value is Int
+
+// Wrap our concrete validators with AnyValidator&lt;String&gt;
+let anyEmailValidator = AnyValidator(emailValidator)
+let anyPasswordValidator = AnyValidator(passwordValidator)
+
+// Now we can put them into a collection!
+let stringValidators: [AnyValidator&lt;String&gt;] = [anyEmailValidator, anyPasswordValidator]
+
+print("--- String Validators ---")
+for validator in stringValidators {
+    print("Is 'test@example.com' valid? \(validator.isValid("test@example.com"))")
+    print("Is 'short' valid? \(validator.isValid("short"))")
+}
+
+// We can also create a collection for Int validators:
+let anyAgeValidator = AnyValidator(ageValidator)
+let intValidators: [AnyValidator&lt;Int&gt;] = [anyAgeValidator]
+
+print("\n--- Int Validators ---")
+for validator in intValidators {
+    print("Is 17 valid? \(validator.isValid(17))")
+    print("Is 20 valid? \(validator.isValid(20))")
+}
+</code></pre><p>This works beautifully! We've successfully stored different concrete types (<code>EmailValidator</code>, <code>PasswordValidator</code>) in a single collection (<code>[AnyValidator&lt;String&gt;]</code>) by erasing their specific structural types while retaining their shared <code>Value</code> type.</p><div style="text-align: center; margin: 2em 0;">
+<svg viewBox="0 0 600 280" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram illustrating how type erasure with AnyValidator<String> allows storing different concrete validator types in a collection.">
+  <title>Type Erasure with AnyValidator<String></title>
+
+  <!-- Concrete Type EmailValidator -->
+  <rect x="50" y="10" width="160" height="50" rx="5" ry="5" fill="#F0F0F0" stroke="#000" stroke-width="2"/>
+  <text x="130" y="40" font-family="Arial, sans-serif" font-size="16" fill="#000" text-anchor="middle">EmailValidator</text>
+  <text x="130" y="58" font-family="Arial, sans-serif" font-size="12" fill="#000" text-anchor="middle">conforms to Validator (Value=String)</text>
+
+  <!-- Concrete Type PasswordValidator -->
+  <rect x="390" y="10" width="160" height="50" rx="5" ry="5" fill="#F0F0F0" stroke="#000" stroke-width="2"/>
+  <text x="470" y="40" font-family="Arial, sans-serif" font-size="16" fill="#000" text-anchor="middle">PasswordValidator</text>
+  <text x="470" y="58" font-family="Arial, sans-serif" font-size="12" fill="#000" text-anchor="middle">conforms to Validator (Value=String)</text>
+
+  <!-- AnyValidator Box -->
+  <rect x="220" y="100" width="160" height="70" rx="5" ry="5" fill="#1565c0" stroke="#000" stroke-width="2"/>
+  <text x="300" y="130" font-family="Arial, sans-serif" font-size="16" fill="#FFF" text-anchor="middle">AnyValidator&lt;String&gt;</text>
+  <text x="300" y="148" font-family="Arial, sans-serif" font-size="12" fill="#FFF" text-anchor="middle">conforms to Validator (Value=String)</text>
+  <text x="300" y="166" font-family="Arial, sans-serif" font-size="10" fill="#FFF" text-anchor="middle">(wraps concrete Validator)</text>
+
+  <!-- Arrows from Concrete Types to AnyValidator -->
+  <line x1="130" y1="60" x2="270" y2="100" stroke="#000" stroke-width="2" marker-end="url(#arrowhead)"/>
+  <line x1="470" y1="60" x2="330" y2="100" stroke="#000" stroke-width="2" marker-end="url(#arrowhead)"/>
+  <text x="210" y="85" font-family="Arial, sans-serif" font-size="10" fill="#000" text-anchor="middle">init(EmailValidator)</text>
+  <text x="390" y="85" font-family="Arial, sans-serif" font-size="10" fill="#000" text-anchor="middle">init(PasswordValidator)</text>
+
+  <!-- Collection Box (Solution) -->
+  <rect x="190" y="210" width="220" height="50" rx="5" ry="5" fill="#2A8367" stroke="#000" stroke-width="2"/>
+  <text x="300" y="240" font-family="Arial, sans-serif" font-size="16" fill="#FFF" text-anchor="middle">let validators: [AnyValidator&lt;String&gt;]</text>
+  <text x="300" y="258" font-family="Arial, sans-serif" font-size="12" fill="#FFF" text-anchor="middle">(Works! Heterogeneous collection)</text>
+
+  <!-- Arrows from AnyValidator to Collection -->
+  <line x1="300" y1="170" x2="300" y2="210" stroke="#000" stroke-width="2" marker-end="url(#arrowhead)"/>
+  <text x="300" y="195" font-family="Arial, sans-serif" font-size="10" fill="#000" text-anchor="middle">add to collection</text>
+
+  <!-- Arrowhead definition -->
+  <defs>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="0" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#000" />
+    </marker>
+  </defs>
+</svg>
+</div><h3>Built-in Type Erasers: <code>AnyHashable</code> and <code>AnyCancellable</code></h3><p>You've likely encountered type erasure in Swift even if you didn't recognize it. Two common examples are <code>AnyHashable</code> and <code>AnyCancellable</code>.</p><ul><li><strong><code>AnyHashable</code></strong>: This struct wraps any type that conforms to the <code>Hashable</code> protocol, allowing you to store different <code>Hashable</code> types (like <code>Int</code>, <code>String</code>, <code>UUID</code>, etc.) in a single <code>Set</code> or use them as keys in a <code>Dictionary</code>. Without <code>AnyHashable</code>, you'd be restricted to <code>Set&lt;Int&gt;</code> or <code>Dictionary&lt;String, ...&gt;</code>.</li><li><strong><code>AnyCancellable</code></strong>: Part of the Combine framework, <code>AnyCancellable</code> wraps any <code>Cancellable</code> instance. This is crucial because Combine's operators return various concrete <code>Cancellable</code> types. <code>AnyCancellable</code> provides a unified way to store and manage subscriptions without exposing their intricate underlying types.</li></ul><p>These are excellent examples of how type erasure solves common problems in Swift's standard library and frameworks.</p><h2>When to Use Type Erasure</h2><p>Type erasure is a powerful tool, but like any powerful tool, it should be used judiciously.</p><h3>Good Use Cases:</h3><ol><li><strong>Heterogeneous Collections</strong>: As demonstrated, this is the primary reason. When you need to store multiple concrete types that conform to a protocol with associated types in a single array, set, or dictionary.</li><li><strong>Function Return Types</strong>: When a function needs to return an instance conforming to a protocol with associated types, but you don't want to expose the specific concrete type, and <code>some Protocol</code> isn't suitable (e.g., if the concrete type can vary based on runtime conditions, or if it's a stored property).</li><li><strong>Module Boundaries</strong>: To create clear abstraction layers between different modules or components. A module can expose an <code>AnyXYZ</code> type, allowing consumers to interact with it via a fixed interface without coupling to the internal concrete implementations.</li><li><strong>Dependency Injection</strong>: When injecting dependencies that conform to protocols with associated types, type erasure can simplify the dependency graph by providing a stable, erased type.</li></ol><h3>Considerations and Trade-offs:</h3><ol><li><strong>Increased Complexity</strong>: Introducing a type-erased wrapper adds another layer of abstraction and boilerplate code. It can make the code slightly harder to read and debug if not well-documented.</li><li><strong>Runtime Overhead</strong>: Type erasure involves dynamic dispatch (calling methods through a closure or vtable), which has a minor runtime performance cost compared to direct method calls. For most applications, this overhead is negligible, but it's worth being aware of in performance-critical sections.</li><li><strong>Loss of Specificity</strong>: Once a type is erased, you lose compile-time knowledge of its original concrete type. You cannot, for example, cast an <code>AnyValidator&lt;String&gt;</code> back to <code>EmailValidator</code> without a runtime check (<code>as? EmailValidator</code>) which defeats some of the compile-time safety benefits.</li></ol><h2>Comparison: Before vs. After Type Erasure</h2><p>Let's visualize the impact of type erasure:</p><pre><code>Problem (Before Type Erasure):
+┌─────────────────────────┐     ┌─────────────────────────┐
+│     EmailValidator      │     │    PasswordValidator    │
+│   (Validator, Value=Str)│     │  (Validator, Value=Str) │
+└─────────────────────────┘     └─────────────────────────┘
+            │                           │
+            └───────────┬───────────────┘
+                        │
+                  Compiler Error
+                        │
+┌─────────────────────────┐
+│  let validators:        │  &lt;-- Cannot store different
+│  [any Validator]        │      concrete types directly
+└─────────────────────────┘
+
+Solution (After Type Erasure):
+┌─────────────────────────┐     ┌─────────────────────────┐
+│     EmailValidator      │     │    PasswordValidator    │
+│   (Validator, Value=Str)│     │  (Validator, Value=Str) │
+└─────────────────────────┘     └─────────────────────────┘
+            │                           │
+            ▼                           ▼
+┌─────────────────────────┐     ┌─────────────────────────┐
+│  AnyValidator&lt;String&gt;   │     │  AnyValidator&lt;String&gt;   │
+│ (wraps EmailValidator)  │     │ (wraps PasswordValidator)│
+└─────────────────────────┘     └─────────────────────────┘
+            │                           │
+            └───────────┬───────────────┘
+                        ▼
+┌─────────────────────────┐
+│  let validators:        │  &lt;-- Works! Heterogeneous
+│  [AnyValidator&lt;String&gt;] │      collection of wrappers
+└─────────────────────────┘
+</code></pre><h2>Summary</h2><p>Type erasure is an advanced Swift pattern that empowers you to work with protocols that have associated types in scenarios where Swift's type system would otherwise prevent it, primarily in heterogeneous collections or as function return types. By introducing a generic wrapper that captures the underlying type's behavior, you can achieve flexibility and maintain type safety. While it adds a layer of abstraction and a minimal runtime cost, it's an indispensable tool for building robust and modular Swift applications, especially when dealing with complex architectural patterns.</p><p>Happy Swifting!</p></div><div class="article-tags"><span class="tags-label">Tagged: </span><ul class="tag-list"><li><a href="/tags/swift">Swift</a></li><li><a href="/tags/ios">iOS</a></li><li><a href="/tags/architecture">Architecture</a></li></ul></div><div class="ads-container"><ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-9268892677399703" data-ad-slot="8133392181" data-ad-format="auto" data-full-width-responsive="true"></ins><script>(adsbygoogle = window.adsbygoogle || []).push({});</script></div></div></div></div></article></div><footer><div class="wrapper"><p>© Swift By Rahul · <a href="/feed.rss">RSS</a> · <a href="https://github.com/bandalrahul">GitHub</a> · Built with <a href="https://github.com/johnsundell/publish">Publish</a></p></div></footer></body></html>
