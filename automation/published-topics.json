@@ -22,6 +22,7 @@
     "swift-keypaths-explained",
     "swift-type-erasure",
     "swift-observation-framework",
-    "swift-macros-intro"
+    "swift-macros-intro",
+    "swift-async-await-basics"
   ]
 }
