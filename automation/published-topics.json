@@ -24,6 +24,7 @@
     "swift-observation-framework",
     "swift-macros-intro",
     "swift-async-await-basics",
-    "swift-actors-explained"
+    "swift-actors-explained",
+    "swift-task-groups"
   ]
 }
