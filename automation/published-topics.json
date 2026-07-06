@@ -25,6 +25,7 @@
     "swift-macros-intro",
     "swift-async-await-basics",
     "swift-actors-explained",
-    "swift-task-groups"
+    "swift-task-groups",
+    "swift-async-sequences"
   ]
 }
