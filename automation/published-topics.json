@@ -26,6 +26,7 @@
     "swift-async-await-basics",
     "swift-actors-explained",
     "swift-task-groups",
-    "swift-async-sequences"
+    "swift-async-sequences",
+    "swift-mainactor-guide"
   ]
 }
