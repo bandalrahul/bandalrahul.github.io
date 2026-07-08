@@ -27,6 +27,7 @@
     "swift-actors-explained",
     "swift-task-groups",
     "swift-async-sequences",
-    "swift-mainactor-guide"
+    "swift-mainactor-guide",
+    "swiftui-state-management"
   ]
 }
