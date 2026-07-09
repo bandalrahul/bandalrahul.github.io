@@ -28,6 +28,7 @@
     "swift-task-groups",
     "swift-async-sequences",
     "swift-mainactor-guide",
-    "swiftui-state-management"
+    "swiftui-state-management",
+    "swiftui-navigation-stack"
   ]
 }
