@@ -29,6 +29,7 @@
     "swift-async-sequences",
     "swift-mainactor-guide",
     "swiftui-state-management",
-    "swiftui-navigation-stack"
+    "swiftui-navigation-stack",
+    "swiftui-custom-modifiers"
   ]
 }
