@@ -30,6 +30,7 @@
     "swift-mainactor-guide",
     "swiftui-state-management",
     "swiftui-navigation-stack",
-    "swiftui-custom-modifiers"
+    "swiftui-custom-modifiers",
+    "swiftui-lifecycle"
   ]
 }
