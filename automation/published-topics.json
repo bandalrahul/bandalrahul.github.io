@@ -32,6 +32,7 @@
     "swiftui-navigation-stack",
     "swiftui-custom-modifiers",
     "swiftui-lifecycle",
-    "swiftui-animations"
+    "swiftui-animations",
+    "swiftui-list-performance"
   ]
 }
