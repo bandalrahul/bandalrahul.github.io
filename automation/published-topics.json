@@ -33,6 +33,7 @@
     "swiftui-custom-modifiers",
     "swiftui-lifecycle",
     "swiftui-animations",
-    "swiftui-list-performance"
+    "swiftui-list-performance",
+    "swiftui-environment-objects"
   ]
 }
