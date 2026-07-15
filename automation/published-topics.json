@@ -34,6 +34,7 @@
     "swiftui-lifecycle",
     "swiftui-animations",
     "swiftui-list-performance",
-    "swiftui-environment-objects"
+    "swiftui-environment-objects",
+    "swiftui-previews-tips"
   ]
 }
