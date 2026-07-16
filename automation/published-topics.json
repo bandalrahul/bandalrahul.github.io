@@ -35,6 +35,7 @@
     "swiftui-animations",
     "swiftui-list-performance",
     "swiftui-environment-objects",
-    "swiftui-previews-tips"
+    "swiftui-previews-tips",
+    "swiftui-combine-bridge"
   ]
 }
