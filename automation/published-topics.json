@@ -37,6 +37,7 @@
     "swiftui-environment-objects",
     "swiftui-previews-tips",
     "swiftui-combine-bridge",
-    "uikit-programmatic-layout"
+    "uikit-programmatic-layout",
+    "uikit-diffable-datasource"
   ]
 }
