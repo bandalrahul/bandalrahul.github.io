@@ -38,6 +38,7 @@
     "swiftui-previews-tips",
     "swiftui-combine-bridge",
     "uikit-programmatic-layout",
-    "uikit-diffable-datasource"
+    "uikit-diffable-datasource",
+    "uikit-compositional-layout"
   ]
 }
