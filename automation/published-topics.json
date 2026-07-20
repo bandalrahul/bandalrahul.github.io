@@ -39,6 +39,7 @@
     "swiftui-combine-bridge",
     "uikit-programmatic-layout",
     "uikit-diffable-datasource",
-    "uikit-compositional-layout"
+    "uikit-compositional-layout",
+    "uikit-tableview-optimization"
   ]
 }
