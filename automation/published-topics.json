@@ -40,6 +40,7 @@
     "uikit-programmatic-layout",
     "uikit-diffable-datasource",
     "uikit-compositional-layout",
-    "uikit-tableview-optimization"
+    "uikit-tableview-optimization",
+    "uikit-coordinators-pattern"
   ]
 }
