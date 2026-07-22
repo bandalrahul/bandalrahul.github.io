@@ -41,6 +41,7 @@
     "uikit-diffable-datasource",
     "uikit-compositional-layout",
     "uikit-tableview-optimization",
-    "uikit-coordinators-pattern"
+    "uikit-coordinators-pattern",
+    "uikit-custom-transitions"
   ]
 }
