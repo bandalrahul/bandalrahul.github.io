@@ -42,6 +42,7 @@
     "uikit-compositional-layout",
     "uikit-tableview-optimization",
     "uikit-coordinators-pattern",
-    "uikit-custom-transitions"
+    "uikit-custom-transitions",
+    "combine-publishers-subscribers"
   ]
 }
