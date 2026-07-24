@@ -1,0 +1,345 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"/><meta property="og:site_name" content="Swift By Rahul"/><link rel="canonical" href="https://www.swiftbyrahul.com/posts/SwiftActorsExplainedWithRealExamples"/><meta name="twitter:url" content="https://www.swiftbyrahul.com/posts/SwiftActorsExplainedWithRealExamples"/><meta property="og:url" content="https://www.swiftbyrahul.com/posts/SwiftActorsExplainedWithRealExamples"/><title>Swift Actors Explained with Real Examples | Swift By Rahul</title><meta name="twitter:title" content="Swift Actors Explained with Real Examples | Swift By Rahul"/><meta property="og:title" content="Swift Actors Explained with Real Examples | Swift By Rahul"/><meta name="description" content="Dive into Swift Actors, a powerful concurrency feature that eliminates data races and simplifies shared mutable state management in your iOS apps."/><meta name="twitter:description" content="Dive into Swift Actors, a powerful concurrency feature that eliminates data races and simplifies shared mutable state management in your iOS apps."/><meta property="og:description" content="Dive into Swift Actors, a powerful concurrency feature that eliminates data races and simplifies shared mutable state management in your iOS apps."/><meta name="twitter:card" content="summary"/><link rel="stylesheet" href="/styles.css" type="text/css"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><link rel="shortcut icon" href="/images/favicon.png" type="image/png"/><link rel="alternate" href="/feed.rss" type="application/rss+xml" title="Subscribe to Swift By Rahul"/></head><head><link rel="stylesheet" href="/css/prism.css" type="text/css"/><script src="/js/prism.js"></script><script src="/js/article.js"></script><script src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9268892677399703" async></script><meta name="twitter:card" content="summary_large_image"/><meta property="og:image" content="https://www.swiftbyrahul.com/images/posts/SwiftActorsExplainedWithRealExamples.png"/><meta property="og:image:alt" content="Swift Actors Explained with Real Examples"/><meta name="twitter:image" content="https://www.swiftbyrahul.com/images/posts/SwiftActorsExplainedWithRealExamples.png"/></head><body class="item-page"><header><div class="wrapper"><a href="/" class="site-name">Swift By Rahul</a><nav class="site-nav"><ul><li><a href="/">Home</a></li><li><a href="/posts/" class="selected">Posts</a></li><li><a href="/tags">Tags</a></li><li><a href="https://github.com/bandalrahul">GitHub</a></li></ul></nav></div></header><div class="wrapper"><article><div><button class="toc-toggle" id="toc-toggle" type="button" aria-expanded="false">On this page</button><div class="article-layout"><aside class="toc" id="article-toc"><p class="toc-heading">On this page</p><nav class="toc-nav" id="article-toc-nav"></nav></aside><div class="article-main"><div class="article-meta"><span>July 4, 2026</span><span> · </span><span>10 min read</span><span> · </span><ul class="tag-list"><li><a href="/tags/swift">Swift</a></li><li><a href="/tags/concurrency">Concurrency</a></li><li><a href="/tags/ios">iOS</a></li></ul></div><div class="content"><h1>Swift Actors Explained with Real Examples</h1><p>Concurrency in software development has always been a double-edged sword. It allows our applications to perform multiple tasks simultaneously, leading to more responsive and efficient user experiences. However, it also introduces complex challenges, particularly when multiple concurrent tasks try to access and modify the same shared piece of data. This scenario often leads to insidious bugs known as "data races."</p><p>Traditionally, developers have relied on tools like locks, semaphores, and dispatch queues to protect shared mutable state. While effective, these mechanisms can be notoriously difficult to use correctly, often leading to deadlocks, priority inversions, or simply confusing and error-prone code.</p><p>Swift's structured concurrency, introduced in Swift 5.5, brought us <code>async/await</code> for managing asynchronous operations more cleanly. But <code>async/await</code> alone doesn't solve the problem of shared mutable state. That's where <strong>Swift Actors</strong> come into play. Actors provide a safe and natural way to manage shared mutable state, eliminating data races by design and making concurrent programming significantly safer and easier.</p><p>In this article, we'll explore what Swift Actors are, how they work, and how you can leverage them to write robust, concurrent applications for iOS, macOS, and beyond.</p><div style="text-align: center; margin: 2em 0;">
+<svg viewBox="0 0 600 220" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram illustrating a data race scenario without Swift Actors.">
+  <title>The Problem: Data Race Without Actors</title>
+
+  <!-- Shared Resource Box -->
+  <rect x="220" y="10" width="160" height="60" rx="10" fill="#F04B3E" stroke="#c0392b" stroke-width="2"/>
+  <text x="300" y="45" font-family="Arial, sans-serif" font-size="16" fill="white" text-anchor="middle">Shared Counter: 0</text>
+
+  <!-- Task A Box -->
+  <rect x="50" y="140" width="150" height="60" rx="10" fill="#1565c0" stroke="#0e519e" stroke-width="2"/>
+  <text x="125" y="175" font-family="Arial, sans-serif" font-size="16" fill="white" text-anchor="middle">Task A (Increment)</text>
+
+  <!-- Task B Box -->
+  <rect x="400" y="140" width="150" height="60" rx="10" fill="#1565c0" stroke="#0e519e" stroke-width="2"/>
+  <text x="475" y="175" font-family="Arial, sans-serif" font-size="16" fill="white" text-anchor="middle">Task B (Increment)</text>
+
+  <!-- Arrow from Task A to Shared Resource -->
+  <line x1="125" y1="140" x2="270" y2="70" stroke="#1565c0" stroke-width="3" marker-end="url(#arrowhead)"/>
+  <text x="180" y="105" font-family="Arial, sans-serif" font-size="14" fill="#1565c0" text-anchor="middle">Reads 0, Writes 1</text>
+
+  <!-- Arrow from Task B to Shared Resource -->
+  <line x1="475" y1="140" x2="330" y2="70" stroke="#1565c0" stroke-width="3" marker-end="url(#arrowhead)"/>
+  <text x="420" y="105" font-family="Arial, sans-serif" font-size="14" fill="#1565c0" text-anchor="middle">Reads 0, Writes 1</text>
+
+  <!-- Result Box -->
+  <rect x="220" y="140" width="160" height="60" rx="10" fill="#F04B3E" stroke="#c0392b" stroke-width="2"/>
+  <text x="300" y="175" font-family="Arial, sans-serif" font-size="16" fill="white" text-anchor="middle">Final Counter: 1 (Expected 2)</text>
+
+  <!-- Arrowhead definition -->
+  <defs>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="0" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#1565c0" />
+    </marker>
+  </defs>
+</svg>
+</div><h2>What are Swift Actors?</h2><p>At its core, an <strong>actor</strong> is a reference type, similar to a class, that protects its own mutable state from concurrent access. The key principle behind actors is <strong>actor isolation</strong>: an actor's mutable properties and methods can only be accessed by code running <em>within</em> the actor itself. Any access from outside the actor's "isolation domain" must be done asynchronously and is automatically serialized.</p><p>Think of an actor as having its own private mailbox and a single worker. When you send a message (call a method) to an actor, that message goes into its mailbox. The worker processes messages one by one, in the order they were received. While the worker is busy with one message, all other incoming messages wait in the mailbox. This serial execution within the actor ensures that its internal state is never accessed by multiple tasks simultaneously, thus preventing data races.</p><p>Declaring an actor is simple: you just use the <code>actor</code> keyword instead of <code>class</code>.</p><pre><code class="language-swift">actor BankAccount {
+    private var balance: Double
+
+    init(initialBalance: Double) {
+        self.balance = initialBalance
+    }
+
+    func deposit(amount: Double) {
+        balance += amount
+        print("Deposited \(amount). New balance: \(balance)")
+    }
+
+    func withdraw(amount: Double) {
+        if balance &gt;= amount {
+            balance -= amount
+            print("Withdrew \(amount). New balance: \(balance)")
+        } else {
+            print("Insufficient funds to withdraw \(amount). Current balance: \(balance)")
+        }
+    }
+
+    func getBalance() -&gt; Double {
+        return balance
+    }
+}
+</code></pre><h2>How Actors Prevent Data Races</h2><p>When you try to call a method or access a mutable property of an actor from outside its isolation domain, the Swift compiler enforces a crucial rule: you must use the <code>await</code> keyword. This <code>await</code> keyword signifies that the call is potentially asynchronous and might involve a context switch.</p><p>When you <code>await</code> an actor's method: 1. Your current task <em>suspends</em> its execution. 2. The actor receives the message and adds it to its internal queue. 3. When the actor's "worker" is free, it picks up the message and executes the method. 4. Once the method completes, its result (if any) is returned, and your suspended task can resume.</p><p>Because the actor processes its messages serially, any internal state changes are guaranteed to happen one at a time. This is the magic that eliminates data races.</p><p>Let's illustrate with a common scenario: managing a shared counter.</p><p>First, consider a non-actor class, which is prone to data races:</p><pre><code class="language-swift">class UnsafeCounter {
+    var value: Int = 0
+
+    func increment() {
+        // Simulate some work or contention
+        let currentValue = value
+        // Imagine other tasks might read/write 'value' here
+        Thread.sleep(forTimeInterval: 0.0001) // Simulate a tiny delay
+        value = currentValue + 1
+    }
+
+    func getValue() -&gt; Int {
+        return value
+    }
+}
+
+func demonstrateDataRace() async {
+    let counter = UnsafeCounter()
+    let numTasks = 1000
+    let incrementsPerTask = 100
+
+    await withTaskGroup(of: Void.self) { group in
+        for _ in 0..&lt;numTasks {
+            group.addTask {
+                for _ in 0..&lt;incrementsPerTask {
+                    counter.increment()
+                }
+            }
+        }
+    }
+
+    // This will almost certainly print a value less than 100,000
+    print("UnsafeCounter final value: \(counter.getValue())")
+}
+
+// Call it:
+// Task { await demonstrateDataRace() }
+</code></pre><p>Now, let's use an actor to make it safe:</p><pre><code class="language-swift">actor SafeCounter {
+    private var value: Int = 0
+
+    func increment() {
+        // Simulate some work or contention
+        let currentValue = value
+        // No other task can access 'value' while this actor method is running
+        Thread.sleep(forTimeInterval: 0.0001) // Simulate a tiny delay
+        value = currentValue + 1
+    }
+
+    func getValue() -&gt; Int {
+        return value
+    }
+}
+
+func demonstrateSafeCounter() async {
+    let counter = SafeCounter()
+    let numTasks = 1000
+    let incrementsPerTask = 100
+
+    await withTaskGroup(of: Void.self) { group in
+        for _ in 0..&lt;numTasks {
+            group.addTask {
+                for _ in 0..&lt;incrementsPerTask {
+                    await counter.increment() // Await required for actor calls
+                }
+            }
+        }
+    }
+
+    // This will correctly print 100,000
+    print("SafeCounter final value: \(await counter.getValue())") // Await required
+}
+
+// Call it:
+// Task { await demonstrateSafeCounter() }
+</code></pre><p>The difference is stark. The <code>await</code> keyword ensures that access to <code>SafeCounter</code>'s <code>increment()</code> method is serialized, preventing the concurrent updates that lead to data races.</p><pre><code>┌─────────────────┐
+│     Actor       │
+│  (Mailbox/Queue)│
+├─────────────────┤
+│ Message A (inc) │
+│ Message B (inc) │
+│ Message C (inc) │
+└─────────────────┘
+        │
+        ▼
+┌─────────────────┐
+│ Actor Instance  │
+│ (Serial Access) │
+│  - Processes A  │
+│  - Processes B  │
+│  - Processes C  │
+└─────────────────┘
+        │
+        ▼
+┌─────────────────┐
+│   Safe State    │
+│  (No Data Race) │
+└─────────────────┘
+</code></pre><h2>Actor Reentrancy</h2><p>A crucial concept to understand with actors is <strong>reentrancy</strong>. While an actor processes messages serially, it's not entirely "locked" during an <code>await</code> call <em>within</em> one of its methods. If an actor method encounters an <code>await</code> (e.g., calling another asynchronous function), the actor <em>suspends</em> its current execution, allowing other tasks waiting in its mailbox to enter and execute their methods. Once the awaited operation completes, the original method resumes.</p><p>This reentrancy is vital for performance, as it prevents actors from blocking the entire system while waiting for I/O or other asynchronous work. However, it means that the actor's state might have changed between the <code>await</code> point and the resumption point.</p><p>Consider this example:</p><pre><code class="language-swift">actor DataProcessor {
+    private var processingQueue: [String] = []
+    private var isProcessing: Bool = false
+
+    func processItem(_ item: String) async {
+        if isProcessing {
+            print("[\(item)] Actor is busy, adding to queue.")
+            processingQueue.append(item)
+            return
+        }
+
+        isProcessing = true
+        print("[\(item)] Starting to process item.")
+
+        // Simulate an external asynchronous operation
+        await Task.sleep(nanoseconds: 2_000_000_000) // 2 second delay
+
+        // After this await, another task could have entered and potentially changed state
+        print("[\(item)] Finished processing item.")
+        isProcessing = false // Resetting state might be affected by reentrancy
+
+        // Now process items from the queue
+        while let nextItem = processingQueue.first {
+            processingQueue.removeFirst()
+            await processItem(nextItem) // Recursive call, but actor is reentrant
+        }
+    }
+}
+
+func demonstrateReentrancy() async {
+    let processor = DataProcessor()
+
+    await withTaskGroup(of: Void.self) { group in
+        group.addTask { await processor.processItem("Item A") }
+        group.addTask { await processor.processItem("Item B") }
+        group.addTask { await processor.processItem("Item C") }
+    }
+    print("All items attempted for processing.")
+}
+
+// Task { await demonstrateReentrancy() }
+</code></pre><p>In this example, "Item A" starts processing and then <code>await</code>s. During this <code>await</code>, "Item B" and "Item C" can enter the actor. They see <code>isProcessing</code> is <code>true</code>, so they are added to the queue. When "Item A" resumes, it finishes and then processes items from its queue. This behavior might be exactly what you want, but it requires careful consideration of state changes across <code>await</code> points.</p><h2>The <code>MainActor</code></h2><p>A special type of actor provided by Swift is the <code>MainActor</code>. Its purpose is to synchronize all work onto the main thread, which is crucial for UI updates in iOS, macOS, watchOS, and tvOS apps. Any code that modifies UI elements <em>must</em> run on the main thread.</p><p>You can mark properties, methods, or even entire classes and structs with <code>@MainActor</code> to ensure that all access to them happens on the main thread.</p><pre><code class="language-swift">@MainActor
+class ViewModel: ObservableObject {
+    @Published var statusMessage: String = "Ready"
+    @Published var isLoading: Bool = false
+
+    func updateUI(message: String, loading: Bool) {
+        // These updates are guaranteed to be on the main thread
+        self.statusMessage = message
+        self.isLoading = loading
+        print("UI updated on thread: \(Thread.current)")
+    }
+
+    func fetchData() async {
+        // Perform background work
+        print("Fetching data on thread: \(Thread.current)")
+        await Task.sleep(nanoseconds: 1_000_000_000) // Simulate network request
+
+        // Switch to MainActor to update UI
+        await updateUI(message: "Data loaded!", loading: false)
+    }
+}
+
+// Usage from a background task:
+func runMainActorExample() {
+    let viewModel = ViewModel() // ViewModel is @MainActor, so this init is on main thread
+
+    Task {
+        // This task might start on a background thread
+        print("Initiating fetch from background thread: \(Thread.current)")
+        await viewModel.updateUI(message: "Loading...", loading: true) // Awaits MainActor
+        await viewModel.fetchData() // fetchData itself contains an await for MainActor
+    }
+}
+
+// Call it:
+// runMainActorExample()
+</code></pre><p>Notice how <code>await viewModel.updateUI(...)</code> automatically hops to the main actor. The <code>fetchData()</code> method, though marked <code>@MainActor</code>, can still perform background work by <code>await</code>ing non-main-actor tasks. When it needs to update its <code>@Published</code> properties, it transparently switches back to the main actor's execution context.</p><h2><code>nonisolated</code> and <code>nonisolated(unsafe)</code></h2><p>While actor isolation is powerful, sometimes you have properties or methods that don't access the actor's mutable state and therefore don't need to be serialized. For these, you can use the <code>nonisolated</code> keyword.</p><pre><code class="language-swift">actor UserCache {
+    private var users: [String: String] = [:] // Isolated state
+
+    // A nonisolated property can be accessed without 'await'
+    // It must not access any isolated state.
+    nonisolated let cacheName: String = "UserCache"
+
+    init(name: String) {
+        self.cacheName = name // For nonisolated let, init must be careful
+        // Self.cacheName is actually initialized outside actor isolation
+        // A better approach for `let` is to just declare it directly.
+        // For `var` it would be nonisolated(unsafe) or computed.
+    }
+
+    init() { // Default init
+        self.cacheName = "DefaultUserCache"
+    }
+
+
+    func addUser(_ id: String, name: String) {
+        users[id] = name
+    }
+
+    func getUser(id: String) -&gt; String? {
+        return users[id]
+    }
+
+    // A nonisolated method can be called without 'await'
+    // It must not access any isolated mutable state.
+    nonisolated func describeCache() -&gt; String {
+        return "This is the \(cacheName) for storing user data."
+    }
+}
+
+func demonstrateNonisolated() async {
+    let cache = UserCache()
+    await cache.addUser("1", name: "Alice")
+
+    // No await needed for nonisolated properties/methods
+    print(cache.cacheName)
+    print(cache.describeCache())
+
+    // Await still needed for isolated methods
+    if let user = await cache.getUser(id: "1") {
+        print("Found user: \(user)")
+    }
+}
+
+// Task { await demonstrateNonisolated() }
+</code></pre><p><code>nonisolated</code> is useful for constants (<code>let</code>) or computed properties that don't depend on isolated mutable state, or for methods that only operate on parameters or other <code>nonisolated</code> properties.</p><p>There's also <code>nonisolated(unsafe)</code>. This is an extremely powerful and dangerous escape hatch. It tells the compiler to <em>trust you</em> that you are handling concurrency safely for a particular property or method, even if it accesses isolated state. You should only use <code>nonisolated(unsafe)</code> when you have a very clear and proven external synchronization mechanism (like a <code>NSRecursiveLock</code>) that you are managing manually. <strong>Use it with extreme caution and only if you fully understand the implications.</strong> In most cases, if you need to access isolated state, you should <code>await</code> the actor.</p><div style="text-align: center; margin: 2em 0;">
+<svg viewBox="0 0 700 250" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Comparison of traditional locking vs. Swift Actor isolation for concurrent access.">
+  <title>Concurrency Approaches: Traditional Locking vs. Swift Actors</title>
+
+  <!-- Traditional Locking Section -->
+  <rect x="20" y="10" width="320" height="230" rx="10" fill="#f8f8f8" stroke="#ccc" stroke-width="2"/>
+  <text x="180" y="35" font-family="Arial, sans-serif" font-size="18" fill="#333" text-anchor="middle" font-weight="bold">Traditional Locking (e.g., Mutex)</text>
+
+  <!-- Shared Resource (Locking) -->
+  <rect x="100" y="70" width="160" height="50" rx="8" fill="#eee" stroke="#666" stroke-width="1"/>
+  <text x="180" y="100" font-family="Arial, sans-serif" font-size="14" fill="#333" text-anchor="middle">Shared Resource</text>
+
+  <!-- Lock Box -->
+  <rect x="130" y="130" width="100" height="40" rx="5" fill="#2A8367" stroke="#1f654f" stroke-width="1"/>
+  <text x="180" y="155" font-family="Arial, sans-serif" font-size="14" fill="white" text-anchor="middle">Lock</text>
+
+  <!-- Task 1 (Locking) -->
+  <rect x="30" y="180" width="140" height="50" rx="8" fill="#1565c0" stroke="#0e519e" stroke-width="1"/>
+  <text x="100" y="210" font-family="Arial, sans-serif" font-size="14" fill="white" text-anchor="middle">Task 1</text>
+  <path d="M100 180 L100 160 L130 160" fill="none" stroke="#1565c0" stroke-width="2" marker-end="url(#arrowheadBlue)"/>
+  <path d="M100 180 L100 120 L130 120" fill="none" stroke="#1565c0" stroke-width="2"/>
+
+
+  <!-- Task 2 (Locking) -->
+  <rect x="190" y="180" width="140" height="50" rx="8" fill="#1565c0" stroke="#0e519e" stroke-width="1"/>
+  <text x="260" y="210" font-family="Arial, sans-serif" font-size="14" fill="white" text-anchor="middle">Task 2</text>
+  <path d="M260 180 L260 160 L230 160" fill="none" stroke="#1565c0" stroke-width="2" marker-end="url(#arrowheadBlue)"/>
+  <path d="M260 180 L260 120 L230 120" fill="none" stroke="#1565c0" stroke-width="2"/>
+  <text x="180" y="170" font-family="Arial, sans-serif" font-size="12" fill="#F04B3E" text-anchor="middle">Manual Management, Prone to Deadlocks</text>
+
+
+  <!-- Swift Actor Section -->
+  <rect x="360" y="10" width="320" height="230" rx="10" fill="#f8f8f8" stroke="#ccc" stroke-width="2"/>
+  <text x="520" y="35" font-family="Arial, sans-serif" font-size="18" fill="#333" text-anchor="middle" font-weight="bold">Swift Actor Isolation</text>
+
+  <!-- Actor Box -->
+  <rect x="440" y="70" width="160" height="80" rx="8" fill="#2A8367" stroke="#1f654f" stroke-width="2"/>
+  <text x="520" y="100" font-family="Arial, sans-serif" font-size="16" fill="white" text-anchor="middle">MyActor</text>
+  <text x="520" y="125" font-family="Arial, sans-serif" font-size="14" fill="white" text-anchor="middle">(Serial Execution)</text>
+
+  <!-- Task 3 (Actor) -->
+  <rect x="370" y="180" width="140" height="50" rx="8" fill="#1565c0" stroke="#0e519e" stroke-width="1"/>
+  <text x="440" y="210" font-family="Arial, sans-serif" font-size="14" fill="white" text-anchor="middle">Task 3</text>
+  <path d="M440 180 L440 150 L470 150" fill="none" stroke="#1565c0" stroke-width="2" marker-end="url(#arrowheadBlue)"/>
+  <text x="440" y="170" font-family="Arial, sans-serif" font-size="12" fill="#1565c0" text-anchor="middle">await call</text>
+
+
+  <!-- Task 4 (Actor) -->
+  <rect x="530" y="180" width="140" height="50" rx="8" fill="#1565c0" stroke="#0e519e" stroke-width="1"/>
+  <text x="600" y="210" font-family="Arial, sans-serif" font-size="14" fill="white" text-anchor="middle">Task 4</text>
+  <path d="M600 180 L600 150 L570 150" fill="none" stroke="#1565c0" stroke-width="2" marker-end="url(#arrowheadBlue)"/>
+  <text x="600" y="170" font-family="Arial, sans-serif" font-size="12" fill="#1565c0" text-anchor="middle">await call</text>
+  <text x="520" y="160" font-family="Arial, sans-serif" font-size="12" fill="#2A8367" text-anchor="middle">Compiler Enforced Safety</text>
+
+  <!-- Arrowhead definition -->
+  <defs>
+    <marker id="arrowheadBlue" markerWidth="10" markerHeight="7" refX="0" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#1565c0" />
+    </marker>
+  </defs>
+</svg>
+</div><h2>Summary</h2><p>Swift Actors are a game-changer for concurrent programming. By providing a clear, compiler-enforced mechanism for actor isolation, they effectively eliminate data races and simplify the management of shared mutable state. Understanding how to use actors, including concepts like reentrancy and the <code>MainActor</code>, is essential for building modern, robust, and performant Swift applications. Embrace actors, and say goodbye to many of the headaches traditionally associated with concurrency!</p><p>Happy Swifting!</p></div><div class="article-tags"><span class="tags-label">Tagged: </span><ul class="tag-list"><li><a href="/tags/swift">Swift</a></li><li><a href="/tags/concurrency">Concurrency</a></li><li><a href="/tags/ios">iOS</a></li></ul></div><div class="ads-container"><ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-9268892677399703" data-ad-slot="8133392181" data-ad-format="auto" data-full-width-responsive="true"></ins><script>(adsbygoogle = window.adsbygoogle || []).push({});</script></div></div></div></div></article></div><footer><div class="wrapper"><p>© Swift By Rahul · <a href="/feed.rss">RSS</a> · <a href="https://github.com/bandalrahul">GitHub</a> · Built with <a href="https://github.com/johnsundell/publish">Publish</a></p></div></footer></body></html>

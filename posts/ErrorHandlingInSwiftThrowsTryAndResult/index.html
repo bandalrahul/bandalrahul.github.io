@@ -1,0 +1,64 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"/><meta property="og:site_name" content="Swift By Rahul"/><link rel="canonical" href="https://www.swiftbyrahul.com/posts/ErrorHandlingInSwiftThrowsTryAndResult"/><meta name="twitter:url" content="https://www.swiftbyrahul.com/posts/ErrorHandlingInSwiftThrowsTryAndResult"/><meta property="og:url" content="https://www.swiftbyrahul.com/posts/ErrorHandlingInSwiftThrowsTryAndResult"/><title>Error Handling in Swift: throws, try, and Result | Swift By Rahul</title><meta name="twitter:title" content="Error Handling in Swift: throws, try, and Result | Swift By Rahul"/><meta property="og:title" content="Error Handling in Swift: throws, try, and Result | Swift By Rahul"/><meta name="description" content="Master error handling in Swift with throws, try, and Result."/><meta name="twitter:description" content="Master error handling in Swift with throws, try, and Result."/><meta property="og:description" content="Master error handling in Swift with throws, try, and Result."/><meta name="twitter:card" content="summary"/><link rel="stylesheet" href="/styles.css" type="text/css"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><link rel="shortcut icon" href="/images/favicon.png" type="image/png"/><link rel="alternate" href="/feed.rss" type="application/rss+xml" title="Subscribe to Swift By Rahul"/></head><head><link rel="stylesheet" href="/css/prism.css" type="text/css"/><script src="/js/prism.js"></script><script src="/js/article.js"></script><script src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9268892677399703" async></script><meta name="twitter:card" content="summary_large_image"/><meta property="og:image" content="https://www.swiftbyrahul.com/images/posts/ErrorHandlingInSwiftThrowsTryAndResult.png"/><meta property="og:image:alt" content="Error Handling in Swift: throws, try, and Result"/><meta name="twitter:image" content="https://www.swiftbyrahul.com/images/posts/ErrorHandlingInSwiftThrowsTryAndResult.png"/></head><body class="item-page"><header><div class="wrapper"><a href="/" class="site-name">Swift By Rahul</a><nav class="site-nav"><ul><li><a href="/">Home</a></li><li><a href="/posts/" class="selected">Posts</a></li><li><a href="/tags">Tags</a></li><li><a href="https://github.com/bandalrahul">GitHub</a></li></ul></nav></div></header><div class="wrapper"><article><div><button class="toc-toggle" id="toc-toggle" type="button" aria-expanded="false">On this page</button><div class="article-layout"><aside class="toc" id="article-toc"><p class="toc-heading">On this page</p><nav class="toc-nav" id="article-toc-nav"></nav></aside><div class="article-main"><div class="article-meta"><span>June 24, 2026</span><span> · </span><span>2 min read</span><span> · </span><ul class="tag-list"><li><a href="/tags/swift">Swift</a></li><li><a href="/tags/ios">iOS</a></li><li><a href="/tags/programming">Programming</a></li></ul></div><div class="content"><h1>Error Handling in Swift: throws, try, and Result</h1><p>Error handling is a crucial aspect of programming in Swift. It allows you to anticipate and manage errors that may occur during the execution of your code, ensuring that your app remains stable and provides a good user experience. In this article, we'll explore the basics of error handling in Swift, including the <code>throws</code>, <code>try</code>, and <code>Result</code> keywords.</p><h2>Introduction to Error Handling</h2><p>Error handling in Swift is based on the concept of throwability. A function or method can throw an error, which is then caught and handled by the caller. This is achieved using the <code>throws</code> keyword, which indicates that a function or method can throw an error.</p><pre><code class="language-swift">enum ErrorType: Error {
+    case invalidInput
+}
+
+func divide(_ a: Int, _ b: Int) throws -&gt; Int {
+    if b == 0 {
+        throw ErrorType.invalidInput
+    }
+    return a / b
+}
+</code></pre><div style="text-align: center; margin: 2em 0;">
+<svg viewBox="0 0 600 220" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Error handling flow">
+  <title>Error handling flow</title>
+  <rect x="50" y="50" width="100" height="50" fill="#2A8367" rx="10"/>
+  <text x="75" y="90" font-size="20" fill="#FFFFFF">Function</text>
+  <line x1="150" y1="90" x2="250" y2="90" stroke="#000000" stroke-width="2"/>
+  <rect x="250" y="50" width="100" height="50" fill="#F04B3E" rx="10"/>
+  <text x="275" y="90" font-size="20" fill="#FFFFFF">Error</text>
+  <line x1="350" y1="90" x2="450" y2="90" stroke="#000000" stroke-width="2"/>
+  <rect x="450" y="50" width="100" height="50" fill="#2A8367" rx="10"/>
+  <text x="475" y="90" font-size="20" fill="#FFFFFF">Handler</text>
+</svg>
+</div><h2>Using try and catch</h2><p>To call a function that throws an error, you need to use the <code>try</code> keyword. If the function throws an error, you can catch it using a <code>do</code>-<code>catch</code> block.</p><pre><code class="language-swift">do {
+    let result = try divide(10, 0)
+    print("Result: \(result)")
+} catch {
+    print("Error: \(error)")
+}
+</code></pre><h2>Using Result</h2><p>The <code>Result</code> type is a built-in type in Swift that allows you to represent a value that may or may not be present, along with an error. You can use it as an alternative to throwing errors.</p><pre><code class="language-swift">func divide(_ a: Int, _ b: Int) -&gt; Result&lt;Int, ErrorType&gt; {
+    if b == 0 {
+        return .failure(ErrorType.invalidInput)
+    }
+    return .success(a / b)
+}
+
+let result = divide(10, 0)
+switch result {
+case .success(let value):
+    print("Result: \(value)")
+case .failure(let error):
+    print("Error: \(error)")
+}
+</code></pre><div style="text-align: center; margin: 2em 0;">
+<svg viewBox="0 0 600 220" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Result type">
+  <title>Result type</title>
+  <rect x="50" y="50" width="100" height="50" fill="#2A8367" rx="10"/>
+  <text x="75" y="90" font-size="20" fill="#FFFFFF">Success</text>
+  <line x1="150" y1="90" x2="250" y2="90" stroke="#000000" stroke-width="2"/>
+  <rect x="250" y="50" width="100" height="50" fill="#F04B3E" rx="10"/>
+  <text x="275" y="90" font-size="20" fill="#FFFFFF">Failure</text>
+  <line x1="350" y1="90" x2="450" y2="90" stroke="#000000" stroke-width="2"/>
+  <rect x="450" y="50" width="100" height="50" fill="#2A8367" rx="10"/>
+  <text x="475" y="90" font-size="20" fill="#FFFFFF">Result</text>
+</svg>
+</div><h2>Comparison of Error Handling Approaches</h2><p>Here's a comparison of the different error handling approaches in Swift:</p><pre><code>┌─────────────┐     ┌─────────────┐     ┌─────────────┐
+│  Throws    │ ──► │  Try-Catch │ ──► │  Error     │
+└─────────────┘     └─────────────┘     └─────────────┘
+│                          │                         │
+│                          │                         │
+│                          ▼                         │
+│                  ┌─────────────┐                   │
+│                  │  Result    │                   │
+│                  └─────────────┘                   │
+</code></pre><h2>Summary</h2><p>In this article, we've explored the basics of error handling in Swift, including the <code>throws</code>, <code>try</code>, and <code>Result</code> keywords. We've seen how to use <code>try</code> and <code>catch</code> to handle errors, and how to use the <code>Result</code> type as an alternative to throwing errors. By using these error handling approaches, you can write more robust and reliable code that provides a good user experience.</p><p>Happy Swifting!</p></div><div class="article-tags"><span class="tags-label">Tagged: </span><ul class="tag-list"><li><a href="/tags/swift">Swift</a></li><li><a href="/tags/ios">iOS</a></li><li><a href="/tags/programming">Programming</a></li></ul></div><div class="ads-container"><ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-9268892677399703" data-ad-slot="8133392181" data-ad-format="auto" data-full-width-responsive="true"></ins><script>(adsbygoogle = window.adsbygoogle || []).push({});</script></div></div></div></div></article></div><footer><div class="wrapper"><p>© Swift By Rahul · <a href="/feed.rss">RSS</a> · <a href="https://github.com/bandalrahul">GitHub</a> · Built with <a href="https://github.com/johnsundell/publish">Publish</a></p></div></footer></body></html>
