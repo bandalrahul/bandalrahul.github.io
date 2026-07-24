@@ -43,6 +43,7 @@
     "uikit-tableview-optimization",
     "uikit-coordinators-pattern",
     "uikit-custom-transitions",
-    "combine-publishers-subscribers"
+    "combine-publishers-subscribers",
+    "combine-operators-guide"
   ]
 }
