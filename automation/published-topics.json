@@ -44,6 +44,7 @@
     "uikit-coordinators-pattern",
     "uikit-custom-transitions",
     "combine-publishers-subscribers",
-    "combine-operators-guide"
+    "combine-operators-guide",
+    "core-data-swiftui"
   ]
 }
