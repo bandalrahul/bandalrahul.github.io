@@ -45,6 +45,7 @@
     "uikit-custom-transitions",
     "combine-publishers-subscribers",
     "combine-operators-guide",
-    "core-data-swiftui"
+    "core-data-swiftui",
+    "core-data-migration"
   ]
 }
