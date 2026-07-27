@@ -46,6 +46,7 @@
     "combine-publishers-subscribers",
     "combine-operators-guide",
     "core-data-swiftui",
-    "core-data-migration"
+    "core-data-migration",
+    "swiftdata-basics"
   ]
 }
