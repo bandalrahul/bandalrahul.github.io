@@ -47,6 +47,7 @@
     "combine-operators-guide",
     "core-data-swiftui",
     "core-data-migration",
-    "swiftdata-basics"
+    "swiftdata-basics",
+    "urlsession-async-await"
   ]
 }
