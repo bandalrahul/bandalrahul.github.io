@@ -49,6 +49,7 @@
     "core-data-migration",
     "swiftdata-basics",
     "urlsession-async-await",
-    "ios-rest-api-layer"
+    "ios-rest-api-layer",
+    "codable-advanced-patterns"
   ]
 }
