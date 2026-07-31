@@ -50,6 +50,7 @@
     "swiftdata-basics",
     "urlsession-async-await",
     "ios-rest-api-layer",
-    "codable-advanced-patterns"
+    "codable-advanced-patterns",
+    "keychain-ios-security"
   ]
 }
