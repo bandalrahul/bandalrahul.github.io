@@ -179,6 +179,11 @@
       "devto_id": 4280433,
       "url": "https://dev.to/rahul_bandal_afe623cbf2e2/storing-secrets-in-the-ios-keychain-4l3i",
       "posted_at": "2026-07-31 11:27:05"
+    },
+    "AppTransportSecurityBestPracticesOnIos": {
+      "devto_id": 4286881,
+      "url": "https://dev.to/rahul_bandal_afe623cbf2e2/app-transport-security-best-practices-on-ios-5296",
+      "posted_at": "2026-08-01 10:31:16"
     }
   }
 }
