@@ -51,6 +51,7 @@
     "urlsession-async-await",
     "ios-rest-api-layer",
     "codable-advanced-patterns",
-    "keychain-ios-security"
+    "keychain-ios-security",
+    "app-transport-security"
   ]
 }
