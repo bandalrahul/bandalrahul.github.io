@@ -52,6 +52,7 @@
     "ios-rest-api-layer",
     "codable-advanced-patterns",
     "keychain-ios-security",
-    "app-transport-security"
+    "app-transport-security",
+    "xctest-unit-testing"
   ]
 }
