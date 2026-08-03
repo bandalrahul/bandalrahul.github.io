@@ -53,6 +53,7 @@
     "codable-advanced-patterns",
     "keychain-ios-security",
     "app-transport-security",
-    "xctest-unit-testing"
+    "xctest-unit-testing",
+    "xctest-ui-testing"
   ]
 }
