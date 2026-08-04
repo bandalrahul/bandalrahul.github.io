@@ -54,6 +54,7 @@
     "keychain-ios-security",
     "app-transport-security",
     "xctest-unit-testing",
-    "xctest-ui-testing"
+    "xctest-ui-testing",
+    "dependency-injection-ios"
   ]
 }
