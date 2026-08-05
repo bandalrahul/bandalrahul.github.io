@@ -55,6 +55,7 @@
     "app-transport-security",
     "xctest-unit-testing",
     "xctest-ui-testing",
-    "dependency-injection-ios"
+    "dependency-injection-ios",
+    "mvvm-ios-swift"
   ]
 }
