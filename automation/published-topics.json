@@ -57,6 +57,7 @@
     "xctest-ui-testing",
     "dependency-injection-ios",
     "mvvm-ios-swift",
-    "clean-architecture-ios"
+    "clean-architecture-ios",
+    "swift-package-manager-guide"
   ]
 }
