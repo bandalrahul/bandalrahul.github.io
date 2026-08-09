@@ -59,6 +59,7 @@
     "mvvm-ios-swift",
     "clean-architecture-ios",
     "swift-package-manager-guide",
-    "xcode-build-configurations"
+    "xcode-build-configurations",
+    "instruments-profiling-ios"
   ]
 }
