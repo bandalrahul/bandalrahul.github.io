@@ -60,6 +60,7 @@
     "clean-architecture-ios",
     "swift-package-manager-guide",
     "xcode-build-configurations",
-    "instruments-profiling-ios"
+    "instruments-profiling-ios",
+    "app-store-connect-guide"
   ]
 }
