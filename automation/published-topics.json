@@ -61,6 +61,7 @@
     "swift-package-manager-guide",
     "xcode-build-configurations",
     "instruments-profiling-ios",
-    "app-store-connect-guide"
+    "app-store-connect-guide",
+    "testflight-beta-testing"
   ]
 }
