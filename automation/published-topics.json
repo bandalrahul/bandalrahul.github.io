@@ -63,6 +63,7 @@
     "instruments-profiling-ios",
     "app-store-connect-guide",
     "testflight-beta-testing",
-    "push-notifications-apns"
+    "push-notifications-apns",
+    "widgetkit-development"
   ]
 }
