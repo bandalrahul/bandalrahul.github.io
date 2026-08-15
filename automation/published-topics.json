@@ -65,6 +65,7 @@
     "testflight-beta-testing",
     "push-notifications-apns",
     "widgetkit-development",
-    "app-clips-ios"
+    "app-clips-ios",
+    "core-location-ios"
   ]
 }
