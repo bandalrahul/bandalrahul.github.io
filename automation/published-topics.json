@@ -66,6 +66,7 @@
     "push-notifications-apns",
     "widgetkit-development",
     "app-clips-ios",
-    "core-location-ios"
+    "core-location-ios",
+    "mapkit-swiftui"
   ]
 }
