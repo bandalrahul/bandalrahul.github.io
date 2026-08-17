@@ -67,6 +67,7 @@
     "widgetkit-development",
     "app-clips-ios",
     "core-location-ios",
-    "mapkit-swiftui"
+    "mapkit-swiftui",
+    "camera-avfoundation"
   ]
 }
