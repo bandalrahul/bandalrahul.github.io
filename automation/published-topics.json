@@ -68,6 +68,7 @@
     "app-clips-ios",
     "core-location-ios",
     "mapkit-swiftui",
-    "camera-avfoundation"
+    "camera-avfoundation",
+    "photos-picker-ios"
   ]
 }
