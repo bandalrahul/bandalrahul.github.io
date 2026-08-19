@@ -69,6 +69,7 @@
     "core-location-ios",
     "mapkit-swiftui",
     "camera-avfoundation",
-    "photos-picker-ios"
+    "photos-picker-ios",
+    "biometric-auth-faceid"
   ]
 }
