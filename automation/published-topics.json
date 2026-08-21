@@ -71,6 +71,7 @@
     "camera-avfoundation",
     "photos-picker-ios",
     "biometric-auth-faceid",
-    "deeplinks-universal-links"
+    "deeplinks-universal-links",
+    "background-tasks-ios"
   ]
 }
