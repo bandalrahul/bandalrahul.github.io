@@ -74,6 +74,7 @@
     "deeplinks-universal-links",
     "background-tasks-ios",
     "local-notifications-ios",
-    "swiftui-accessibility"
+    "swiftui-accessibility",
+    "dynamic-type-ios"
   ]
 }
