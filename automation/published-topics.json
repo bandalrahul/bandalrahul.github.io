@@ -75,6 +75,7 @@
     "background-tasks-ios",
     "local-notifications-ios",
     "swiftui-accessibility",
-    "dynamic-type-ios"
+    "dynamic-type-ios",
+    "localization-ios-apps"
   ]
 }
