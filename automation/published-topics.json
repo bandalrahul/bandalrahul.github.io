@@ -76,6 +76,7 @@
     "local-notifications-ios",
     "swiftui-accessibility",
     "dynamic-type-ios",
-    "localization-ios-apps"
+    "localization-ios-apps",
+    "swift-logging-oslog"
   ]
 }
