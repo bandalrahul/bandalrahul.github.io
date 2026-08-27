@@ -77,6 +77,7 @@
     "swiftui-accessibility",
     "dynamic-type-ios",
     "localization-ios-apps",
-    "swift-logging-oslog"
+    "swift-logging-oslog",
+    "swift-lint-format"
   ]
 }
