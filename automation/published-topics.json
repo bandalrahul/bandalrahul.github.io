@@ -78,6 +78,7 @@
     "dynamic-type-ios",
     "localization-ios-apps",
     "swift-logging-oslog",
-    "swift-lint-format"
+    "swift-lint-format",
+    "git-workflow-ios-teams"
   ]
 }
