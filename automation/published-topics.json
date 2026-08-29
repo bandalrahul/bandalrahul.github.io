@@ -79,6 +79,7 @@
     "localization-ios-apps",
     "swift-logging-oslog",
     "swift-lint-format",
-    "git-workflow-ios-teams"
+    "git-workflow-ios-teams",
+    "swiftui-tabview-patterns"
   ]
 }
