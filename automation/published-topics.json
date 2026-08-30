@@ -80,6 +80,7 @@
     "swift-logging-oslog",
     "swift-lint-format",
     "git-workflow-ios-teams",
-    "swiftui-tabview-patterns"
+    "swiftui-tabview-patterns",
+    "swiftui-forms-validation"
   ]
 }
