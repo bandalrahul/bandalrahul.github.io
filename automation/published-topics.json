@@ -82,6 +82,7 @@
     "git-workflow-ios-teams",
     "swiftui-tabview-patterns",
     "swiftui-forms-validation",
-    "swiftui-charts-framework"
+    "swiftui-charts-framework",
+    "healthkit-integration"
   ]
 }
