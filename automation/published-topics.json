@@ -83,6 +83,7 @@
     "swiftui-tabview-patterns",
     "swiftui-forms-validation",
     "swiftui-charts-framework",
-    "healthkit-integration"
+    "healthkit-integration",
+    "storekit-in-app-purchases"
   ]
 }
