@@ -84,6 +84,7 @@
     "swiftui-forms-validation",
     "swiftui-charts-framework",
     "healthkit-integration",
-    "storekit-in-app-purchases"
+    "storekit-in-app-purchases",
+    "cloudkit-sync-ios"
   ]
 }
