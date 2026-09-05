@@ -86,6 +86,7 @@
     "healthkit-integration",
     "storekit-in-app-purchases",
     "cloudkit-sync-ios",
-    "firebase-ios-setup"
+    "firebase-ios-setup",
+    "swiftui-grids-layout"
   ]
 }
