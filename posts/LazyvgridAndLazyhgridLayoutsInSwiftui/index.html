@@ -1,0 +1,218 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"/><meta property="og:site_name" content="Swift By Rahul"/><link rel="canonical" href="https://www.swiftbyrahul.com/posts/LazyvgridAndLazyhgridLayoutsInSwiftui"/><meta name="twitter:url" content="https://www.swiftbyrahul.com/posts/LazyvgridAndLazyhgridLayoutsInSwiftui"/><meta property="og:url" content="https://www.swiftbyrahul.com/posts/LazyvgridAndLazyhgridLayoutsInSwiftui"/><title>LazyVGrid and LazyHGrid Layouts in SwiftUI | Swift By Rahul</title><meta name="twitter:title" content="LazyVGrid and LazyHGrid Layouts in SwiftUI | Swift By Rahul"/><meta property="og:title" content="LazyVGrid and LazyHGrid Layouts in SwiftUI | Swift By Rahul"/><meta name="description" content="Master SwiftUI's LazyVGrid and LazyHGrid for efficient, responsive, and performant collection layouts in your iOS applications."/><meta name="twitter:description" content="Master SwiftUI's LazyVGrid and LazyHGrid for efficient, responsive, and performant collection layouts in your iOS applications."/><meta property="og:description" content="Master SwiftUI's LazyVGrid and LazyHGrid for efficient, responsive, and performant collection layouts in your iOS applications."/><meta name="twitter:card" content="summary"/><link rel="stylesheet" href="/styles.css" type="text/css"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><link rel="shortcut icon" href="/images/favicon.png" type="image/png"/><link rel="alternate" href="/feed.rss" type="application/rss+xml" title="Subscribe to Swift By Rahul"/></head><head><link rel="stylesheet" href="/css/prism.css" type="text/css"/><script src="/js/prism.js"></script><script src="/js/article.js"></script><script src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9268892677399703" async></script><meta name="twitter:card" content="summary_large_image"/><meta property="og:image" content="https://www.swiftbyrahul.com/images/posts/LazyvgridAndLazyhgridLayoutsInSwiftui.png"/><meta property="og:image:alt" content="LazyVGrid and LazyHGrid Layouts in SwiftUI"/><meta name="twitter:image" content="https://www.swiftbyrahul.com/images/posts/LazyvgridAndLazyhgridLayoutsInSwiftui.png"/></head><body class="item-page"><header><div class="wrapper"><a href="/" class="site-name">Swift By Rahul</a><nav class="site-nav"><ul><li><a href="/">Home</a></li><li><a href="/posts/" class="selected">Posts</a></li><li><a href="/tags">Tags</a></li><li><a href="https://github.com/bandalrahul">GitHub</a></li></ul></nav></div></header><div class="wrapper"><article><div><button class="toc-toggle" id="toc-toggle" type="button" aria-expanded="false">On this page</button><div class="article-layout"><aside class="toc" id="article-toc"><p class="toc-heading">On this page</p><nav class="toc-nav" id="article-toc-nav"></nav></aside><div class="article-main"><div class="article-meta"><span>September 5, 2026</span><span> · </span><span>8 min read</span><span> · </span><ul class="tag-list"><li><a href="/tags/swiftui">SwiftUI</a></li><li><a href="/tags/ios">iOS</a></li><li><a href="/tags/development">Development</a></li></ul></div><div class="content"><h1>LazyVGrid and LazyHGrid Layouts in SwiftUI</h1><p>SwiftUI offers a declarative and powerful way to build user interfaces, and when it comes to displaying collections of items in a grid layout, <code>LazyVGrid</code> and <code>LazyHGrid</code> are your go-to solutions. These views are designed for performance, creating items only when they're about to become visible, making them ideal for displaying large datasets without bogging down your app's performance.</p><p>In this article, we'll dive deep into <code>LazyVGrid</code> and <code>LazyHGrid</code>, exploring their core concepts, how to configure their layouts using <code>GridItem</code>, and practical examples to get you building responsive and efficient grid-based interfaces.</p><h2>The Power of Lazy Loading</h2><p>Before we jump into the specifics, let's understand the "lazy" aspect. Unlike a traditional <code>VStack</code> or <code>HStack</code> which renders all its child views immediately, <code>LazyVGrid</code> and <code>LazyHGrid</code> are optimized for performance with large datasets. They only initialize and render views when they are needed, typically just before they scroll into the visible area of the screen. This significantly reduces memory footprint and improves initial load times, especially for grids with hundreds or thousands of items.</p><p>Think of it like an image gallery: instead of loading all high-resolution images at once, a lazy grid loads them as you scroll, providing a smooth and responsive user experience.</p><h2>Introducing LazyVGrid</h2><p><code>LazyVGrid</code> arranges its content in a vertical grid, meaning items flow from left to right, and then wrap down to the next row as needed. It's perfect for creating photo galleries, product listings, or dashboard layouts where items are stacked horizontally within rows.</p><p>The most crucial parameter for <code>LazyVGrid</code> is <code>columns</code>, which is an array of <code>GridItem</code> instances. Each <code>GridItem</code> defines the layout characteristics of a single column.</p><p>Let's look at a basic example:</p><pre><code class="language-swift">struct LazyVGridExample: View {
+    let colors: [Color] = [.red, .green, .blue, .yellow, .orange, .purple, .pink, .cyan, .mint, .indigo]
+
+    var body: some View {
+        ScrollView {
+            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())], spacing: 20) {
+                ForEach(0..&lt;100) { index in
+                    Rectangle()
+                        .fill(colors[index % colors.count])
+                        .frame(height: 100)
+                        .overlay(Text("Item \(index)").foregroundColor(.white))
+                        .cornerRadius(8)
+                }
+            }
+            .padding()
+        }
+        .navigationTitle("LazyVGrid Demo")
+    }
+}
+</code></pre><p>In this example, we define three <code>flexible</code> columns. This means each column will try to occupy an equal amount of available horizontal space. The <code>spacing</code> parameter on <code>LazyVGrid</code> defines the vertical spacing between rows and the horizontal spacing between columns within the grid.</p><h3>Understanding GridItem Types</h3><p><code>GridItem</code> offers three powerful options to define column (or row) sizing:</p><ul><li><strong><code>.flexible(minimum: CGFloat = 10, maximum: CGFloat = .infinity)</code></strong>: This is the most common type. It allows the column to expand or shrink to fill available space. You can provide <code>minimum</code> and <code>maximum</code> bounds. If multiple flexible items are present, they share the available space proportionally.</li><li><strong><code>.fixed(CGFloat)</code></strong>: This creates a column with a precise, fixed width. It's useful when you need certain elements to have a consistent size regardless of the screen dimensions.</li><li><strong><code>.adaptive(minimum: CGFloat = 10, maximum: CGFloat = .infinity)</code></strong>: This is particularly interesting for responsive layouts. An adaptive <code>GridItem</code> will create as many columns as can fit within the available space, respecting the <code>minimum</code> and <code>maximum</code> width constraints.</li></ul><p>Let's visualize the difference between <code>flexible</code> and <code>adaptive</code>:</p><div style="text-align: center; margin: 2em 0;">
+<svg viewBox="0 0 600 220" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Comparison of Flexible and Adaptive GridItem layouts in SwiftUI">
+  <title>Flexible vs. Adaptive GridItem</title>
+
+  <!-- Background Rectangles -->
+  <rect x="20" y="20" width="270" height="180" fill="#f0f0f0" rx="8" ry="8" stroke="#ccc" stroke-width="1"/>
+  <rect x="310" y="20" width="270" height="180" fill="#f0f0f0" rx="8" ry="8" stroke="#ccc" stroke-width="1"/>
+
+  <!-- Titles -->
+  <text x="155" y="45" font-family="Arial, sans-serif" font-size="16" font-weight="bold" text-anchor="middle" fill="#333">Flexible GridItem</text>
+  <text x="445" y="45" font-family="Arial, sans-serif" font-size="16" font-weight="bold" text-anchor="middle" fill="#333">Adaptive GridItem</text>
+
+  <!-- Flexible Example -->
+  <text x="155" y="65" font-family="Arial, sans-serif" font-size="12" text-anchor="middle" fill="#555">columns: [flexible, flexible, flexible]</text>
+  <rect x="30" y="80" width="80" height="40" fill="#2A8367" rx="4" ry="4"/>
+  <text x="70" y="105" font-family="Arial, sans-serif" font-size="12" fill="white" text-anchor="middle">Col 1</text>
+  <rect x="115" y="80" width="80" height="40" fill="#2A8367" rx="4" ry="4"/>
+  <text x="155" y="105" font-family="Arial, sans-serif" font-size="12" fill="white" text-anchor="middle">Col 2</text>
+  <rect x="200" y="80" width="80" height="40" fill="#2A8367" rx="4" ry="4"/>
+  <text x="240" y="105" font-family="Arial, sans-serif" font-size="12" fill="white" text-anchor="middle">Col 3</text>
+
+  <text x="155" y="145" font-family="Arial, sans-serif" font-size="12" text-anchor="middle" fill="#555">3 columns, equal width</text>
+  <text x="155" y="165" font-family="Arial, sans-serif" font-size="12" text-anchor="middle" fill="#F04B3E">Fixed number of columns</text>
+
+
+  <!-- Adaptive Example -->
+  <text x="445" y="65" font-family="Arial, sans-serif" font-size="12" text-anchor="middle" fill="#555">columns: [adaptive(min: 80)]</text>
+  <rect x="320" y="80" width="80" height="40" fill="#1565c0" rx="4" ry="4"/>
+  <text x="360" y="105" font-family="Arial, sans-serif" font-size="12" fill="white" text-anchor="middle">Col 1</text>
+  <rect x="405" y="80" width="80" height="40" fill="#1565c0" rx="4" ry="4"/>
+  <text x="445" y="105" font-family="Arial, sans-serif" font-size="12" fill="white" text-anchor="middle">Col 2</text>
+  <rect x="490" y="80" width="80" height="40" fill="#1565c0" rx="4" ry="4"/>
+  <text x="530" y="105" font-family="Arial, sans-serif" font-size="12" fill="white" text-anchor="middle">Col 3</text>
+
+  <text x="445" y="145" font-family="Arial, sans-serif" font-size="12" text-anchor="middle" fill="#555">3 columns fit (if width allows)</text>
+  <text x="445" y="165" font-family="Arial, sans-serif" font-size="12" text-anchor="middle" fill="#F04B3E">Variable number of columns</text>
+</svg>
+</div><p>Here's <code>LazyVGrid</code> with an <code>adaptive</code> column, creating a more dynamic layout:</p><pre><code class="language-swift">struct AdaptiveLazyVGridExample: View {
+    let colors: [Color] = [.red, .green, .blue, .yellow, .orange, .purple, .pink, .cyan, .mint, .indigo]
+    
+    // Adaptive grid item will create as many columns as can fit, each at least 80 points wide.
+    let adaptiveColumns = [
+        GridItem(.adaptive(minimum: 80))
+    ]
+
+    var body: some View {
+        ScrollView {
+            LazyVGrid(columns: adaptiveColumns, spacing: 10) {
+                ForEach(0..&lt;100) { index in
+                    Rectangle()
+                        .fill(colors[index % colors.count])
+                        .frame(height: 80)
+                        .overlay(Text("Item \(index)").foregroundColor(.white).font(.caption))
+                        .cornerRadius(6)
+                }
+            }
+            .padding()
+        }
+        .navigationTitle("Adaptive LazyVGrid")
+    }
+}
+</code></pre><p>This <code>adaptive</code> example is excellent for layouts that need to look good on various screen sizes, automatically adjusting the number of columns.</p><h2>Introducing LazyHGrid</h2><p><code>LazyHGrid</code> is the horizontal counterpart to <code>LazyVGrid</code>. It arranges its content in a horizontal grid, meaning items flow from top to bottom, and then wrap to the next column as needed. This is useful for horizontally scrolling collections, like a row of avatars or a horizontally paginated image carousel.</p><p>For <code>LazyHGrid</code>, you define the layout using the <code>rows</code> parameter, which is an array of <code>GridItem</code> instances. Each <code>GridItem</code> now defines the characteristics of a single row.</p><pre><code class="language-swift">struct LazyHGridExample: View {
+    let colors: [Color] = [.red, .green, .blue, .yellow, .orange, .purple, .pink, .cyan, .mint, .indigo]
+
+    var body: some View {
+        ScrollView(.horizontal) {
+            LazyHGrid(rows: [GridItem(.flexible()), GridItem(.flexible())], spacing: 20) {
+                ForEach(0..&lt;100) { index in
+                    Rectangle()
+                        .fill(colors[index % colors.count])
+                        .frame(width: 100)
+                        .overlay(Text("Item \(index)").foregroundColor(.white))
+                        .cornerRadius(8)
+                }
+            }
+            .padding()
+        }
+        .navigationTitle("LazyHGrid Demo")
+    }
+}
+</code></pre><p>Here, we've specified two <code>flexible</code> rows. Items will fill the first row, then the second, and then wrap to the next "column" (which is now a vertical stack of two rows). The <code>spacing</code> on <code>LazyHGrid</code> now controls the horizontal spacing between columns and the vertical spacing between rows.</p><h2>Deep Dive into GridItem Configuration</h2><p>Beyond the basic types, <code>GridItem</code> offers <code>spacing</code> and <code>alignment</code> parameters that provide fine-grained control over your grid's layout.</p><ul><li><strong><code>spacing: CGFloat</code></strong>: This defines the spacing <em>after</em> the current <code>GridItem</code>. For <code>LazyVGrid</code>, it's the horizontal spacing between columns. For <code>LazyHGrid</code>, it's the vertical spacing between rows.</li><li><strong><code>alignment: Alignment</code></strong>: This controls how items within a column (for <code>LazyVGrid</code>) or row (for <code>LazyHGrid</code>) are aligned. Common values include <code>.leading</code>, <code>.center</code>, <code>.trailing</code>, <code>.top</code>, <code>.bottom</code>, <code>.firstTextBaseline</code>, <code>.lastTextBaseline</code>.</li></ul><p>Let's illustrate how <code>GridItem</code>s define the structure:</p><pre><code>┌───────────────────────────────────────────┐
+│              LazyVGrid                    │
+│                                           │
+│  ┌───────────┐  ┌───────────┐  ┌───────────┐
+│  │ GridItem  │  │ GridItem  │  │ GridItem  │
+│  │ (Flexible)│  │ (Fixed:80)│  │ (Adaptive)│
+│  └───────────┘  └───────────┘  └───────────┘
+│                                           │
+│  ┌───┐  ┌───┐  ┌───┐  ┌───┐  ┌───┐  ┌───┐
+│  │ I │  │ I │  │ I │  │ I │  │ I │  │ I │
+│  │ T │  │ T │  │ T │  │ T │  │ T │  │ T │
+│  │ E │  │ E │  │ E │  │ E │  │ E │  │ E │
+│  │ M │  │ M │  │ M │  │ M │  │ M │  │ M │
+│  └───┘  └───┘  └───┘  └───┘  └───┘  └───┘
+│                                           │
+│  &lt;── Column 1 ──&gt; &lt;── Column 2 ──&gt; &lt;── Column 3 ──&gt;
+│                                           │
+└───────────────────────────────────────────┘
+</code></pre><p>Consider this <code>LazyVGrid</code> with mixed <code>GridItem</code> types and explicit spacing:</p><pre><code class="language-swift">struct MixedGridItemExample: View {
+    let colors: [Color] = [.red, .green, .blue, .yellow, .orange, .purple]
+    
+    let gridItems: [GridItem] = [
+        GridItem(.flexible(), spacing: 5), // Flexible column, 5pt spacing after it
+        GridItem(.fixed(80), spacing: 10), // Fixed 80pt column, 10pt spacing after it
+        GridItem(.flexible())             // Another flexible column
+    ]
+
+    var body: some View {
+        ScrollView {
+            LazyVGrid(columns: gridItems, spacing: 20) { // 20pt vertical spacing between rows
+                ForEach(0..&lt;20) { index in
+                    Rectangle()
+                        .fill(colors[index % colors.count])
+                        .frame(height: 60)
+                        .overlay(Text("Item \(index)").foregroundColor(.white).font(.headline))
+                        .cornerRadius(5)
+                }
+            }
+            .padding(.horizontal) // Padding around the entire grid
+        }
+        .navigationTitle("Mixed GridItems")
+    }
+}
+</code></pre><p>In this setup, <code>GridItem</code>'s <code>spacing</code> applies horizontally between columns, while the <code>LazyVGrid</code>'s <code>spacing</code> applies vertically between rows. This distinction is important for precise layout control.</p><h2>Section Headers and Footers</h2><p>Both <code>LazyVGrid</code> and <code>LazyHGrid</code> support <code>sectionHeaders</code> and <code>sectionFooters</code>, allowing you to group content and provide contextual information. These headers/footers can be <code>pinned</code> so they stick to the top (or leading edge for <code>LazyHGrid</code>) as the user scrolls, similar to <code>UITableView</code> section headers.</p><pre><code class="language-swift">struct SectionedLazyVGridExample: View {
+    let categories = ["Fruits", "Vegetables", "Dairy", "Grains"]
+    let items = [
+        "Fruits": ["Apple", "Banana", "Orange", "Grape", "Strawberry", "Mango"],
+        "Vegetables": ["Carrot", "Broccoli", "Spinach", "Potato", "Tomato", "Onion"],
+        "Dairy": ["Milk", "Cheese", "Yogurt", "Butter"],
+        "Grains": ["Rice", "Bread", "Pasta", "Oats"]
+    ]
+
+    let columns = [GridItem(.adaptive(minimum: 100))]
+
+    var body: some View {
+        ScrollView {
+            LazyVGrid(columns: columns, alignment: .leading, pinnedViews: [.sectionHeaders]) {
+                ForEach(categories, id: \.self) { category in
+                    Section(header: Text(category)
+                                .font(.title2)
+                                .padding(.vertical, 5)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .background(Color.gray.opacity(0.2))
+                                .cornerRadius(5)) {
+                        ForEach(items[category]!, id: \.self) { item in
+                            Text(item)
+                                .frame(maxWidth: .infinity, minHeight: 50)
+                                .background(Color.mint.opacity(0.3))
+                                .cornerRadius(5)
+                        }
+                    }
+                }
+            }
+            .padding()
+        }
+        .navigationTitle("Sectioned Grid")
+    }
+}
+</code></pre><p>By using <code>pinnedViews: [.sectionHeaders]</code>, the category headers will remain visible at the top of the scroll view as you scroll through the items within that section.</p><h2>When to Choose Which Grid</h2><p>The choice between <code>LazyVGrid</code> and <code>LazyHGrid</code> primarily depends on the dominant scrolling direction and how you want your content to flow.</p><ul><li><strong><code>LazyVGrid</code></strong>: Use when you need a vertically scrolling grid where items flow horizontally, wrapping downwards. Ideal for photo grids, product listings, app launchers.</li><li><strong><code>LazyHGrid</code></strong>: Use when you need a horizontally scrolling grid where items flow vertically, wrapping rightwards. Ideal for horizontally scrolling carousels of small items, avatar lists, or specific dashboard components.</li></ul><p>Here's a quick comparison:</p><div style="text-align: center; margin: 2em 0;">
+<svg viewBox="0 0 600 250" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Comparison between LazyVGrid and LazyHGrid in SwiftUI">
+  <title>LazyVGrid vs. LazyHGrid</title>
+
+  <!-- LazyVGrid -->
+  <rect x="30" y="30" width="260" height="190" fill="#f0f0f0" rx="8" ry="8" stroke="#ccc" stroke-width="1"/>
+  <text x="160" y="55" font-family="Arial, sans-serif" font-size="18" font-weight="bold" text-anchor="middle" fill="#333">LazyVGrid</text>
+  <text x="160" y="75" font-family="Arial, sans-serif" font-size="12" text-anchor="middle" fill="#555">Vertical Scroll</text>
+
+  <rect x="40" y="90" width="70" height="40" fill="#2A8367" rx="4" ry="4"/>
+  <rect x="115" y="90" width="70" height="40" fill="#2A8367" rx="4" ry="4"/>
+  <rect x="190" y="90" width="70" height="40" fill="#2A8367" rx="4" ry="4"/>
+
+  <rect x="40" y="135" width="70" height="40" fill="#2A8367" rx="4" ry="4"/>
+  <rect x="115" y="135" width="70" height="40" fill="#2A8367" rx="4" ry="4"/>
+  <rect x="190" y="135" width="70" height="40" fill="#2A8367" rx="4" ry="4"/>
+
+  <path d="M160 190 L160 210 M155 205 L160 210 L165 205" stroke="#F04B3E" stroke-width="2" fill="none"/>
+  <text x="160" y="225" font-family="Arial, sans-serif" font-size="12" text-anchor="middle" fill="#F04B3E">Scroll Down</text>
+  <text x="160" y="185" font-family="Arial, sans-serif" font-size="12" text-anchor="middle" fill="#1565c0">Uses 'columns'</text>
+
+
+  <!-- LazyHGrid -->
+  <rect x="310" y="30" width="260" height="190" fill="#f0f0f0" rx="8" ry="8" stroke="#ccc" stroke-width="1"/>
+  <text x="440" y="55" font-family="Arial, sans-serif" font-size="18" font-weight="bold" text-anchor="middle" fill="#333">LazyHGrid</text>
+  <text x="440" y="75" font-family="Arial, sans-serif" font-size="12" text-anchor="middle" fill="#555">Horizontal Scroll</text>
+
+  <rect x="320" y="90" width="70" height="40" fill="#1565c0" rx="4" ry="4"/>
+  <rect x="320" y="135" width="70" height="40" fill="#1565c0" rx="4" ry="4"/>
+
+  <rect x="395" y="90" width="70" height="40" fill="#1565c0" rx="4" ry="4"/>
+  <rect x="395" y="135" width="70" height="40" fill="#1565c0" rx="4" ry="4"/>
+
+  <rect x="470" y="90" width="70" height="40" fill="#1565c0" rx="4" ry="4"/>
+  <rect x="470" y="135" width="70" height="40" fill="#1565c0" rx="4" ry="4"/>
+
+  <path d="M520 160 L540 160 M535 155 L540 160 L535 165" stroke="#F04B3E" stroke-width="2" fill="none"/>
+  <text x="545" y="165" font-family="Arial, sans-serif" font-size="12" text-anchor="start" fill="#F04B3E">Scroll Right</text>
+  <text x="440" y="185" font-family="Arial, sans-serif" font-size="12" text-anchor="middle" fill="#1565c0">Uses 'rows'</text>
+</svg>
+</div><h2>Performance Considerations</h2><p>The "lazy" behavior is the main performance benefit. It's crucial for grids that might contain a large or even unbounded number of items. Without lazy loading, SwiftUI would attempt to render every single item in your grid upfront, leading to:</p><ul><li><strong>High memory consumption</strong>: Each view, even if off-screen, would exist in memory.</li><li><strong>Slow initial load times</strong>: The UI would freeze or stutter as all views are computed.</li><li><strong>Poor scrolling performance</strong>: Redrawing many views simultaneously can drop frame rates.</li></ul><p>By using <code>LazyVGrid</code> and <code>LazyHGrid</code>, you ensure that only the views currently visible on screen, plus a small buffer of views about to appear, are actively managed. This makes your grids smooth and efficient, even with complex item layouts.</p><h2>Summary</h2><p><code>LazyVGrid</code> and <code>LazyHGrid</code> are essential tools in any SwiftUI developer's toolkit for building efficient and responsive collection views. By leveraging <code>GridItem</code> types (<code>.flexible</code>, <code>.fixed</code>, <code>.adaptive</code>), you gain precise control over your grid's layout, adapting to various screen sizes and orientations. Remember the "lazy" aspect for performance optimization with large datasets, and don't forget the power of sticky section headers for enhanced user experience. Master these components, and you'll be well on your way to crafting sophisticated and performant grid-based interfaces in your SwiftUI applications.</p><p>Happy Swifting!</p></div><div class="article-tags"><span class="tags-label">Tagged: </span><ul class="tag-list"><li><a href="/tags/swiftui">SwiftUI</a></li><li><a href="/tags/ios">iOS</a></li><li><a href="/tags/development">Development</a></li></ul></div><div class="ads-container"><ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-9268892677399703" data-ad-slot="8133392181" data-ad-format="auto" data-full-width-responsive="true"></ins><script>(adsbygoogle = window.adsbygoogle || []).push({});</script></div></div></div></div></article></div><footer><div class="wrapper"><p>© Swift By Rahul · <a href="/feed.rss">RSS</a> · <a href="https://github.com/bandalrahul">GitHub</a> · Built with <a href="https://github.com/johnsundell/publish">Publish</a></p></div></footer></body></html>
