@@ -87,6 +87,7 @@
     "storekit-in-app-purchases",
     "cloudkit-sync-ios",
     "firebase-ios-setup",
-    "swiftui-grids-layout"
+    "swiftui-grids-layout",
+    "swift-protocol-extensions"
   ]
 }
