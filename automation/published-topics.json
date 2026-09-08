@@ -89,6 +89,7 @@
     "firebase-ios-setup",
     "swiftui-grids-layout",
     "swift-protocol-extensions",
-    "ios-app-delegate-scene"
+    "ios-app-delegate-scene",
+    "swift-result-builders"
   ]
 }
