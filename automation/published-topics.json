@@ -90,6 +90,7 @@
     "swiftui-grids-layout",
     "swift-protocol-extensions",
     "ios-app-delegate-scene",
-    "swift-result-builders"
+    "swift-result-builders",
+    "ios-memory-leaks-debug"
   ]
 }
