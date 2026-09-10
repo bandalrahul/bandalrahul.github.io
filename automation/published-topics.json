@@ -91,6 +91,7 @@
     "swift-protocol-extensions",
     "ios-app-delegate-scene",
     "swift-result-builders",
-    "ios-memory-leaks-debug"
+    "ios-memory-leaks-debug",
+    "swiftui-dark-mode"
   ]
 }
