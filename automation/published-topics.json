@@ -93,6 +93,7 @@
     "swift-result-builders",
     "ios-memory-leaks-debug",
     "swiftui-dark-mode",
-    "xcode-cloud-ci"
+    "xcode-cloud-ci",
+    "swift-concurrency-pitfalls"
   ]
 }
