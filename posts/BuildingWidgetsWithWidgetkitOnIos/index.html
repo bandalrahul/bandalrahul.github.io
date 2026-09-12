@@ -1,0 +1,340 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"/><meta property="og:site_name" content="Swift By Rahul"/><link rel="canonical" href="https://www.swiftbyrahul.com/posts/BuildingWidgetsWithWidgetkitOnIos"/><meta name="twitter:url" content="https://www.swiftbyrahul.com/posts/BuildingWidgetsWithWidgetkitOnIos"/><meta property="og:url" content="https://www.swiftbyrahul.com/posts/BuildingWidgetsWithWidgetkitOnIos"/><title>Building Widgets with WidgetKit on iOS | Swift By Rahul</title><meta name="twitter:title" content="Building Widgets with WidgetKit on iOS | Swift By Rahul"/><meta property="og:title" content="Building Widgets with WidgetKit on iOS | Swift By Rahul"/><meta name="description" content="Learn to build powerful and dynamic iOS widgets using Apple's WidgetKit framework. This guide covers StaticConfiguration, TimelineProviders, updating strategies, and deep linking for an engaging user experience."/><meta name="twitter:description" content="Learn to build powerful and dynamic iOS widgets using Apple's WidgetKit framework. This guide covers StaticConfiguration, TimelineProviders, updating strategies, and deep linking for an engaging user experience."/><meta property="og:description" content="Learn to build powerful and dynamic iOS widgets using Apple's WidgetKit framework. This guide covers StaticConfiguration, TimelineProviders, updating strategies, and deep linking for an engaging user experience."/><meta name="twitter:card" content="summary"/><link rel="stylesheet" href="/styles.css" type="text/css"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><link rel="shortcut icon" href="/images/favicon.png" type="image/png"/><link rel="alternate" href="/feed.rss" type="application/rss+xml" title="Subscribe to Swift By Rahul"/></head><head><link rel="stylesheet" href="/css/prism.css" type="text/css"/><script src="/js/prism.js"></script><script src="/js/article.js"></script><script src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9268892677399703" async></script><meta name="twitter:card" content="summary_large_image"/><meta property="og:image" content="https://www.swiftbyrahul.com/images/posts/BuildingWidgetsWithWidgetkitOnIos.png"/><meta property="og:image:alt" content="Building Widgets with WidgetKit on iOS"/><meta name="twitter:image" content="https://www.swiftbyrahul.com/images/posts/BuildingWidgetsWithWidgetkitOnIos.png"/></head><body class="item-page"><header><div class="wrapper"><a href="/" class="site-name">Swift By Rahul</a><nav class="site-nav"><ul><li><a href="/">Home</a></li><li><a href="/posts/" class="selected">Posts</a></li><li><a href="/tags">Tags</a></li><li><a href="https://github.com/bandalrahul">GitHub</a></li></ul></nav></div></header><div class="wrapper"><article><div><button class="toc-toggle" id="toc-toggle" type="button" aria-expanded="false">On this page</button><div class="article-layout"><aside class="toc" id="article-toc"><p class="toc-heading">On this page</p><nav class="toc-nav" id="article-toc-nav"></nav></aside><div class="article-main"><div class="article-meta"><span>August 13, 2026</span><span> · </span><span>10 min read</span><span> · </span><ul class="tag-list"><li><a href="/tags/widgetkit">WidgetKit</a></li><li><a href="/tags/ios">iOS</a></li><li><a href="/tags/development">Development</a></li></ul></div><div class="content"><h1>Building Widgets with WidgetKit on iOS</h1><p>Widgets have become an integral part of the iOS experience, offering users quick glances at app information without needing to open the full application. With WidgetKit, Apple provides a powerful and flexible framework for developers to create these rich, dynamic, and informative extensions for their iOS apps.</p><p>If you've been looking to enhance your app's presence on the Home Screen or Lock Screen, or simply want to provide a more immediate way for users to interact with your content, WidgetKit is your answer. In this article, we'll dive deep into building widgets, covering the core concepts, practical implementation, and best practices to make your widgets shine.</p><h2>Understanding WidgetKit Fundamentals</h2><p>At its core, WidgetKit allows you to define small, focused views that display your app's data. These views are rendered by your widget extension, a separate target in your Xcode project, and are displayed by iOS. Unlike traditional app extensions, widgets are primarily display-oriented, though they can offer limited interactivity through Intents or by deep linking back to your main app.</p><p>Let's break down the key components:</p><ul><li><strong>Widget Extension</strong>: A separate target in your Xcode project that contains all the code for your widgets.</li><li><strong><code>Widget</code> Protocol</strong>: The entry point for your widget. It defines the configuration (static or intent-based) and the view hierarchy.</li><li><strong><code>TimelineProvider</code> Protocol</strong>: This is where the magic happens. It tells WidgetKit <em>when</em> to update your widget and <em>what data</em> to display at those times.</li><li><strong><code>TimelineEntry</code> Protocol</strong>: A simple data structure that conforms to <code>TimelineEntry</code>. It represents the data to be displayed at a specific point in time.</li><li><strong>Widget Families</strong>: Widgets come in different sizes on the Home Screen (Small, Medium, Large, ExtraLarge) and specific styles on the Lock Screen (AccessoryInline, AccessoryCircular, AccessoryRectangular). Your widget can support one or more of these families.</li></ul><p>Here's a high-level view of how these components interact:</p><div style="text-align: center; margin: 2em 0;">
+<svg viewBox="0 0 600 220" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="WidgetKit Architecture Flow">
+  <title>WidgetKit Architecture Flow</title>
+
+  <!-- Boxes -->
+  <rect x="20" y="20" width="120" height="60" rx="10" ry="10" fill="#2A8367" stroke="#000" stroke-width="2"/>
+  <text x="80" y="55" font-family="Arial" font-size="16" fill="#fff" text-anchor="middle">Widget</text>
+
+  <rect x="180" y="20" width="140" height="60" rx="10" ry="10" fill="#1565c0" stroke="#000" stroke-width="2"/>
+  <text x="250" y="55" font-family="Arial" font-size="16" fill="#fff" text-anchor="middle">TimelineProvider</text>
+
+  <rect x="360" y="20" width="120" height="60" rx="10" ry="10" fill="#F04B3E" stroke="#000" stroke-width="2"/>
+  <text x="420" y="55" font-family="Arial" font-size="16" fill="#fff" text-anchor="middle">TimelineEntry</text>
+
+  <rect x="500" y="20" width="80" height="60" rx="10" ry="10" fill="#2A8367" stroke="#000" stroke-width="2"/>
+  <text x="540" y="55" font-family="Arial" font-size="16" fill="#fff" text-anchor="middle">View</text>
+
+  <!-- Arrows -->
+  <path d="M140 50 H180" stroke="#000" stroke-width="2" fill="none" marker-end="url(#arrowhead)"/>
+  <path d="M320 50 H360" stroke="#000" stroke-width="2" fill="none" marker-end="url(#arrowhead)"/>
+  <path d="M480 50 H500" stroke="#000" stroke-width="2" fill="none" marker-end="url(#arrowhead)"/>
+
+  <!-- Process Flow -->
+  <text x="20" y="120" font-family="Arial" font-size="14" fill="#000">1. Widget asks provider for timeline</text>
+  <path d="M150 110 C150 140 250 140 250 110" stroke="#000" stroke-width="1" fill="none" marker-end="url(#arrowhead2)"/>
+
+  <text x="250" y="160" font-family="Arial" font-size="14" fill="#000">2. Provider generates TimelineEntries</text>
+  <path d="M350 150 C350 180 450 180 450 150" stroke="#000" stroke-width="1" fill="none" marker-end="url(#arrowhead2)"/>
+
+  <text x="450" y="200" font-family="Arial" font-size="14" fill="#000">3. Widget displays Entry data in View</text>
+
+  <!-- Arrowheads -->
+  <defs>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#000" />
+    </marker>
+    <marker id="arrowhead2" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#000" />
+    </marker>
+  </defs>
+</svg>
+</div><h2>Setting Up Your Widget Extension</h2><p>First things first, you need to add a Widget Extension to your existing iOS app project:</p><ol><li>Open your Xcode project.</li><li>Go to <code>File &gt; New &gt; Target...</code>.</li><li>Select <code>Widget Extension</code> under the <code>iOS &gt; Application Extension</code> section and click <code>Next</code>.</li><li>Give your widget a name (e.g., <code>MyAwesomeWidgetExtension</code>) and ensure "Include Configuration Intent" is unchecked for now (we'll cover intents later). Click <code>Finish</code>.</li><li>Xcode will ask if you want to activate the new scheme. Click <code>Activate</code>.</li></ol><p>Xcode will generate some boilerplate code for you, including a main <code>Widget</code> struct, a <code>TimelineProvider</code>, and a placeholder <code>TimelineEntry</code>.</p><h2>Building a Static Widget: Displaying Current Time</h2><p>Let's create a simple widget that displays the current time and updates periodically. This uses a <code>StaticConfiguration</code>, meaning the user cannot configure anything about the widget.</p><h3>1. Define the <code>TimelineEntry</code></h3><p>Our entry needs a date to display.</p><pre><code class="language-swift">// MyAwesomeWidgetExtension/SimpleTimeEntry.swift
+import WidgetKit
+import SwiftUI
+
+struct SimpleTimeEntry: TimelineEntry {
+    let date: Date // Required by TimelineEntry protocol
+    let message: String
+}
+</code></pre><h3>2. Implement the <code>TimelineProvider</code></h3><p>The <code>TimelineProvider</code> has three essential methods:</p><ul><li><code>getSnapshot(in:completion:)</code>: Provides a single entry quickly for display in the widget gallery or when the system needs a quick preview.</li><li><code>getTimeline(in:completion:)</code>: Provides an array of entries, each with a specific date, telling WidgetKit when to update the widget. It also specifies a <code>TimelineReloadPolicy</code>.</li><li><code>placeholder(in:)</code>: Provides a generic entry for the widget gallery before the actual data is loaded.</li></ul><pre><code class="language-swift">// MyAwesomeWidgetExtension/SimpleTimeProvider.swift
+import WidgetKit
+import SwiftUI
+
+struct SimpleTimeProvider: TimelineProvider {
+    typealias Entry = SimpleTimeEntry
+
+    // Provides a placeholder view for the widget gallery
+    func placeholder(in context: Context) -&gt; SimpleTimeEntry {
+        SimpleTimeEntry(date: Date(), message: "Loading...")
+    }
+
+    // Provides a quick snapshot for the widget gallery or transient displays
+    func getSnapshot(in context: Context, completion: @escaping (SimpleTimeEntry) -&gt; ()) {
+        let entry = SimpleTimeEntry(date: Date(), message: "Current Time")
+        completion(entry)
+    }
+
+    // Provides a timeline of entries for future updates
+    func getTimeline(in context: Context, completion: @escaping (Timeline&lt;Entry&gt;) -&gt; ()) {
+        var entries: [SimpleTimeEntry] = []
+        let currentDate = Date()
+
+        // Generate 5 entries, one every minute for the next 5 minutes
+        for minuteOffset in 0 ..&lt; 5 {
+            let entryDate = Calendar.current.date(byAdding: .minute, value: minuteOffset, to: currentDate)!
+            let entry = SimpleTimeEntry(date: entryDate, message: "Widget Time")
+            entries.append(entry)
+        }
+
+        // Create a timeline that reloads every 5 minutes
+        let timeline = Timeline(entries: entries, policy: .atEnd)
+        completion(timeline)
+    }
+}
+</code></pre><p>In <code>getTimeline</code>, <code>.atEnd</code> means WidgetKit will request a new timeline after the last entry's date has passed. Other policies include <code>.after(date)</code> to reload at a specific future date, or <code>.never</code> if your widget never needs to update itself (e.g., a static image).</p><h3>3. Design the Widget View</h3><p>This is a standard SwiftUI <code>View</code> that receives a <code>TimelineEntry</code> to display its content.</p><pre><code class="language-swift">// MyAwesomeWidgetExtension/SimpleTimeView.swift
+import WidgetKit
+import SwiftUI
+
+struct SimpleTimeView : View {
+    var entry: SimpleTimeProvider.Entry
+
+    // DateFormatter for consistent time display
+    private static let dateFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.timeStyle = .short
+        return formatter
+    }()
+
+    @Environment(\.widgetFamily) var family // Access current widget family
+
+    var body: some View {
+        // Adapt UI based on widget family
+        switch family {
+        case .systemSmall:
+            VStack(alignment: .leading) {
+                Text(entry.message)
+                    .font(.caption)
+                    .foregroundColor(.gray)
+                Text(Self.dateFormatter.string(from: entry.date))
+                    .font(.title2)
+                    .fontWeight(.bold)
+            }
+            .padding()
+        case .systemMedium:
+            HStack {
+                VStack(alignment: .leading) {
+                    Text(entry.message)
+                        .font(.headline)
+                    Text(Self.dateFormatter.string(from: entry.date))
+                        .font(.largeTitle)
+                        .fontWeight(.bold)
+                }
+                Spacer()
+            }
+            .padding()
+        // Add cases for .systemLarge, .systemExtraLarge, and accessory families
+        // if your widget supports them.
+        default:
+            Text("Unsupported Widget Family")
+        }
+    }
+}
+</code></pre><h3>4. Register the Widget</h3><p>Finally, combine everything in your main <code>Widget</code> struct.</p><pre><code class="language-swift">// MyAwesomeWidgetExtension/MyAwesomeWidgetExtension.swift
+import WidgetKit
+import SwiftUI
+
+@main
+struct MyAwesomeWidget: Widget {
+    let kind: String = "MyAwesomeWidget" // Unique identifier for your widget
+
+    var body: some WidgetConfiguration {
+        StaticConfiguration(kind: kind, provider: SimpleTimeProvider()) { entry in
+            SimpleTimeView(entry: entry)
+        }
+        .configurationDisplayName("My Time Widget")
+        .description("Displays the current time and updates periodically.")
+        .supportedFamilies([.systemSmall, .systemMedium]) // Specify supported sizes
+    }
+}
+</code></pre><p>Build and run your app on a device or simulator. Then, go to the Home Screen, long-press, tap the <code>+</code> button, and you should see "My Time Widget" available to add!</p><h2>Adding User Configuration with Intents</h2><p>What if users want to customize their widget? For example, choosing a specific city for a weather widget or a task list for a to-do widget. This is where <code>IntentConfiguration</code> comes in.</p><p>To use <code>IntentConfiguration</code>, you first define an <code>Intent</code> in an <code>.intentdefinition</code> file.</p><h3>1. Create an Intent Definition File</h3><ol><li>Select your Widget Extension target.</li><li>Go to <code>File &gt; New &gt; File...</code>.</li><li>Select <code>SiriKit Intent Definition File</code> under <code>iOS &gt; Resource</code> and click <code>Next</code>.</li><li>Name it (e.g., <code>MyWidgetIntent</code>) and click <code>Create</code>.</li><li>In the inspector, ensure <code>Target Membership</code> includes both your main app target and your widget extension target. This is crucial for both to access the intent.</li><li>Open <code>MyWidgetIntent.intentdefinition</code>.</li><li>Click the <code>+</code> button at the bottom left and choose <code>New Intent</code>.</li><li>Give it a name (e.g., <code>SelectMessageIntent</code>).</li><li>Set its <code>Category</code> to <code>View</code>.</li><li>Check <code>Intent is eligible for widgets</code>.</li><li>Add a parameter by clicking the <code>+</code> under <code>Parameters</code>. Name it <code>message</code>, set its <code>Type</code> to <code>String</code>. Make it <code>Required</code>.</li></ol><h3>2. Update <code>TimelineProvider</code> for Intent-Based Data</h3><p>Now, your <code>TimelineProvider</code> will receive an <code>Intent</code> object when generating entries.</p><pre><code class="language-swift">// MyAwesomeWidgetExtension/ConfigurableMessageEntry.swift
+import WidgetKit
+import SwiftUI
+
+struct ConfigurableMessageEntry: TimelineEntry {
+    let date: Date
+    let configuration: SelectMessageIntent // Our custom intent
+}
+
+// MyAwesomeWidgetExtension/ConfigurableMessageProvider.swift
+import WidgetKit
+import SwiftUI
+// Don't forget to import your intent module!
+// Usually, it's your main app's module name. E.g., `import MyAwesomeApp`
+// Or if you defined it within the widget extension target and set the class to Global,
+// it might be directly accessible or via the Widget Extension's module name.
+// For simplicity, let's assume `SelectMessageIntent` is available.
+
+struct ConfigurableMessageProvider: IntentTimelineProvider {
+    typealias Entry = ConfigurableMessageEntry
+    typealias Intent = SelectMessageIntent // Specify our intent type
+
+    func placeholder(in context: Context) -&gt; ConfigurableMessageEntry {
+        ConfigurableMessageEntry(date: Date(), configuration: SelectMessageIntent())
+    }
+
+    func getSnapshot(for configuration: SelectMessageIntent, in context: Context, completion: @escaping (ConfigurableMessageEntry) -&gt; ()) {
+        let entry = ConfigurableMessageEntry(date: Date(), configuration: configuration)
+        completion(entry)
+    }
+
+    func getTimeline(for configuration: SelectMessageIntent, in context: Context, completion: @escaping (Timeline&lt;ConfigurableMessageEntry&gt;) -&gt; ()) {
+        var entries: [ConfigurableMessageEntry] = []
+        let currentDate = Date()
+
+        // Create a single entry for now, as the message is static per configuration
+        let entry = ConfigurableMessageEntry(date: currentDate, configuration: configuration)
+        entries.append(entry)
+
+        // The message doesn't change over time, so we reload never or when relevant
+        let timeline = Timeline(entries: entries, policy: .never)
+        completion(timeline)
+    }
+}
+</code></pre><h3>3. Update the Widget View</h3><p>The view now receives <code>ConfigurableMessageEntry</code> which contains the <code>SelectMessageIntent</code>.</p><pre><code class="language-swift">// MyAwesomeWidgetExtension/ConfigurableMessageView.swift
+import WidgetKit
+import SwiftUI
+
+struct ConfigurableMessageView : View {
+    var entry: ConfigurableMessageProvider.Entry
+
+    var body: some View {
+        VStack {
+            Text("Your Message:")
+                .font(.caption)
+            Text(entry.configuration.message ?? "No Message Set") // Access intent parameter
+                .font(.headline)
+                .bold()
+                .multilineTextAlignment(.center)
+        }
+        .padding()
+    }
+}
+</code></pre><h3>4. Register the Intent-Based Widget</h3><p>Finally, change your <code>Widget</code> struct to use <code>IntentConfiguration</code>.</p><pre><code class="language-swift">// MyAwesomeWidgetExtension/MyAwesomeWidgetExtension.swift
+import WidgetKit
+import SwiftUI
+
+@main
+struct MyAwesomeWidget: Widget {
+    let kind: String = "MyAwesomeWidget"
+
+    var body: some WidgetConfiguration {
+        IntentConfiguration(
+            kind: kind,
+            intent: SelectMessageIntent.self, // Specify your intent class
+            provider: ConfigurableMessageProvider()
+        ) { entry in
+            ConfigurableMessageView(entry: entry)
+        }
+        .configurationDisplayName("Configurable Message")
+        .description("Display a custom message on your Home Screen.")
+        .supportedFamilies([.systemSmall])
+    }
+}
+</code></pre><p>Now, when you add this widget, long-press it, and tap "Edit Widget," you'll see the option to set the <code>message</code> parameter!</p><p>This comparison illustrates the fundamental difference between static and configurable widgets:</p><pre><code>┌───────────────────────┐          ┌──────────────────────────┐
+│ StaticConfiguration   │          │ IntentConfiguration      │
+│                       │          │                          │
+│ - No user choices     │          │ - User-configurable      │
+│ - Data determined     │          │ - Parameters defined in  │
+│   solely by provider  │          │   .intentdefinition file │
+│ - Simpler setup       │          │ - More flexible, dynamic │
+│                       │          │   content                │
+└───────────────────────┘          └──────────────────────────┘
+</code></pre><h2>Updating Widgets Manually</h2><p>While <code>TimelineReloadPolicy</code> handles scheduled updates, sometimes you need to push an update immediately, for example, when data changes significantly in your main app. You can do this using <code>WidgetCenter</code>.</p><pre><code class="language-swift">import WidgetKit
+
+// In your main app, perhaps after a data update
+func reloadMyWidget() {
+    WidgetCenter.shared.reloadTimelines(ofKind: "MyAwesomeWidget")
+    // Or to reload all widgets:
+    // WidgetCenter.shared.reloadAllTimelines()
+}
+</code></pre><p>Remember that WidgetKit has budget constraints for updates to preserve battery life. Don't abuse <code>reloadTimelines</code> too frequently.</p><h2>Deep Linking with <code>widgetURL</code></h2><p>Widgets aren't meant for complex interaction, but they can serve as launchpads into your app. You can make an entire widget tapable, or specific parts of it, to open your main app to a particular view using <code>widgetURL(_:)</code>.</p><pre><code class="language-swift">// In your SimpleTimeView or ConfigurableMessageView
+struct SimpleTimeView : View {
+    var entry: SimpleTimeProvider.Entry
+
+    var body: some View {
+        VStack {
+            Text(Self.dateFormatter.string(from: entry.date))
+                .font(.title)
+        }
+        .widgetURL(URL(string: "myawesomeapp://show-time-detail")) // Deep link URL
+    }
+}
+</code></pre><p>In your main app's <code>App</code> or <code>SceneDelegate</code>, you'll handle this URL:</p><pre><code class="language-swift">// MyApp/MyAppApp.swift (for SwiftUI App lifecycle)
+import SwiftUI
+
+@main
+struct MyAppApp: App {
+    @State private var selectedTab: String?
+
+    var body: some Scene {
+        WindowGroup {
+            ContentView()
+                .onOpenURL { url in
+                    if url.scheme == "myawesomeapp" &amp;&amp; url.host == "show-time-detail" {
+                        // Handle navigation within your app
+                        print("Opened from widget to show time detail!")
+                        selectedTab = "time" // Example: navigate to a specific tab
+                    }
+                }
+        }
+    }
+}
+</code></pre><p>This provides a seamless transition from the widget to a relevant part of your app.</p><h2>Widget Update Flow</h2><p>Let's visualize the process of updating a widget, especially when triggered from the main application.</p><div style="text-align: center; margin: 2em 0;">
+<svg viewBox="0 0 600 250" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Widget Update Flow Diagram">
+  <title>Widget Update Flow Diagram</title>
+
+  <!-- Boxes -->
+  <rect x="20" y="20" width="120" height="60" rx="10" ry="10" fill="#2A8367" stroke="#000" stroke-width="2"/>
+  <text x="80" y="55" font-family="Arial" font-size="16" fill="#fff" text-anchor="middle">Main App</text>
+
+  <rect x="180" y="20" width="120" height="60" rx="10" ry="10" fill="#1565c0" stroke="#000" stroke-width="2"/>
+  <text x="240" y="55" font-family="Arial" font-size="16" fill="#fff" text-anchor="middle">WidgetCenter</text>
+
+  <rect x="340" y="20" width="120" height="60" rx="10" ry="10" fill="#F04B3E" stroke="#000" stroke-width="2"/>
+  <text x="400" y="55" font-family="Arial" font-size="16" fill="#fff" text-anchor="middle">WidgetKit</text>
+
+  <rect x="500" y="20" width="80" height="60" rx="10" ry="10" fill="#2A8367" stroke="#000" stroke-width="2"/>
+  <text x="540" y="55" font-family="Arial" font-size="16" fill="#fff" text-anchor="middle">Widget UI</text>
+
+  <!-- Arrows -->
+  <path d="M140 50 H180" stroke="#000" stroke-width="2" fill="none" marker-end="url(#arrowhead)"/>
+  <path d="M300 50 H340" stroke="#000" stroke-width="2" fill="none" marker-end="url(#arrowhead)"/>
+  <path d="M460 50 H500" stroke="#000" stroke-width="2" fill="none" marker-end="url(#arrowhead)"/>
+
+  <!-- Flow Steps -->
+  <text x="20" y="110" font-family="Arial" font-size="14" fill="#000">1. Data changes in Main App</text>
+  <path d="M80 80 V120 H180 V160" stroke="#000" stroke-width="1" fill="none" marker-end="url(#arrowhead2)"/>
+
+  <text x="180" y="170" font-family="Arial" font-size="14" fill="#000">2. Main App calls WidgetCenter.reloadTimelines()</text>
+  <path d="M240 160 V120 H340 V160" stroke="#000" stroke-width="1" fill="none" marker-end="url(#arrowhead2)"/>
+
+  <text x="340" y="170" font-family="Arial" font-size="14" fill="#000">3. WidgetKit requests new timeline from Widget Extension</text>
+  <path d="M400 160 V120 H500 V160" stroke="#000" stroke-width="1" fill="none" marker-end="url(#arrowhead2)"/>
+
+  <text x="500" y="170" font-family="Arial" font-size="14" fill="#000">4. Widget UI updates with new data</text>
+
+  <!-- Arrowheads -->
+  <defs>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#000" />
+    </marker>
+    <marker id="arrowhead2" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#000" />
+    </marker>
+  </defs>
+</svg>
+</div><h2>Lock Screen Widgets (iOS 16+)</h2><p>With iOS 16, Apple introduced Lock Screen widgets, bringing the same WidgetKit power to a new context. These widgets come in three distinct families:</p><ul><li><strong><code>accessoryInline</code></strong>: A single line of text, typically at the top of the Lock Screen.</li><li><strong><code>accessoryCircular</code></strong>: A small circular gauge or icon.</li><li><strong><code>accessoryRectangular</code></strong>: A rectangular area for more detailed information.</li></ul><p>To support these, you simply add them to your widget's <code>supportedFamilies</code> array:</p><pre><code class="language-swift">@main
+struct MyAwesomeWidget: Widget {
+    let kind: String = "MyAwesomeWidget"
+
+    var body: some WidgetConfiguration {
+        StaticConfiguration(kind: kind, provider: SimpleTimeProvider()) { entry in
+            SimpleTimeView(entry: entry)
+        }
+        .configurationDisplayName("My Time Widget")
+        .description("Displays the current time on Home Screen and Lock Screen.")
+        .supportedFamilies([.systemSmall, .systemMedium, .accessoryInline, .accessoryCircular, .accessoryRectangular])
+    }
+}
+</code></pre><p>Remember to adapt your <code>WidgetView</code>'s layout using <code>@Environment(\.widgetFamily)</code> to make sure your content looks good in all supported families. For Lock Screen widgets, <code>containerBackground(.background)</code> is often used to ensure proper rendering.</p><h2>Summary</h2><p>WidgetKit is a powerful framework that allows you to extend your app's reach directly to the user's Home and Lock Screens. By understanding <code>TimelineProvider</code> for data updates, <code>TimelineEntry</code> for data representation, and choosing between <code>StaticConfiguration</code> and <code>IntentConfiguration</code> for user customization, you can build engaging and informative widgets. Remember to manage update frequency responsibly and leverage <code>widgetURL</code> for deep linking to create a cohesive user experience. Experiment with different widget families to see how your app's content can be presented in various contexts.</p><p>Happy Swifting!</p></div><div class="article-tags"><span class="tags-label">Tagged: </span><ul class="tag-list"><li><a href="/tags/widgetkit">WidgetKit</a></li><li><a href="/tags/ios">iOS</a></li><li><a href="/tags/development">Development</a></li></ul></div><div class="ads-container"><ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-9268892677399703" data-ad-slot="8133392181" data-ad-format="auto" data-full-width-responsive="true"></ins><script>(adsbygoogle = window.adsbygoogle || []).push({});</script></div></div></div></div></article></div><footer><div class="wrapper"><p>© Swift By Rahul · <a href="/feed.rss">RSS</a> · <a href="https://github.com/bandalrahul">GitHub</a> · Built with <a href="https://github.com/johnsundell/publish">Publish</a></p></div></footer></body></html>

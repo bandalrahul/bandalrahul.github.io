@@ -1,0 +1,369 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"/><meta property="og:site_name" content="Swift By Rahul"/><link rel="canonical" href="https://www.swiftbyrahul.com/posts/ResultBuildersInSwiftExplained"/><meta name="twitter:url" content="https://www.swiftbyrahul.com/posts/ResultBuildersInSwiftExplained"/><meta property="og:url" content="https://www.swiftbyrahul.com/posts/ResultBuildersInSwiftExplained"/><title>Result Builders in Swift Explained | Swift By Rahul</title><meta name="twitter:title" content="Result Builders in Swift Explained | Swift By Rahul"/><meta property="og:title" content="Result Builders in Swift Explained | Swift By Rahul"/><meta name="description" content="Discover Swift Result Builders, a powerful feature for creating declarative DSLs, simplifying complex view constructions, and enhancing code readability beyond SwiftUI."/><meta name="twitter:description" content="Discover Swift Result Builders, a powerful feature for creating declarative DSLs, simplifying complex view constructions, and enhancing code readability beyond SwiftUI."/><meta property="og:description" content="Discover Swift Result Builders, a powerful feature for creating declarative DSLs, simplifying complex view constructions, and enhancing code readability beyond SwiftUI."/><meta name="twitter:card" content="summary"/><link rel="stylesheet" href="/styles.css" type="text/css"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><link rel="shortcut icon" href="/images/favicon.png" type="image/png"/><link rel="alternate" href="/feed.rss" type="application/rss+xml" title="Subscribe to Swift By Rahul"/></head><head><link rel="stylesheet" href="/css/prism.css" type="text/css"/><script src="/js/prism.js"></script><script src="/js/article.js"></script><script src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9268892677399703" async></script><meta name="twitter:card" content="summary_large_image"/><meta property="og:image" content="https://www.swiftbyrahul.com/images/posts/ResultBuildersInSwiftExplained.png"/><meta property="og:image:alt" content="Result Builders in Swift Explained"/><meta name="twitter:image" content="https://www.swiftbyrahul.com/images/posts/ResultBuildersInSwiftExplained.png"/></head><body class="item-page"><header><div class="wrapper"><a href="/" class="site-name">Swift By Rahul</a><nav class="site-nav"><ul><li><a href="/">Home</a></li><li><a href="/posts/" class="selected">Posts</a></li><li><a href="/tags">Tags</a></li><li><a href="https://github.com/bandalrahul">GitHub</a></li></ul></nav></div></header><div class="wrapper"><article><div><button class="toc-toggle" id="toc-toggle" type="button" aria-expanded="false">On this page</button><div class="article-layout"><aside class="toc" id="article-toc"><p class="toc-heading">On this page</p><nav class="toc-nav" id="article-toc-nav"></nav></aside><div class="article-main"><div class="article-meta"><span>September 8, 2026</span><span> · </span><span>11 min read</span><span> · </span><ul class="tag-list"><li><a href="/tags/swift">Swift</a></li><li><a href="/tags/ios">iOS</a></li><li><a href="/tags/programming">Programming</a></li></ul></div><div class="content"><h1>Result Builders in Swift Explained</h1><p>If you've spent any time with SwiftUI, you've undoubtedly encountered <code>@ViewBuilder</code>. This seemingly magical attribute allows you to write declarative UI code, combining multiple views, conditional logic, and loops into a single, cohesive block. But <code>@ViewBuilder</code> isn't a special SwiftUI-only construct; it's an instance of a powerful Swift language feature called <strong>Result Builders</strong>.</p><p>Result Builders, introduced in Swift 5.4, provide a way to construct complex data structures incrementally using a declarative, domain-specific syntax. They transform a sequence of expressions within a closure into a single, cohesive result. Think of them as a compiler-supported way to build mini-DSLs (Domain-Specific Languages) right within your Swift code, making it more readable and expressive.</p><p>In this article, we'll peel back the layers of Result Builders, understand how they work, and learn how to create our own custom builders for various scenarios beyond just UI.</p><div style="text-align: center; margin: 2em 0;">
+<svg viewBox="0 0 600 220" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Before and After Result Builders">
+  <title>Before and After Result Builders</title>
+  <!-- Background rect -->
+  <rect x="0" y="0" width="600" height="220" fill="#f9f9f9" rx="10"/>
+
+  <!-- Before Section -->
+  <text x="150" y="30" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="18" font-weight="bold" fill="#333">Before: Manual Construction</text>
+  <rect x="20" y="50" width="260" height="150" rx="8" ry="8" stroke="#F04B3E" stroke-width="2" fill="none"/>
+  <text x="30" y="75" font-family="Menlo, monospace" font-size="14" fill="#333">var items: [String] = []</text>
+  <text x="30" y="95" font-family="Menlo, monospace" font-size="14" fill="#333">items.append("Item 1")</text>
+  <text x="30" y="115" font-family="Menlo, monospace" font-size="14" fill="#333">if condition {</text>
+  <text x="45" y="135" font-family="Menlo, monospace" font-size="14" fill="#333">  items.append("Conditional Item")</text>
+  <text x="30" y="155" font-family="Menlo, monospace" font-size="14" fill="#333">}</text>
+  <text x="30" y="175" font-family="Menlo, monospace" font-size="14" fill="#333">items.append("Item 3")</text>
+
+  <!-- Arrow -->
+  <path d="M290 125 L310 125 L300 115 M310 125 L300 135" stroke="#1565c0" stroke-width="2" fill="none"/>
+  <text x="285" y="105" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="14" fill="#1565c0">Simplified by</text>
+
+  <!-- After Section -->
+  <text x="450" y="30" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="18" font-weight="bold" fill="#333">After: Result Builder</text>
+  <rect x="320" y="50" width="260" height="150" rx="8" ry="8" stroke="#2A8367" stroke-width="2" fill="none"/>
+  <text x="330" y="75" font-family="Menlo, monospace" font-size="14" fill="#333">MyBuilder {</text>
+  <text x="345" y="95" font-family="Menlo, monospace" font-size="14" fill="#333">  "Item 1"</text>
+  <text x="345" y="115" font-family="Menlo, monospace" font-size="14" fill="#333">  if condition {</text>
+  <text x="360" y="135" font-family="Menlo, monospace" font-size="14" fill="#333">    "Conditional Item"</text>
+  <text x="345" y="155" font-family="Menlo, monospace" font-size="14" fill="#333">  }</text>
+  <text x="345" y="175" font-family="Menlo, monospace" font-size="14" fill="#333">  "Item 3"</text>
+  <text x="330" y="195" font-family="Menlo, monospace" font-size="14" fill="#333">}</text>
+</svg>
+</div><h2>The Problem Result Builders Solve</h2><p>Imagine you're building a list of configuration settings, or perhaps a complex data model, where elements might be conditionally included or repeated. Without Result Builders, you'd typically end up with code like this:</p><pre><code class="language-swift">func buildConfigurationManually(includeFeatureA: Bool, itemCount: Int) -&gt; [String] {
+    var configItems: [String] = []
+
+    configItems.append("BaseSetting: Enabled")
+
+    if includeFeatureA {
+        configItems.append("FeatureA: Active")
+        configItems.append("FeatureA_Option: ValueX")
+    }
+
+    for i in 1...itemCount {
+        configItems.append("RepeatedItem: \(i)")
+    }
+
+    configItems.append("FinalSetting: Complete")
+
+    return configItems
+}
+
+let myConfig = buildConfigurationManually(includeFeatureA: true, itemCount: 2)
+print(myConfig)
+// Output: ["BaseSetting: Enabled", "FeatureA: Active", "FeatureA_Option: ValueX", "RepeatedItem: 1", "RepeatedItem: 2", "FinalSetting: Complete"]
+</code></pre><p>This code works, but it's imperative and verbose. Each item needs an explicit <code>append</code> call, and conditional logic or loops break the flow. This is precisely the kind of boilerplate that Result Builders aim to eliminate, allowing for a more declarative and readable syntax.</p><h2>Understanding the Core Concept</h2><p>At its heart, a Result Builder is a type (typically a <code>struct</code> or <code>enum</code>) annotated with the <code>@resultBuilder</code> attribute. This type defines a set of static methods that the Swift compiler uses to transform a sequence of expressions within a closure into a single, coherent result.</p><p>When you use a Result Builder, the compiler doesn't execute the closure's expressions in the usual way. Instead, it "translates" them into a series of calls to the builder's static methods. Each expression, conditional statement, or loop within the builder-annotated closure is mapped to a specific <code>build</code> method.</p><p>Let's break down the essential static methods you'll typically implement in a Result Builder:</p><ul><li><code>static func buildBlock(_ components: Component...) -&gt; Component</code></li><li><code>static func buildExpression(_ expression: Expression) -&gt; Component</code></li><li><code>static func buildEither(first component: Component) -&gt; Component</code></li><li><code>static func buildEither(second component: Component) -&gt; Component</code></li><li><code>static func buildOptional(_ component: Component?) -&gt; Component</code></li><li><code>static func buildArray(_ components: [Component]) -&gt; Component</code></li></ul><p><code>Component</code> and <code>Expression</code> here are placeholders for the types your builder works with. <code>Component</code> is the intermediate type produced by each <code>build</code> method, which might be the final result type or a type that can be combined further. <code>Expression</code> is the type of individual statements within the builder block.</p><h2>Building a Custom Result Builder: HTMLBuilder</h2><p>To truly grasp Result Builders, let's create a practical example: an <code>HTMLBuilder</code> that allows us to construct simple HTML structures using a declarative Swift syntax.</p><p>First, we need a way to represent our HTML nodes. We'll use a simple <code>struct</code> with an <code>enum</code> for the node type:</p><pre><code class="language-swift">struct HTMLNode {
+    enum NodeType {
+        case text(String)
+        case element(String, [HTMLNode]) // Tag name and children
+    }
+    let type: NodeType
+
+    // A helper to render the node to a string
+    var render: String {
+        switch type {
+        case .text(let content):
+            return content
+        case .element(let tag, let children):
+            let childrenString = children.map { $0.render }.joined()
+            return "&lt;\(tag)&gt;\(childrenString)&lt;/\(tag)&gt;"
+        }
+    }
+}
+</code></pre><p>Now, let's define our <code>HTMLBuilder</code> struct and start implementing its static <code>build</code> methods.</p><h3>1. <code>buildBlock</code>: Combining Multiple Components</h3><p>The <code>buildBlock</code> method is the most fundamental. It takes multiple <code>Component</code> instances (which are <code>HTMLNode</code>s in our case) and combines them into a single <code>Component</code>. Since we want to build an array of nodes, our <code>buildBlock</code> will simply return the array of nodes it receives.</p><pre><code class="language-swift">@resultBuilder
+struct HTMLBuilder {
+    // The core method to combine multiple nodes into a single array of nodes.
+    static func buildBlock(_ components: HTMLNode...) -&gt; [HTMLNode] {
+        components
+    }
+}
+</code></pre><h3>2. <code>buildExpression</code>: Transforming Individual Expressions</h3><p>When you write a single expression inside a Result Builder block (e.g., <code>"Hello"</code> or <code>HTMLNode.p { ... }</code>), the compiler calls <code>buildExpression</code>. We'll need two versions: one for plain strings (which become text nodes) and one for already-formed <code>HTMLNode</code> instances.</p><pre><code class="language-swift">@resultBuilder
+struct HTMLBuilder {
+    static func buildBlock(_ components: HTMLNode...) -&gt; [HTMLNode] {
+        components
+    }
+
+    // Transforms a String literal into an HTMLNode (a text node).
+    static func buildExpression(_ expression: String) -&gt; HTMLNode {
+        .init(type: .text(expression))
+    }
+
+    // Allows direct inclusion of an already-formed HTMLNode.
+    static func func buildExpression(_ expression: HTMLNode) -&gt; HTMLNode {
+        expression
+    }
+}
+</code></pre><p>Now, we can define helper functions that accept our <code>@HTMLBuilder</code> closure. This is similar to how SwiftUI views accept <code>@ViewBuilder</code> closures.</p><pre><code class="language-swift">extension HTMLNode {
+    static func p(@HTMLBuilder _ content: () -&gt; [HTMLNode]) -&gt; HTMLNode {
+        .init(type: .element("p", content()))
+    }
+    static func div(@HTMLBuilder _ content: () -&gt; [HTMLNode]) -&gt; HTMLNode {
+        .init(type: .element("div", content()))
+    }
+    static func h1(@HTMLBuilder _ content: () -&gt; [HTMLNode]) -&gt; HTMLNode {
+        .init(type: .element("h1", content()))
+    }
+    // ... add more HTML tags as needed
+}
+
+// Basic usage:
+let simplePage = HTMLNode.div {
+    HTMLNode.h1 { "Welcome!" }
+    HTMLNode.p { "This is a paragraph." }
+}
+print(simplePage.render)
+// Output: &lt;div&gt;&lt;h1&gt;Welcome!&lt;/h1&gt;&lt;p&gt;This is a paragraph.&lt;/p&gt;&lt;/div&gt;
+</code></pre><h3>3. <code>buildEither(first:)</code> and <code>buildEither(second:)</code>: Handling <code>if</code> Statements</h3><p>Result Builders support conditional compilation using <code>if</code> and <code>else</code>. When the compiler encounters an <code>if</code> statement, it uses <code>buildEither(first:)</code> for the <code>if</code> block and <code>buildEither(second:)</code> for the <code>else</code> block. These methods typically return a type that can represent either one of two possibilities. In our case, since both <code>if</code> and <code>else</code> blocks produce <code>[HTMLNode]</code>, we can simply return the component directly.</p><pre><code class="language-swift">@resultBuilder
+struct HTMLBuilder {
+    // ... existing buildBlock and buildExpression methods ...
+
+    // Handles the 'true' branch of an 'if' statement.
+    static func buildEither(first component: [HTMLNode]) -&gt; [HTMLNode] {
+        component
+    }
+
+    // Handles the 'false' branch (the 'else' block) of an 'if' statement.
+    static func buildEither(second component: [HTMLNode]) -&gt; [HTMLNode] {
+        component
+    }
+}
+
+// Conditional usage:
+let isLoggedIn = true
+let conditionalPage = HTMLNode.div {
+    HTMLNode.h1 { "Conditional Content" }
+    if isLoggedIn {
+        HTMLNode.p { "Welcome back, user!" }
+    } else {
+        HTMLNode.p { "Please log in." }
+    }
+}
+print(conditionalPage.render)
+// Output: &lt;div&gt;&lt;h1&gt;Conditional Content&lt;/h1&gt;&lt;p&gt;Welcome back, user!&lt;/p&gt;&lt;/div&gt;
+</code></pre><div style="text-align: center; margin: 2em 0;">
+<svg viewBox="0 0 600 280" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Result Builder Compiler Flow">
+  <title>Result Builder Compiler Flow</title>
+  <!-- Background rect -->
+  <rect x="0" y="0" width="600" height="280" fill="#f9f9f9" rx="10"/>
+
+  <!-- Nodes -->
+  <rect x="20" y="50" width="150" height="50" rx="5" ry="5" fill="#1565c0"/>
+  <text x="95" y="77" text-anchor="middle" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="16" fill="white">Expression</text>
+
+  <rect x="220" y="50" width="150" height="50" rx="5" ry="5" fill="#1565c0"/>
+  <text x="295" y="77" text-anchor="middle" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="16" fill="white">If/Else</text>
+
+  <rect x="420" y="50" width="150" height="50" rx="5" ry="5" fill="#1565c0"/>
+  <text x="495" y="77" text-anchor="middle" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="16" fill="white">For Loop</text>
+
+  <rect x="20" y="180" width="150" height="50" rx="5" ry="5" fill="#2A8367"/>
+  <text x="95" y="207" text-anchor="middle" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="16" fill="white">buildExpression</text>
+
+  <rect x="220" y="180" width="150" height="50" rx="5" ry="5" fill="#2A8367"/>
+  <text x="295" y="207" text-anchor="middle" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="16" fill="white">buildEither</text>
+
+  <rect x="420" y="180" width="150" height="50" rx="5" ry="5" fill="#2A8367"/>
+  <text x="495" y="207" text-anchor="middle" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="16" fill="white">buildArray</text>
+
+  <rect x="220" y="230" width="150" height="30" rx="5" ry="5" fill="#2A8367"/>
+  <text x="295" y="249" text-anchor="middle" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="12" fill="white">(for optional)</text>
+
+
+  <!-- Arrows -->
+  <path d="M95 100 L95 180" stroke="#F04B3E" stroke-width="2" marker-end="url(#arrowhead)" />
+  <path d="M295 100 L295 180" stroke="#F04B3E" stroke-width="2" marker-end="url(#arrowhead)" />
+  <path d="M495 100 L495 180" stroke="#F04B3E" stroke-width="2" marker-end="url(#arrowhead)" />
+
+  <!-- Arrowhead definition -->
+  <defs>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="0" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#F04B3E" />
+    </marker>
+  </defs>
+
+  <!-- Text labels for flow -->
+  <text x="300" y="20" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="18" font-weight="bold" fill="#333">Compiler Mapping</text>
+  <text x="295" y="145" text-anchor="middle" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="14" fill="#F04B3E">Maps To</text>
+
+</svg>
+</div><h3>4. <code>buildOptional</code>: Handling <code>if let</code> or <code>if</code> without <code>else</code></h3><p>When you have an <code>if</code> statement without an <code>else</code> branch, or an <code>if let</code> binding that might fail, the compiler wraps the result of the successful branch in an <code>Optional</code>. Your <code>buildOptional</code> method then handles this.</p><pre><code class="language-swift">@resultBuilder
+struct HTMLBuilder {
+    // ... existing methods ...
+
+    // Handles optional components (e.g., 'if condition { ... }' without an 'else').
+    static func buildOptional(_ component: [HTMLNode]?) -&gt; [HTMLNode] {
+        component ?? [] // If nil, provide an empty array of nodes
+    }
+}
+
+// Optional usage:
+let maybeMessage: String? = "Secret message!"
+let optionalPage = HTMLNode.div {
+    HTMLNode.h1 { "Optional Content" }
+    if let message = maybeMessage {
+        HTMLNode.p { message }
+    }
+    // If 'maybeMessage' was nil, nothing would be rendered here.
+}
+print(optionalPage.render)
+// Output: &lt;div&gt;&lt;h1&gt;Optional Content&lt;/h1&gt;&lt;p&gt;Secret message!&lt;/p&gt;&lt;/div&gt;
+</code></pre><h3>5. <code>buildArray</code>: Handling <code>for</code> Loops</h3><p>For <code>for-in</code> loops, the compiler calls <code>buildArray</code>, passing an array of <code>Component</code> arrays (one for each iteration). You'll typically <code>flatMap</code> these into a single array.</p><pre><code class="language-swift">@resultBuilder
+struct HTMLBuilder {
+    // ... existing methods ...
+
+    // Handles 'for-in' loops, combining results from each iteration.
+    static func buildArray(_ components: [[HTMLNode]]) -&gt; [HTMLNode] {
+        components.flatMap { $0 }
+    }
+}
+
+// Loop usage:
+let listPage = HTMLNode.div {
+    HTMLNode.h1 { "List of Items" }
+    for i in 1...3 {
+        HTMLNode.p { "Item \(i)" }
+    }
+}
+print(listPage.render)
+// Output: &lt;div&gt;&lt;h1&gt;List of Items&lt;/h1&gt;&lt;p&gt;Item 1&lt;/p&gt;&lt;p&gt;Item 2&lt;/p&gt;&lt;p&gt;Item 3&lt;/p&gt;&lt;/div&gt;
+</code></pre><h3>The Complete <code>HTMLBuilder</code></h3><p>Putting it all together, our <code>HTMLBuilder</code> now supports expressions, conditionals, and loops, letting us construct complex HTML declaratively:</p><pre><code class="language-swift">// Final HTMLNode and HTMLBuilder Definitions (for clarity)
+struct HTMLNode {
+    enum NodeType {
+        case text(String)
+        case element(String, [HTMLNode])
+    }
+    let type: NodeType
+
+    var render: String {
+        switch type {
+        case .text(let content):
+            return content
+        case .element(let tag, let children):
+            let childrenString = children.map { $0.render }.joined()
+            return "&lt;\(tag)&gt;\(childrenString)&lt;/\(tag)&gt;"
+        }
+    }
+}
+
+@resultBuilder
+struct HTMLBuilder {
+    static func buildBlock(_ components: HTMLNode...) -&gt; [HTMLNode] {
+        components
+    }
+
+    static func buildExpression(_ expression: String) -&gt; HTMLNode {
+        .init(type: .text(expression))
+    }
+
+    static func buildExpression(_ expression: HTMLNode) -&gt; HTMLNode {
+        expression
+    }
+
+    static func buildEither(first component: [HTMLNode]) -&gt; [HTMLNode] {
+        component
+    }
+
+    static func buildEither(second component: [HTMLNode]) -&gt; [HTMLNode] {
+        component
+    }
+
+    static func buildOptional(_ component: [HTMLNode]?) -&gt; [HTMLNode] {
+        component ?? []
+    }
+
+    static func buildArray(_ components: [[HTMLNode]]) -&gt; [HTMLNode] {
+        components.flatMap { $0 }
+    }
+}
+
+extension HTMLNode {
+    static func p(@HTMLBuilder _ content: () -&gt; [HTMLNode]) -&gt; HTMLNode {
+        .init(type: .element("p", content()))
+    }
+    static func div(@HTMLBuilder _ content: () -&gt; [HTMLNode]) -&gt; HTMLNode {
+        .init(type: .element("div", content()))
+    }
+    static func h1(@HTMLBuilder _ content: () -&gt; [HTMLNode]) -&gt; HTMLNode {
+        .init(type: .element("h1", content()))
+    }
+    static func ul(@HTMLBuilder _ content: () -&gt; [HTMLNode]) -&gt; HTMLNode {
+        .init(type: .element("ul", content()))
+    }
+    static func li(@HTMLBuilder _ content: () -&gt; [HTMLNode]) -&gt; HTMLNode {
+        .init(type: .element("li", content()))
+    }
+}
+
+let userLoggedIn = true
+let featuredProducts = ["Laptop", "Monitor", "Keyboard"]
+
+let completePage = HTMLNode.div {
+    HTMLNode.h1 { "My Awesome Page" }
+    HTMLNode.p { "Welcome to our website!" }
+
+    if userLoggedIn {
+        HTMLNode.p { "You are currently logged in." }
+        HTMLNode.div {
+            "Here are some featured products:"
+            HTMLNode.ul {
+                for product in featuredProducts {
+                    HTMLNode.li { product }
+                }
+            }
+        }
+    } else {
+        HTMLNode.p { "Please log in to see personalized content." }
+    }
+
+    let footerText: String? = "Copyright 2026"
+    if let text = footerText {
+        HTMLNode.p { text }
+    }
+}
+
+print(completePage.render)
+/*
+Output:
+&lt;div&gt;
+    &lt;h1&gt;My Awesome Page&lt;/h1&gt;
+    &lt;p&gt;Welcome to our website!&lt;/p&gt;
+    &lt;p&gt;You are currently logged in.&lt;/p&gt;
+    &lt;div&gt;Here are some featured products:
+        &lt;ul&gt;
+            &lt;li&gt;Laptop&lt;/li&gt;
+            &lt;li&gt;Monitor&lt;/li&gt;
+            &lt;li&gt;Keyboard&lt;/li&gt;
+        &lt;/ul&gt;
+    &lt;/div&gt;
+    &lt;p&gt;Copyright 2026&lt;/p&gt;
+&lt;/div&gt;
+*/
+</code></pre><h2>How Result Builders Work Under the Hood</h2><p>When the Swift compiler encounters a closure marked with a Result Builder attribute (like <code>@HTMLBuilder</code> or <code>@ViewBuilder</code>), it performs a source-to-source transformation. It doesn't execute the code directly. Instead, it rewrites the declarative block into a series of calls to the builder's static <code>build</code> methods.</p><p>Consider this simplified example:</p><pre><code class="language-swift">// Your declarative code:
+HTMLNode.div {
+    "Hello"
+    if condition {
+        "World"
+    }
+}
+</code></pre><p>The compiler essentially transforms this into something conceptually similar to:</p><pre><code class="language-swift">// What the compiler "sees" and transforms:
+let temp1 = HTMLBuilder.buildExpression("Hello")
+let temp2: [HTMLNode]
+if condition {
+    temp2 = HTMLBuilder.buildEither(first: HTMLBuilder.buildExpression("World"))
+} else {
+    temp2 = HTMLBuilder.buildEither(second: HTMLBuilder.buildOptional(nil)) // Or an empty array if buildOptional returns that
+}
+let blockResult = HTMLBuilder.buildBlock(temp1, temp2.first!) // Simplified, actual buildBlock takes variadic
+// Then the div initializer calls HTMLBuilder.buildBlock with the result
+</code></pre><p>(Note: The actual transformation is more complex, especially with <code>buildBlock</code> taking variadic arguments and intermediate results, but this illustrates the concept.)</p><p>The key takeaway is that the builder methods are purely static and are called by the compiler during compilation, not at runtime by your explicit code. This is why Result Builders are often referred to as a form of "syntactic sugar" for constructing complex data.</p><h2>Benefits of Using Result Builders</h2><ol><li><strong>Readability and Conciseness</strong>: They allow you to define complex structures in a highly declarative and easy-to-read manner, eliminating repetitive <code>append</code> calls or manual conditional logic.</li><li><strong>Domain-Specific Languages (DSLs)</strong>: Result Builders are excellent for creating internal DSLs that closely resemble natural language or the domain they represent (e.g., SwiftUI's UI DSL, our HTML DSL).</li><li><strong>Type Safety</strong>: Because the compiler handles the transformation and type checking, you get compile-time guarantees that your constructed data conforms to the builder's expected output.</li><li><strong>Extensibility</strong>: By adding new <code>build</code> methods (e.g., <code>buildFinalResult</code> or custom <code>buildExpression</code> overloads), you can extend the builder's capabilities without changing existing client code.</li></ol><pre><code>┌───────────────────────┐             ┌───────────────────────────┐
+│ Manual Construction   │             │ Result Builder DSL        │
+├───────────────────────┤             ├───────────────────────────┤
+│ - Verbose appending   │             │ - Declarative structure   │
+│ - Imperative flow     │             │ - Concise syntax          │
+│ - Explicit conditionals│             │ - Implicit conditional    │
+│   and loops           │             │   and loop handling       │
+│ - Error-prone         │             │ - Compiler-checked        │
+└───────────────────────┘             └───────────────────────────┘
+          ▲                                       ▲
+          │ Less Readable                         │ More Readable
+          │ More Boilerplate                      │ Less Boilerplate
+</code></pre><h2>Summary</h2><p>Result Builders are a powerful Swift feature that enables you to define mini-DSLs for constructing complex data structures in a declarative style. By implementing a set of static <code>build</code> methods in a type annotated with <code>@resultBuilder</code>, you guide the Swift compiler on how to transform a block of expressions, conditionals, and loops into a single, cohesive result. While SwiftUI's <code>@ViewBuilder</code> is the most prominent example, you can leverage Result Builders to simplify configuration files, data validation rules, custom data model creation, and much more, making your Swift code more expressive and maintainable.</p><p>Happy Swifting!</p></div><div class="article-tags"><span class="tags-label">Tagged: </span><ul class="tag-list"><li><a href="/tags/swift">Swift</a></li><li><a href="/tags/ios">iOS</a></li><li><a href="/tags/programming">Programming</a></li></ul></div><div class="ads-container"><ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-9268892677399703" data-ad-slot="8133392181" data-ad-format="auto" data-full-width-responsive="true"></ins><script>(adsbygoogle = window.adsbygoogle || []).push({});</script></div></div></div></div></article></div><footer><div class="wrapper"><p>© Swift By Rahul · <a href="/feed.rss">RSS</a> · <a href="https://github.com/bandalrahul">GitHub</a> · Built with <a href="https://github.com/johnsundell/publish">Publish</a></p></div></footer></body></html>
