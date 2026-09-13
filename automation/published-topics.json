@@ -94,6 +94,7 @@
     "ios-memory-leaks-debug",
     "swiftui-dark-mode",
     "xcode-cloud-ci",
-    "swift-concurrency-pitfalls"
+    "swift-concurrency-pitfalls",
+    "uikit-swiftui-interop"
   ]
 }
