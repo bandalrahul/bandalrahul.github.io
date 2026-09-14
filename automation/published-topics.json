@@ -95,6 +95,7 @@
     "swiftui-dark-mode",
     "xcode-cloud-ci",
     "swift-concurrency-pitfalls",
-    "uikit-swiftui-interop"
+    "uikit-swiftui-interop",
+    "ios-offline-first-apps"
   ]
 }
