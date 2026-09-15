@@ -96,6 +96,7 @@
     "xcode-cloud-ci",
     "swift-concurrency-pitfalls",
     "uikit-swiftui-interop",
-    "ios-offline-first-apps"
+    "ios-offline-first-apps",
+    "swift-sendable-conformance"
   ]
 }
