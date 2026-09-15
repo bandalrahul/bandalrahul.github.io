@@ -1,0 +1,322 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"/><meta property="og:site_name" content="Swift By Rahul"/><link rel="canonical" href="https://www.swiftbyrahul.com/posts/NavigationstackInSwiftuiACompleteGuide"/><meta name="twitter:url" content="https://www.swiftbyrahul.com/posts/NavigationstackInSwiftuiACompleteGuide"/><meta property="og:url" content="https://www.swiftbyrahul.com/posts/NavigationstackInSwiftuiACompleteGuide"/><title>NavigationStack in SwiftUI: A Complete Guide | Swift By Rahul</title><meta name="twitter:title" content="NavigationStack in SwiftUI: A Complete Guide | Swift By Rahul"/><meta property="og:title" content="NavigationStack in SwiftUI: A Complete Guide | Swift By Rahul"/><meta name="description" content="Explore SwiftUI's NavigationStack, the modern approach to declarative and programmatic navigation, including NavigationLink, NavigationPath, and deep linking."/><meta name="twitter:description" content="Explore SwiftUI's NavigationStack, the modern approach to declarative and programmatic navigation, including NavigationLink, NavigationPath, and deep linking."/><meta property="og:description" content="Explore SwiftUI's NavigationStack, the modern approach to declarative and programmatic navigation, including NavigationLink, NavigationPath, and deep linking."/><meta name="twitter:card" content="summary"/><link rel="stylesheet" href="/styles.css" type="text/css"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><link rel="shortcut icon" href="/images/favicon.png" type="image/png"/><link rel="alternate" href="/feed.rss" type="application/rss+xml" title="Subscribe to Swift By Rahul"/></head><head><link rel="stylesheet" href="/css/prism.css" type="text/css"/><script src="/js/prism.js"></script><script src="/js/article.js"></script><script src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9268892677399703" async></script><meta name="twitter:card" content="summary_large_image"/><meta property="og:image" content="https://www.swiftbyrahul.com/images/posts/NavigationstackInSwiftuiACompleteGuide.png"/><meta property="og:image:alt" content="NavigationStack in SwiftUI: A Complete Guide"/><meta name="twitter:image" content="https://www.swiftbyrahul.com/images/posts/NavigationstackInSwiftuiACompleteGuide.png"/></head><body class="item-page"><header><div class="wrapper"><a href="/" class="site-name">Swift By Rahul</a><nav class="site-nav"><ul><li><a href="/">Home</a></li><li><a href="/posts/" class="selected">Posts</a></li><li><a href="/tags">Tags</a></li><li><a href="https://github.com/bandalrahul">GitHub</a></li></ul></nav></div></header><div class="wrapper"><article><div><button class="toc-toggle" id="toc-toggle" type="button" aria-expanded="false">On this page</button><div class="article-layout"><aside class="toc" id="article-toc"><p class="toc-heading">On this page</p><nav class="toc-nav" id="article-toc-nav"></nav></aside><div class="article-main"><div class="article-meta"><span>July 9, 2026</span><span> · </span><span>7 min read</span><span> · </span><ul class="tag-list"><li><a href="/tags/swiftui">SwiftUI</a></li><li><a href="/tags/ios">iOS</a></li><li><a href="/tags/development">Development</a></li></ul></div><div class="content"><h1>NavigationStack in SwiftUI: A Complete Guide</h1><p>Navigation is a fundamental aspect of almost every iOS application. Whether you're presenting a list of items, diving into details, or managing complex user flows, a robust navigation system is key to a great user experience. For years, SwiftUI developers wrestled with <code>NavigationView</code> – a component that, while functional, often felt limited, especially when it came to programmatic control and deep linking.</p><p>Enter <code>NavigationStack</code>, introduced in iOS 16 (and macOS 13, watchOS 9, tvOS 16). This modern navigation container revolutionizes how we manage hierarchical navigation in SwiftUI. It offers a powerful, declarative, and fully programmatic way to push and pop views, manage navigation state, and even handle deep links with ease. If you've ever struggled with <code>isActive</code> bindings or conditional navigation in <code>NavigationView</code>, <code>NavigationStack</code> is the answer you've been waiting for.</p><p>In this comprehensive guide, we'll explore <code>NavigationStack</code> from its basic usage to advanced programmatic control with <code>NavigationPath</code>, covering everything you need to build sophisticated navigation flows in your SwiftUI apps.</p><div style="text-align: center; margin: 2em 0;">
+<svg viewBox="0 0 600 220" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Comparison of NavigationView and NavigationStack">
+  <title>NavigationView vs NavigationStack</title>
+
+  <!-- NavigationView (old, less flexible) -->
+  <rect x="50" y="30" width="220" height="80" rx="10" fill="#F04B3E" stroke="#A03129" stroke-width="2"/>
+  <text x="160" y="70" font-family="Arial" font-size="20" fill="white" text-anchor="middle">NavigationView (Deprecated)</text>
+  <text x="160" y="95" font-family="Arial" font-size="14" fill="white" text-anchor="middle">Limited programmatic control</text>
+
+  <!-- Arrow to NavigationStack -->
+  <line x1="270" y1="70" x2="330" y2="70" stroke="#1565c0" stroke-width="3" marker-end="url(#arrowhead)"/>
+  <text x="300" y="60" font-family="Arial" font-size="14" fill="#1565c0" text-anchor="middle">Replaced by</text>
+
+  <!-- NavigationStack (new, flexible) -->
+  <rect x="330" y="30" width="220" height="80" rx="10" fill="#2A8367" stroke="#1E5C47" stroke-width="2"/>
+  <text x="440" y="70" font-family="Arial" font-size="20" fill="white" text-anchor="middle">NavigationStack</text>
+  <text x="440" y="95" font-family="Arial" font-size="14" fill="white" text-anchor="middle">Declarative & Programmatic</text>
+
+  <!-- Key benefits of NavigationStack -->
+  <rect x="50" y="130" width="160" height="60" rx="8" fill="#D3EBFD" stroke="#1565c0" stroke-width="1"/>
+  <text x="130" y="160" font-family="Arial" font-size="16" fill="#1565c0" text-anchor="middle">Simple Navigation</text>
+
+  <rect x="220" y="130" width="160" height="60" rx="8" fill="#D3EBFD" stroke="#1565c0" stroke-width="1"/>
+  <text x="300" y="160" font-family="Arial" font-size="16" fill="#1565c0" text-anchor="middle">Programmatic Control</text>
+
+  <rect x="390" y="130" width="160" height="60" rx="8" fill="#D3EBFD" stroke="#1565c0" stroke-width="1"/>
+  <text x="470" y="160" font-family="Arial" font-size="16" fill="#1565c0" text-anchor="middle">Deep Linking</text>
+
+  <!-- Arrowhead definition -->
+  <defs>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="0" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#1565c0" />
+    </marker>
+  </defs>
+</svg>
+</div><h2>Basic Usage: Declarative Navigation with <code>NavigationLink</code></h2><p>At its simplest, <code>NavigationStack</code> works very much like <code>NavigationView</code> did, using <code>NavigationLink</code> to push new views onto the navigation stack. The key difference is that <code>NavigationStack</code> manages its internal state more efficiently and is designed to work seamlessly with programmatic navigation, which we'll get to shortly.</p><p>To start, embed your root view hierarchy within a <code>NavigationStack</code>. Then, use <code>NavigationLink</code> to define destinations.</p><pre><code class="language-swift">import SwiftUI
+
+struct Fruit: Identifiable, Hashable {
+    let id = UUID()
+    let name: String
+    let color: String
+}
+
+struct BasicNavigationExample: View {
+    let fruits = [
+        Fruit(name: "Apple", color: "Red"),
+        Fruit(name: "Banana", color: "Yellow"),
+        Fruit(name: "Grape", color: "Purple"),
+        Fruit(name: "Orange", color: "Orange")
+    ]
+
+    var body: some View {
+        NavigationStack {
+            List {
+                ForEach(fruits) { fruit in
+                    NavigationLink(value: fruit) {
+                        Label(fruit.name, systemImage: "leaf.fill")
+                    }
+                }
+            }
+            .navigationTitle("Fruits")
+            .navigationDestination(for: Fruit.self) { fruit in
+                FruitDetailView(fruit: fruit)
+            }
+        }
+    }
+}
+
+struct FruitDetailView: View {
+    let fruit: Fruit
+
+    var body: some View {
+        VStack {
+            Text(fruit.name)
+                .font(.largeTitle)
+                .padding()
+            Text("Color: \(fruit.color)")
+                .font(.title2)
+                .foregroundColor(.secondary)
+        }
+        .navigationTitle(fruit.name)
+        .navigationBarTitleDisplayMode(.inline)
+    }
+}
+</code></pre><p>In this example: <em> We wrap our <code>List</code> in a <code>NavigationStack</code>. </em> Each <code>NavigationLink</code> now takes a <code>value</code> parameter. This <code>value</code> must conform to <code>Hashable</code>. When the link is tapped, this <code>value</code> is pushed onto the navigation stack. * The <code>navigationDestination(for:destination:)</code> modifier is crucial. It tells <code>NavigationStack</code> how to present a view for a given type of <code>Hashable</code> data. When a <code>Fruit</code> value is pushed, <code>FruitDetailView</code> is instantiated with that fruit.</p><p>This declarative approach is clean and easy to understand for simple hierarchical navigation.</p><h2>Programmatic Navigation with <code>NavigationPath</code></h2><p>The real power of <code>NavigationStack</code> shines when you need programmatic control over your navigation flow. This is where <code>NavigationPath</code> comes into play. <code>NavigationPath</code> is a type-erased collection of <code>Hashable</code> values that represents the current navigation stack. By binding a <code>NavigationPath</code> to your <code>NavigationStack</code>, you can programmatically add or remove views from the stack.</p><pre><code class="language-swift">import SwiftUI
+
+struct ProgrammaticNavigationExample: View {
+    @State private var path = NavigationPath()
+
+    var body: some View {
+        NavigationStack(path: $path) {
+            List {
+                Button("Go to Red Apple") {
+                    path.append(Fruit(name: "Apple", color: "Red"))
+                }
+                Button("Go to Yellow Banana") {
+                    path.append(Fruit(name: "Banana", color: "Yellow"))
+                }
+                Button("Go to Purple Grape (then Orange)") {
+                    path.append(Fruit(name: "Grape", color: "Purple"))
+                    path.append(Fruit(name: "Orange", color: "Orange")) // Pushes another view
+                }
+                Button("Clear Path") {
+                    path = NavigationPath() // Pops all views
+                }
+                Button("Go back one step (if possible)") {
+                    path.removeLast() // Pops the top view
+                }
+            }
+            .navigationTitle("Programmatic Fruits")
+            .navigationDestination(for: Fruit.self) { fruit in
+                FruitDetailView(fruit: fruit)
+            }
+        }
+    }
+}
+</code></pre><p>In <code>ProgrammaticNavigationExample</code>: <em> We declare <code>@State private var path = NavigationPath()</code>. This will hold our navigation state. </em> We bind this <code>path</code> to the <code>NavigationStack</code>: <code>NavigationStack(path: $path)</code>. <em> Now, we can programmatically manipulate the <code>path</code>: </em> <code>path.append(value)</code>: Pushes a new view onto the stack. <em> <code>path.removeLast()</code>: Pops the top view. </em> <code>path = NavigationPath()</code>: Clears the entire stack, returning to the root. * The <code>navigationDestination(for:destination:)</code> modifier remains essential, mapping the <code>Hashable</code> values in <code>path</code> to their corresponding views.</p><p>This approach gives you fine-grained control, allowing you to build complex multi-step flows, conditional navigation, or even react to external events (like push notifications) by modifying the <code>path</code>.</p><pre><code>┌──────────────────┐
+│ @State var path  │
+│ (NavigationPath) │
+└───────────┬──────┘
+            │
+            │ Update path (append, removeLast, reset)
+            ▼
+┌──────────────────┐
+│  NavigationStack │
+│ (path: $path)    │
+└───────────┬──────┘
+            │
+            │ Observes path changes
+            ▼
+┌──────────────────┐
+│ navigationDest.  │
+│ (for: SomeType)  │
+└───────────┬──────┘
+            │
+            │ Maps Hashable value to specific View
+            ▼
+┌──────────────────┐
+│  Pushed View     │
+│ (e.g., DetailView)│
+└──────────────────┘
+</code></pre><h3>Handling Multiple Data Types</h3><p>What if you need to navigate to different types of detail views? <code>NavigationPath</code> can hold any <code>Hashable</code> type. A common pattern is to use an <code>enum</code> that conforms to <code>Hashable</code> and <code>Codable</code> (for deep linking potential).</p><pre><code class="language-swift">import SwiftUI
+
+enum Destination: Hashable, Codable {
+    case fruit(Fruit)
+    case settings(String) // Example for another type of destination
+    case itemId(Int) // Example for yet another type
+}
+
+struct MultiTypeNavigationExample: View {
+    @State private var path = NavigationPath()
+
+    var body: some View {
+        NavigationStack(path: $path) {
+            List {
+                Button("Show Apple Details") {
+                    path.append(Destination.fruit(Fruit(name: "Apple", color: "Red")))
+                }
+                Button("Show Settings for 'Account'") {
+                    path.append(Destination.settings("Account"))
+                }
+                Button("Show Item ID 123") {
+                    path.append(Destination.itemId(123))
+                }
+            }
+            .navigationTitle("Multi-Type Navigation")
+            // Multiple navigationDestination modifiers for different types
+            .navigationDestination(for: Destination.self) { destination in
+                switch destination {
+                case .fruit(let fruit):
+                    FruitDetailView(fruit: fruit)
+                case .settings(let settingName):
+                    Text("Settings for: \(settingName)")
+                        .navigationTitle(settingName)
+                case .itemId(let id):
+                    Text("Item ID: \(id)")
+                        .navigationTitle("Item \(id)")
+                }
+            }
+        }
+    }
+}
+</code></pre><p>By using an <code>enum</code> like <code>Destination</code>, you centralize your navigation logic and can easily add new types of destinations without cluttering your view hierarchy with many <code>NavigationLink</code>s.</p><h2>Deep Linking and State Restoration</h2><p>One of the most powerful features enabled by <code>NavigationStack</code> and <code>NavigationPath</code> is seamless deep linking and state restoration. Because <code>NavigationPath</code> stores a sequence of <code>Hashable</code> values and conforms to <code>Codable</code>, it can be serialized to and deserialized from external representations like URLs.</p><p>To support deep linking, you'd typically implement <code>decode(from:)</code> and <code>encode(to:)</code> methods for <code>NavigationPath</code> (or more practically, just store a <code>[Hashable]</code> array in your <code>NavigationPath</code> and encode/decode that). <code>NavigationPath</code> itself has <code>Codable</code> conformance for its elements if they are <code>Codable</code>.</p><p>Let's assume our <code>Destination</code> enum above is <code>Codable</code>. We can then initialize <code>NavigationPath</code> from a string representation:</p><pre><code class="language-swift">// Example of decoding/encoding (conceptual, would integrate with URL parsing)
+func restorePath(from url: URL) -&gt; NavigationPath {
+    guard let components = URLComponents(url: url, resolvingAgainstBaseURL: false),
+          let pathItemsString = components.queryItems?.first(where: { $0.name == "path" })?.value,
+          let data = pathItemsString.data(using: .utf8) else {
+        return NavigationPath()
+    }
+
+    let decoder = JSONDecoder()
+    if let destinations = try? decoder.decode([Destination].self, from: data) {
+        var path = NavigationPath()
+        for dest in destinations {
+            path.append(dest)
+        }
+        return path
+    }
+    return NavigationPath()
+}
+
+func encodePath(_ path: NavigationPath) -&gt; URL? {
+    // This requires the elements in NavigationPath to be Codable.
+    // NavigationPath directly supports Codable if its elements are Codable.
+    // You'd typically extract the elements, encode them, and embed in a URL.
+    // For simplicity, let's assume `path.codableRepresentation` exists if all elements are Codable.
+    // In a real app, you might map `path` to a custom Codable array.
+    if let codablePath = path.codable { // Fictional `codable` property for demonstration
+        let encoder = JSONEncoder()
+        if let data = try? encoder.encode(codablePath),
+           let string = String(data: data, encoding: .utf8) {
+            var components = URLComponents(string: "yourapp://app")!
+            components.queryItems = [URLQueryItem(name: "path", value: string)]
+            return components.url
+        }
+    }
+    return nil
+}
+</code></pre><p>In a real application, you'd use this in your <code>App</code> struct or scene delegate to handle incoming URLs and set the initial <code>NavigationPath</code> state.</p><h2>Customizing the Navigation Bar</h2><p><code>NavigationStack</code> retains all the familiar navigation bar customization modifiers you're used to from <code>NavigationView</code>, such as <code>navigationTitle</code>, <code>toolbar</code>, and <code>navigationBarBackButtonHidden</code>.</p><pre><code class="language-swift">import SwiftUI
+
+struct CustomNavigationExample: View {
+    @State private var var path = NavigationPath()
+
+    var body: some View {
+        NavigationStack(path: $path) {
+            List {
+                Button("Go to Custom Detail") {
+                    path.append(Fruit(name: "Mango", color: "Green"))
+                }
+            }
+            .navigationTitle("My App")
+            .navigationDestination(for: Fruit.self) { fruit in
+                VStack {
+                    Text("This is the \(fruit.name) detail!")
+                        .font(.title)
+                    Button("Pop to root") {
+                        path = NavigationPath()
+                    }
+                }
+                .navigationTitle("Custom \(fruit.name)")
+                .toolbar {
+                    ToolbarItem(placement: .navigationBarTrailing) {
+                        Button("Edit") {
+                            print("Edit tapped!")
+                        }
+                    }
+                    ToolbarItem(placement: .navigationBarLeading) {
+                        Button("Help") {
+                            print("Help tapped!")
+                        }
+                    }
+                }
+                .navigationBarBackButtonHidden(false) // Can hide if needed
+            }
+        }
+    }
+}
+</code></pre><p>The <code>toolbar</code> modifier is particularly powerful, allowing you to place buttons, menus, or any custom views in various positions within the navigation bar and toolbars.</p><div style="text-align: center; margin: 2em 0;">
+<svg viewBox="0 0 600 250" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="NavigationStack state flow with path updates">
+  <title>NavigationStack State Flow</title>
+
+  <!-- Initial State (Root View) -->
+  <rect x="50" y="30" width="100" height="60" rx="8" fill="#D3EBFD" stroke="#1565c0" stroke-width="1"/>
+  <text x="100" y="60" font-family="Arial" font-size="14" fill="#1565c0" text-anchor="middle">Root View</text>
+  <text x="100" y="80" font-family="Arial" font-size="12" fill="#1565c0" text-anchor="middle">Path: []</text>
+
+  <!-- User Action / Programmatic Update -->
+  <line x1="150" y1="60" x2="200" y2="60" stroke="#1565c0" stroke-width="2" marker-end="url(#arrowhead)"/>
+  <text x="175" y="50" font-family="Arial" font-size="12" fill="#1565c0" text-anchor="middle">Action (e.g., tap link)</text>
+
+  <rect x="200" y="30" width="100" height="60" rx="8" fill="#2A8367" stroke="#1E5C47" stroke-width="1"/>
+  <text x="250" y="60" font-family="Arial" font-size="14" fill="white" text-anchor="middle">Update Path</text>
+  <text x="250" y="80" font-family="Arial" font-size="12" fill="white" text-anchor="middle">path.append(Value)</text>
+
+  <!-- NavigationStack Reacts -->
+  <line x1="300" y1="60" x2="350" y2="60" stroke="#1565c0" stroke-width="2" marker-end="url(#arrowhead)"/>
+  <text x="325" y="50" font-family="Arial" font-size="12" fill="#1565c0" text-anchor="middle">NavigationStack</text>
+
+  <rect x="350" y="30" width="100" height="60" rx="8" fill="#D3EBFD" stroke="#1565c0" stroke-width="1"/>
+  <text x="400" y="60" font-family="Arial" font-size="14" fill="#1565c0" text-anchor="middle">Match Path Value</text>
+  <text x="400" y="80" font-family="Arial" font-size="12" fill="#1565c0" text-anchor="middle">via navigationDestination</text>
+
+  <!-- Push New View -->
+  <line x1="450" y1="60" x2="500" y2="60" stroke="#1565c0" stroke-width="2" marker-end="url(#arrowhead)"/>
+  <text x="475" y="50" font-family="Arial" font-size="12" fill="#1565c0" text-anchor="middle">Pushes</text>
+
+  <rect x="500" y="30" width="100" height="60" rx="8" fill="#D3EBFD" stroke="#1565c0" stroke-width="1"/>
+  <text x="550" y="60" font-family="Arial" font-size="14" fill="#1565c0" text-anchor="middle">Detail View</text>
+  <text x="550" y="80" font-family="Arial" font-size="12" fill="#1565c0" text-anchor="middle">Path: [Value]</text>
+
+  <!-- Back Action -->
+  <line x1="550" y1="120" x2="500" y2="120" stroke="#F04B3E" stroke-width="2" marker-end="url(#arrowhead)"/>
+  <text x="525" y="110" font-family="Arial" font-size="12" fill="#F04B3E" text-anchor="middle">Back button / path.removeLast()</text>
+
+  <rect x="500" y="150" width="100" height="60" rx="8" fill="#F04B3E" stroke="#A03129" stroke-width="1"/>
+  <text x="550" y="180" font-family="Arial" font-size="14" fill="white" text-anchor="middle">Update Path</text>
+  <text x="550" y="200" font-family="Arial" font-size="12" fill="white" text-anchor="middle">path.removeLast()</text>
+
+  <!-- NavigationStack Reacts (Pop) -->
+  <line x1="450" y1="180" x2="400" y2="180" stroke="#F04B3E" stroke-width="2" marker-end="url(#arrowhead)"/>
+  <text x="425" y="190" font-family="Arial" font-size="12" fill="#F04B3E" text-anchor="middle">NavigationStack</text>
+
+  <rect x="350" y="150" width="100" height="60" rx="8" fill="#D3EBFD" stroke="#1565c0" stroke-width="1"/>
+  <text x="400" y="180" font-family="Arial" font-size="14" fill="#1565c0" text-anchor="middle">Remove Top View</text>
+  <text x="400" y="200" font-family="Arial" font-size="12" fill="#1565c0" text-anchor="middle">from stack</text>
+
+  <!-- Return to Previous State -->
+  <line x1="300" y1="180" x2="250" y2="180" stroke="#1565c0" stroke-width="2" marker-end="url(#arrowhead)"/>
+  <text x="275" y="190" font-family="Arial" font-size="12" fill="#1565c0" text-anchor="middle">Returns to</text>
+
+  <rect x="200" y="150" width="100" height="60" rx="8" fill="#D3EBFD" stroke="#1565c0" stroke-width="1"/>
+  <text x="250" y="180" font-family="Arial" font-size="14" fill="#1565c0" text-anchor="middle">Previous View</text>
+  <text x="250" y="200" font-family="Arial" font-size="12" fill="#1565c0" text-anchor="middle">Path: []</text>
+
+  <!-- Arrowhead definition -->
+  <defs>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="0" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#1565c0" />
+    </marker>
+  </defs>
+</svg>
+</div><h2>Summary</h2><p><code>NavigationStack</code> is a monumental improvement for SwiftUI navigation. It addresses many of the frustrations developers faced with <code>NavigationView</code> by providing a robust, declarative, and fully programmatic API. By leveraging <code>NavigationLink</code> for simple transitions and <code>NavigationPath</code> for complex, dynamic, and deep-linkable navigation flows, you gain unprecedented control over your app's user experience.</p><p>Embrace <code>NavigationStack</code> in your new projects and consider migrating existing <code>NavigationView</code> implementations to take advantage of its power and flexibility. Your future self (and your users) will thank you.</p><p>Happy Swifting!</p></div><div class="article-tags"><span class="tags-label">Tagged: </span><ul class="tag-list"><li><a href="/tags/swiftui">SwiftUI</a></li><li><a href="/tags/ios">iOS</a></li><li><a href="/tags/development">Development</a></li></ul></div><div class="ads-container"><ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-9268892677399703" data-ad-slot="8133392181" data-ad-format="auto" data-full-width-responsive="true"></ins><script>(adsbygoogle = window.adsbygoogle || []).push({});</script></div></div></div></div></article></div><footer><div class="wrapper"><p>© Swift By Rahul · <a href="/feed.rss">RSS</a> · <a href="https://github.com/bandalrahul">GitHub</a> · Built with <a href="https://github.com/johnsundell/publish">Publish</a></p></div></footer></body></html>
