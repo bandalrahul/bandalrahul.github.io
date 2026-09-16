@@ -97,6 +97,7 @@
     "swift-concurrency-pitfalls",
     "uikit-swiftui-interop",
     "ios-offline-first-apps",
-    "swift-sendable-conformance"
+    "swift-sendable-conformance",
+    "ios-app-size-optimization"
   ]
 }
