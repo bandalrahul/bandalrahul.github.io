@@ -98,6 +98,7 @@
     "uikit-swiftui-interop",
     "ios-offline-first-apps",
     "swift-sendable-conformance",
-    "ios-app-size-optimization"
+    "ios-app-size-optimization",
+    "swiftui-geometry-reader"
   ]
 }
