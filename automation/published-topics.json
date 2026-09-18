@@ -99,6 +99,7 @@
     "ios-offline-first-apps",
     "swift-sendable-conformance",
     "ios-app-size-optimization",
-    "swiftui-geometry-reader"
+    "swiftui-geometry-reader",
+    "ios-crash-reporting"
   ]
 }
