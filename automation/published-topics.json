@@ -100,6 +100,7 @@
     "swift-sendable-conformance",
     "ios-app-size-optimization",
     "swiftui-geometry-reader",
-    "ios-crash-reporting"
+    "ios-crash-reporting",
+    "swift-custom-operators"
   ]
 }
