@@ -101,6 +101,7 @@
     "ios-app-size-optimization",
     "swiftui-geometry-reader",
     "ios-crash-reporting",
-    "swift-custom-operators"
+    "swift-custom-operators",
+    "ios-voiceover-testing"
   ]
 }
