@@ -102,6 +102,7 @@
     "swiftui-geometry-reader",
     "ios-crash-reporting",
     "swift-custom-operators",
-    "ios-voiceover-testing"
+    "ios-voiceover-testing",
+    "swiftui-matched-geometry"
   ]
 }
