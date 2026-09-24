@@ -104,6 +104,7 @@
     "swift-custom-operators",
     "ios-voiceover-testing",
     "swiftui-matched-geometry",
-    "ios-keyboard-handling"
+    "ios-keyboard-handling",
+    "swift-ownership-consumption"
   ]
 }
