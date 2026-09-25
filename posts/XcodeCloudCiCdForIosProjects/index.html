@@ -1,0 +1,180 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"/><meta property="og:site_name" content="Swift By Rahul"/><link rel="canonical" href="https://www.swiftbyrahul.com/posts/XcodeCloudCiCdForIosProjects"/><meta name="twitter:url" content="https://www.swiftbyrahul.com/posts/XcodeCloudCiCdForIosProjects"/><meta property="og:url" content="https://www.swiftbyrahul.com/posts/XcodeCloudCiCdForIosProjects"/><title>Xcode Cloud CI/CD for iOS Projects | Swift By Rahul</title><meta name="twitter:title" content="Xcode Cloud CI/CD for iOS Projects | Swift By Rahul"/><meta property="og:title" content="Xcode Cloud CI/CD for iOS Projects | Swift By Rahul"/><meta name="description" content="Learn how to set up and leverage Xcode Cloud for seamless CI/CD, automating builds, tests, and distribution for your iOS applications."/><meta name="twitter:description" content="Learn how to set up and leverage Xcode Cloud for seamless CI/CD, automating builds, tests, and distribution for your iOS applications."/><meta property="og:description" content="Learn how to set up and leverage Xcode Cloud for seamless CI/CD, automating builds, tests, and distribution for your iOS applications."/><meta name="twitter:card" content="summary"/><link rel="stylesheet" href="/styles.css" type="text/css"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><link rel="shortcut icon" href="/images/favicon.png" type="image/png"/><link rel="alternate" href="/feed.rss" type="application/rss+xml" title="Subscribe to Swift By Rahul"/></head><head><link rel="stylesheet" href="/css/prism.css" type="text/css"/><script src="/js/prism.js"></script><script src="/js/article.js"></script><script src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9268892677399703" async></script><meta name="twitter:card" content="summary_large_image"/><meta property="og:image" content="https://www.swiftbyrahul.com/images/posts/XcodeCloudCiCdForIosProjects.png"/><meta property="og:image:alt" content="Xcode Cloud CI/CD for iOS Projects"/><meta name="twitter:image" content="https://www.swiftbyrahul.com/images/posts/XcodeCloudCiCdForIosProjects.png"/></head><body class="item-page"><header><div class="wrapper"><a href="/" class="site-name">Swift By Rahul</a><nav class="site-nav"><ul><li><a href="/">Home</a></li><li><a href="/posts/" class="selected">Posts</a></li><li><a href="/tags">Tags</a></li><li><a href="https://github.com/bandalrahul">GitHub</a></li></ul></nav></div></header><div class="wrapper"><article><div><button class="toc-toggle" id="toc-toggle" type="button" aria-expanded="false">On this page</button><div class="article-layout"><aside class="toc" id="article-toc"><p class="toc-heading">On this page</p><nav class="toc-nav" id="article-toc-nav"></nav></aside><div class="article-main"><div class="article-meta"><span>September 11, 2026</span><span> · </span><span>8 min read</span><span> · </span><ul class="tag-list"><li><a href="/tags/xcode">Xcode</a></li><li><a href="/tags/ios">iOS</a></li><li><a href="/tags/development">Development</a></li></ul></div><div class="content"><h1>Xcode Cloud CI/CD for iOS Projects</h1><p>In the fast-paced world of iOS development, Continuous Integration (CI) and Continuous Delivery/Deployment (CD) are no longer luxuries but necessities. CI/CD pipelines automate the tedious and error-prone manual steps of building, testing, and distributing your app, allowing you to focus on writing great code. For Apple developers, Xcode Cloud emerges as a powerful, integrated, and native solution for bringing robust CI/CD to your projects.</p><p>Xcode Cloud is Apple's cloud-based CI/CD service, deeply integrated with Xcode, App Store Connect, and your Git repository. It's designed to make setting up and managing CI/CD workflows as seamless as possible, directly within your familiar development environment. If you've ever struggled with self-hosting CI servers or configuring complex third-party services, Xcode Cloud offers a breath of fresh air.</p><p>Let's dive into how Xcode Cloud can transform your iOS development workflow.</p><div style="text-align: center; margin: 2em 0;">
+<svg viewBox="0 0 600 220" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Simplified CI/CD Workflow with Xcode Cloud">
+  <title>Simplified CI/CD Workflow with Xcode Cloud</title>
+  <!-- Background Rect -->
+  <rect x="0" y="0" width="600" height="220" fill="#f9f9f9" rx="10" ry="10"/>
+
+  <!-- Source Code Box -->
+  <rect x="50" y="60" width="100" height="60" rx="8" ry="8" fill="#1565c0" stroke="#1565c0" stroke-width="2"/>
+  <text x="100" y="95" font-family="Arial, sans-serif" font-size="16" fill="white" text-anchor="middle">Source Code</text>
+
+  <!-- Build Box -->
+  <rect x="200" y="60" width="100" height="60" rx="8" ry="8" fill="#2A8367" stroke="#2A8367" stroke-width="2"/>
+  <text x="250" y="95" font-family="Arial, sans-serif" font-size="16" fill="white" text-anchor="middle">Build</text>
+
+  <!-- Test Box -->
+  <rect x="350" y="60" width="100" height="60" rx="8" ry="8" fill="#F04B3E" stroke="#F04B3E" stroke-width="2"/>
+  <text x="400" y="95" font-family="Arial, sans-serif" font-size="16" fill="white" text-anchor="middle">Test</text>
+
+  <!-- Deploy Box -->
+  <rect x="500" y="60" width="100" height="60" rx="8" ry="8" fill="#1565c0" stroke="#1565c0" stroke-width="2"/>
+  <text x="550" y="95" font-family="Arial, sans-serif" font-size="16" fill="white" text-anchor="middle">Deploy</text>
+
+  <!-- Arrows -->
+  <line x1="150" y1="90" x2="200" y2="90" stroke="#333" stroke-width="2" marker-end="url(#arrowhead)"/>
+  <line x1="300" y1="90" x2="350" y2="90" stroke="#333" stroke-width="2" marker-end="url(#arrowhead)"/>
+  <line x1="450" y1="90" x2="500" y2="90" stroke="#333" stroke-width="2" marker-end="url(#arrowhead)"/>
+
+  <!-- Feedback Loop -->
+  <path d="M 50 140 A 50 50 0 0 1 550 140 V 170 A 50 50 0 0 1 50 170 Z" fill="none" stroke="#666" stroke-width="1" stroke-dasharray="4 2"/>
+  <text x="300" y="190" font-family="Arial, sans-serif" font-size="14" fill="#666" text-anchor="middle">Continuous Feedback & Iteration</text>
+
+  <!-- Arrowhead definition -->
+  <defs>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="0" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#333" />
+    </marker>
+  </defs>
+</svg>
+</div><h2>What is Xcode Cloud?</h2><p>Xcode Cloud is a CI/CD service that's part of the Apple developer ecosystem. It's hosted by Apple, meaning you don't need to manage servers, infrastructure, or complex configurations. Key features include:</p><ul><li><strong>Deep Xcode Integration</strong>: Initiate and monitor builds directly from Xcode.</li><li><strong>Git Repository Support</strong>: Connects seamlessly with popular Git providers like GitHub, GitLab, Bitbucket, and self-hosted Git.</li><li><strong>Automated Workflows</strong>: Define workflows to automatically build, test, analyze, and archive your app.</li><li><strong>Parallel Testing</strong>: Run tests across multiple simulated devices concurrently, significantly speeding up test execution.</li><li><strong>App Store Connect Integration</strong>: Automatically distribute builds to TestFlight for internal or external testers, or even directly to App Store Connect for submission.</li><li><strong>Custom Build Scripts</strong>: Extend functionality with custom shell scripts at various stages of your workflow.</li><li><strong>Notifications</strong>: Get updates on build status via email, Xcode, or integrated services.</li></ul><p>The magic of Xcode Cloud lies in its simplicity and deep integration. It understands your Xcode project, schemes, and build settings inherently, reducing the setup overhead often associated with other CI/CD solutions.</p><h2>Getting Started with Xcode Cloud</h2><p>Before you can harness the power of Xcode Cloud, there are a few prerequisites:</p><ol><li><strong>An Apple Developer Program membership.</strong></li><li><strong>An iOS project in Xcode.</strong></li><li><strong>Your project hosted on a Git repository.</strong></li><li><strong>Xcode 13 or later.</strong></li></ol><h3>1. Enable Xcode Cloud</h3><p>Open your project in Xcode. Navigate to <strong>Product &gt; Xcode Cloud &gt; Create Workflow</strong>. If you haven't used Xcode Cloud before, you might be prompted to enable it for your Apple ID and accept terms.</p><h3>2. Connect Your Repository</h3><p>Xcode Cloud needs access to your source code. You'll be guided to connect your Git repository. <em> If your repository is on GitHub, GitLab, or Bitbucket, you'll authorize Xcode Cloud to access it. </em> For self-hosted Git, you'll provide SSH keys or HTTPS credentials.</p><p>Once connected, Xcode Cloud will analyze your repository to suggest initial workflows based on your project's schemes.</p><h2>Configuring Your First Workflow</h2><p>A "workflow" in Xcode Cloud defines a series of automated actions that run under specific conditions. Each workflow has:</p><ul><li><strong>Start Conditions</strong>: When should this workflow run? (e.g., on every push to <code>main</code>, on pull requests, manually, or on a schedule).</li><li><strong>Actions</strong>: What tasks should be performed? (e.g., Build, Test, Archive, Analyze).</li><li><strong>Post-Actions</strong>: What should happen after the main actions? (e.g., distribute to TestFlight, notify Slack).</li></ul><p>Let's configure a basic workflow.</p><ol><li><strong>Select Scheme</strong>: Choose the Xcode scheme your workflow will build. Typically, this is your main app scheme.</li><li><strong>Start Conditions</strong>:<ul><li><strong>On every change in a branch</strong>: Select specific branches (e.g., <code>main</code>, <code>develop</code>).</li><li><strong>On every pull request to a branch</strong>: Ideal for running tests before merging.</li><li><strong>On a schedule</strong>: For nightly builds or daily test runs.</li><li><strong>Manually</strong>: Triggered on demand. 3. <strong>Actions</strong>:</li><li><strong>Build</strong>: Compiles your project. You can specify the Xcode version and macOS version for the build environment.</li><li><strong>Test</strong>: Runs your unit and UI tests. Xcode Cloud can run tests in parallel across multiple simulators.</li><li><strong>Analyze</strong>: Runs static analysis to find potential issues.</li><li><strong>Archive</strong>: Creates an <code>.xcarchive</code> file, necessary for distribution. 4. <strong>Post-Actions</strong>:</li><li><strong>TestFlight Internal Testing</strong>: Automatically upload the archived app to TestFlight for your internal testers.</li><li><strong>TestFlight External Testing</strong>: Distribute to external testers.</li><li><strong>App Store Connect</strong>: Prepare for App Store submission.</li><li><strong>Custom</strong>: Run a custom script.</li></ul></li></ol><h3>Environment Variables</h3><p>You can define custom environment variables for your workflow, which can be useful for API keys or configuration settings that vary between environments. Xcode Cloud supports both plain variables and sensitive variables that are securely stored.</p><h2>Practical Example: A Basic Workflow</h2><p>Let's assume you have a simple iOS app with a single unit test.</p><p>First, ensure your project has some unit tests. If you don't, create a simple test file:</p><pre><code class="language-swift">import XCTest
+@testable import YourAppModuleName // Replace with your actual module name
+
+final class YourAppTests: XCTestCase {
+
+    func testExampleAddition() throws {
+        // Simple test to ensure basic arithmetic works
+        let a = 5
+        let b = 3
+        XCTAssertEqual(a + b, 8, "Addition should be correct")
+    }
+
+    func testStringConcatenation() {
+        let firstName = "John"
+        let lastName = "Doe"
+        XCTAssertEqual(firstName + " " + lastName, "John Doe", "String concatenation should work")
+    }
+}
+</code></pre><p>Now, configure a workflow to run these tests on every push to your <code>main</code> branch:</p><ol><li>In Xcode, go to <strong>Product &gt; Xcode Cloud &gt; Manage Workflows</strong>.</li><li>Click the <code>+</code> button to create a new workflow.</li><li><strong>General</strong>: Name it "Main Branch CI" and select your app's scheme.</li><li><strong>Start Conditions</strong>:<ul><li>Select "On every change in a branch".</li><li>Add <code>main</code> to the list of branches. 5. <strong>Actions</strong>:</li><li>Add a "Build" action.</li><li>Add a "Test" action. Make sure your test target is selected.</li><li>Add an "Archive" action (optional, but good practice for distribution later). 6. <strong>Post-Actions</strong>:</li><li>You can leave this blank for now, or add a "Notify" action to get emails on build status.</li></ul></li></ol><p>Once saved, push a change to your <code>main</code> branch. Xcode Cloud will automatically detect the push and trigger a build. You can monitor its progress in Xcode's Report Navigator or via App Store Connect.</p><p>Here's an ASCII representation of this basic workflow:</p><pre><code>┌─────────────────┐
+│ Git Push (main) │
+└─────────────────┘
+         │
+         ▼
+┌─────────────────┐
+│  Xcode Cloud    │
+│  Workflow Start │
+└─────────────────┘
+         │
+         ▼
+┌─────────────────┐
+│   Build Action  │
+│ (Xcode + macOS) │
+└─────────────────┘
+         │
+         ▼
+┌─────────────────┐
+│   Test Action   │
+│ (Run Unit/UI)   │
+└─────────────────┘
+         │
+         ▼
+┌─────────────────┐
+│  Archive Action │
+│ (Create .xcarchive)
+└─────────────────┘
+         │
+         ▼
+┌─────────────────┐
+│    Post-Action  │
+│ (e.g., Notify)  │
+└─────────────────┘
+</code></pre><h2>Advanced Workflow Customization</h2><p>Xcode Cloud allows for significant customization to fit complex project needs.</p><h3>Custom Build Scripts</h3><p>You can inject custom shell scripts at various points: <em> <strong>Before Build</strong>: Run dependency managers like CocoaPods or Carthage, or custom pre-build checks. </em> <strong>After Build</strong>: Generate documentation, run SwiftLint, or perform other static analysis. <em> <strong>After Test</strong>: Process test reports or upload results to a custom service. </em> <strong>After Archive</strong>: Custom post-processing of the archive.</p><p>Let's add a <code>SwiftLint</code> run to our workflow. First, ensure <code>SwiftLint</code> is installed (e.g., via Homebrew: <code>brew install swiftlint</code>). Then, within your Xcode Cloud workflow editor, under the "Build" action, you can add a new "Custom Script" step.</p><pre><code class="language-bash"># Script file name: swiftlint_check.sh
+if which swiftlint &gt;/dev/null; then
+  swiftlint
+else
+  echo "warning: SwiftLint not installed, download from https://github.com/realm/SwiftLint"
+fi
+</code></pre><p>This script will run SwiftLint on your project. Xcode Cloud will capture its output, including any warnings or errors.</p><h3>Post-Actions for Distribution and Notifications</h3><p>Beyond TestFlight, you can use custom post-actions to integrate with other services. For example, sending a Slack notification upon a successful TestFlight build:</p><pre><code class="language-bash"># Script file name: slack_notification.sh
+# Requires SLACK_WEBHOOK_URL to be set as an environment variable in Xcode Cloud
+BUILD_STATUS=$CI_BUILD_STATUS # Xcode Cloud provides environment variables
+
+if [[ "$BUILD_STATUS" == "SUCCESS" ]]; then
+  MESSAGE="✅ Build $CI_BUILD_NUMBER for $CI_BRANCH is successful! App available on TestFlight."
+else
+  MESSAGE="❌ Build $CI_BUILD_NUMBER for $CI_BRANCH failed. Check Xcode Cloud for details."
+fi
+
+curl -X POST -H 'Content-type: application/json' \
+     --data "{\"text\":\"$MESSAGE\"}" \
+     $SLACK_WEBHOOK_URL
+</code></pre><div style="text-align: center; margin: 2em 0;">
+<svg viewBox="0 0 800 280" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Detailed Xcode Cloud Workflow with Custom Scripts and Integrations">
+  <title>Detailed Xcode Cloud Workflow with Custom Scripts and Integrations</title>
+  <!-- Background Rect -->
+  <rect x="0" y="0" width="800" height="280" fill="#f9f9f9" rx="10" ry="10"/>
+
+  <!-- Start Condition -->
+  <rect x="50" y="20" width="150" height="40" rx="8" ry="8" fill="#1565c0" stroke="#1565c0" stroke-width="2"/>
+  <text x="125" y="45" font-family="Arial, sans-serif" font-size="14" fill="white" text-anchor="middle">Git Push (Main/PR)</text>
+
+  <!-- Workflow Start -->
+  <rect x="50" y="80" width="150" height="40" rx="8" ry="8" fill="#2A8367" stroke="#2A8367" stroke-width="2"/>
+  <text x="125" y="105" font-family="Arial, sans-serif" font-size="14" fill="white" text-anchor="middle">Workflow Triggered</text>
+
+  <!-- Build Action -->
+  <rect x="250" y="20" width="150" height="40" rx="8" ry="8" fill="#2A8367" stroke="#2A8367" stroke-width="2"/>
+  <text x="325" y="45" font-family="Arial, sans-serif" font-size="14" fill="white" text-anchor="middle">Build</text>
+
+  <!-- Pre-Build Script -->
+  <rect x="250" y="80" width="150" height="40" rx="8" ry="8" fill="#2A8367" stroke="#2A8367" stroke-width="2"/>
+  <text x="325" y="105" font-family="Arial, sans-serif" font-size="14" fill="white" text-anchor="middle">Custom Script (e.g., SwiftLint)</text>
+
+  <!-- Test Action -->
+  <rect x="450" y="20" width="150" height="40" rx="8" ry="8" fill="#F04B3E" stroke="#F04B3E" stroke-width="2"/>
+  <text x="525" y="45" font-family="Arial, sans-serif" font-size="14" fill="white" text-anchor="middle">Test (Parallel)</text>
+
+  <!-- Analyze Action -->
+  <rect x="450" y="80" width="150" height="40" rx="8" ry="8" fill="#F04B3E" stroke="#F04B3E" stroke-width="2"/>
+  <text x="525" y="105" font-family="Arial, sans-serif" font-size="14" fill="white" text-anchor="middle">Analyze</text>
+
+  <!-- Archive Action -->
+  <rect x="650" y="20" width="150" height="40" rx="8" ry="8" fill="#1565c0" stroke="#1565c0" stroke-width="2"/>
+  <text x="725" y="45" font-family="Arial, sans-serif" font-size="14" fill="white" text-anchor="middle">Archive</text>
+
+  <!-- Post-Archive Script -->
+  <rect x="650" y="80" width="150" height="40" rx="8" ry="8" fill="#1565c0" stroke="#1565c0" stroke-width="2"/>
+  <text x="725" y="105" font-family="Arial, sans-serif" font-size="14" fill="white" text-anchor="middle">Custom Script (e.g., Doc Gen)</text>
+
+  <!-- Distribution Post-Action -->
+  <rect x="350" y="180" width="150" height="40" rx="8" ry="8" fill="#2A8367" stroke="#2A8367" stroke-width="2"/>
+  <text x="425" y="205" font-family="Arial, sans-serif" font-size="14" fill="white" text-anchor="middle">Distribute to TestFlight</text>
+
+  <!-- Notification Post-Action -->
+  <rect x="350" y="230" width="150" height="40" rx="8" ry="8" fill="#F04B3E" stroke="#F04B3E" stroke-width="2"/>
+  <text x="425" y="255" font-family="Arial, sans-serif" font-size="14" fill="white" text-anchor="middle">Notify Slack/Email</text>
+
+  <!-- Arrows -->
+  <line x1="125" y1="60" x2="125" y2="80" stroke="#333" stroke-width="1" marker-end="url(#arrowhead)"/>
+  <line x1="200" y1="100" x2="250" y2="100" stroke="#333" stroke-width="1" marker-end="url(#arrowhead)"/>
+  <line x1="400" y1="100" x2="450" y2="100" stroke="#333" stroke-width="1" marker-end="url(#arrowhead)"/>
+  <line x1="600" y1="100" x2="650" y2="100" stroke="#333" stroke-width="1" marker-end="url(#arrowhead)"/>
+
+  <!-- Vertical flow from actions to post-actions -->
+  <line x1="325" y1="120" x2="325" y2="180" stroke="#333" stroke-width="1" marker-end="url(#arrowhead)"/>
+  <line x1="525" y1="120" x2="525" y2="180" stroke="#333" stroke-width="1" marker-end="url(#arrowhead)"/>
+  <line x1="725" y1="120" x2="725" y2="180" stroke="#333" stroke-width="1" marker-end="url(#arrowhead)"/>
+
+  <!-- Horizontal merge to Post-Actions -->
+  <line x1="325" y1="180" x2="350" y2="180" stroke="#333" stroke-width="1"/>
+  <line x1="525" y1="180" x2="500" y2="180" stroke="#333" stroke-width="1"/>
+  <line x1="725" y1="180" x2="500" y2="180" stroke="#333" stroke-width="1"/>
+
+  <line x1="425" y1="220" x2="425" y2="230" stroke="#333" stroke-width="1" marker-end="url(#arrowhead)"/>
+
+  <!-- Arrowhead definition -->
+  <defs>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="0" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#333" />
+    </marker>
+  </defs>
+</svg>
+</div><h2>Xcode Cloud for Teams</h2><p>Xcode Cloud is built with teams in mind:</p><ul><li><strong>Permissions</strong>: Control who can manage workflows and view build results through App Store Connect roles (e.g., App Manager, Developer).</li><li><strong>Monitoring</strong>: Team members can view build status, logs, and artifacts directly in Xcode or App Store Connect.</li><li><strong>Troubleshooting</strong>: Detailed build logs, test results, and crash reports are available for every build, making it easier to diagnose issues.</li></ul><h2>Benefits and Best Practices</h2><h3>Advantages of Xcode Cloud</h3><ul><li><strong>Native Integration</strong>: Works seamlessly with Xcode and the Apple ecosystem.</li><li><strong>Zero Infrastructure</strong>: No servers to manage, no complex configurations.</li><li><strong>Scalability</strong>: Apple handles the scaling of build machines for parallel testing and rapid builds.</li><li><strong>Security</strong>: Integrated with App Store Connect for secure credential management and distribution.</li><li><strong>Parallel Testing</strong>: Significantly reduces test run times by distributing tests across multiple virtual devices.</li></ul><h3>Best Practices</h3><ul><li><strong>Modularize Your Tests</strong>: Keep your unit and UI tests well-organized and independent.</li><li><strong>Fast Tests</strong>: Prioritize writing fast, reliable tests. Slow tests will slow down your CI/CD.</li><li><strong>Use Schemes Effectively</strong>: Create dedicated schemes for CI/CD if your build process differs from local development (e.g., specific build configurations, test targets).</li><li><strong>Environment Variables</strong>: Leverage environment variables for sensitive data or configuration that changes per environment.</li><li><strong>Clear Commit Messages</strong>: Good commit messages make it easier to track changes associated with specific builds.</li><li><strong>Monitor Build Times</strong>: Keep an eye on your workflow's build times. Optimize slow steps or split workflows if necessary.</li><li><strong>Review Logs</strong>: Regularly check build logs for warnings or potential issues, even if the build succeeds.</li></ul><h2>Summary</h2><p>Xcode Cloud provides a powerful, integrated, and hassle-free solution for CI/CD in your iOS development workflow. By automating builds, tests, and distribution, it frees up valuable developer time, ensures consistent quality, and accelerates your release cycles. Embracing Xcode Cloud means adopting a more efficient and reliable way to deliver your apps to users.</p><p>Happy Swifting!</p></div><div class="article-tags"><span class="tags-label">Tagged: </span><ul class="tag-list"><li><a href="/tags/xcode">Xcode</a></li><li><a href="/tags/ios">iOS</a></li><li><a href="/tags/development">Development</a></li></ul></div><div class="ads-container"><ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-9268892677399703" data-ad-slot="8133392181" data-ad-format="auto" data-full-width-responsive="true"></ins><script>(adsbygoogle = window.adsbygoogle || []).push({});</script></div></div></div></div></article></div><footer><div class="wrapper"><p>© Swift By Rahul · <a href="/feed.rss">RSS</a> · <a href="https://github.com/bandalrahul">GitHub</a> · Built with <a href="https://github.com/johnsundell/publish">Publish</a></p></div></footer></body></html>
