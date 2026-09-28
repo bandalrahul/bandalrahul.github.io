@@ -107,6 +107,7 @@
     "ios-keyboard-handling",
     "swift-ownership-consumption",
     "understanding-optionals-in-swift",
-    "understanding-closures-in-swift"
+    "understanding-closures-in-swift",
+    "understanding-generics-in-swift"
   ]
 }
