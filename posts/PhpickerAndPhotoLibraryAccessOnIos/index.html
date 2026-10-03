@@ -1,0 +1,276 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"/><meta property="og:site_name" content="Swift By Rahul"/><link rel="canonical" href="https://www.swiftbyrahul.com/posts/PhpickerAndPhotoLibraryAccessOnIos"/><meta name="twitter:url" content="https://www.swiftbyrahul.com/posts/PhpickerAndPhotoLibraryAccessOnIos"/><meta property="og:url" content="https://www.swiftbyrahul.com/posts/PhpickerAndPhotoLibraryAccessOnIos"/><title>PHPicker and Photo Library Access on iOS | Swift By Rahul</title><meta name="twitter:title" content="PHPicker and Photo Library Access on iOS | Swift By Rahul"/><meta property="og:title" content="PHPicker and Photo Library Access on iOS | Swift By Rahul"/><meta name="description" content="Learn how to integrate PHPickerViewController for secure, modern photo and video selection, and manage Photo Library permissions on iOS."/><meta name="twitter:description" content="Learn how to integrate PHPickerViewController for secure, modern photo and video selection, and manage Photo Library permissions on iOS."/><meta property="og:description" content="Learn how to integrate PHPickerViewController for secure, modern photo and video selection, and manage Photo Library permissions on iOS."/><meta name="twitter:card" content="summary"/><link rel="stylesheet" href="/styles.css" type="text/css"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><link rel="shortcut icon" href="/images/favicon.png" type="image/png"/><link rel="alternate" href="/feed.rss" type="application/rss+xml" title="Subscribe to Swift By Rahul"/></head><head><link rel="stylesheet" href="/css/prism.css" type="text/css"/><script src="/js/prism.js"></script><script src="/js/article.js"></script><script src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9268892677399703" async></script><meta name="twitter:card" content="summary_large_image"/><meta property="og:image" content="https://www.swiftbyrahul.com/images/posts/PhpickerAndPhotoLibraryAccessOnIos.png"/><meta property="og:image:alt" content="PHPicker and Photo Library Access on iOS"/><meta name="twitter:image" content="https://www.swiftbyrahul.com/images/posts/PhpickerAndPhotoLibraryAccessOnIos.png"/></head><body class="item-page"><header><div class="wrapper"><a href="/" class="site-name">Swift By Rahul</a><nav class="site-nav"><ul><li><a href="/">Home</a></li><li><a href="/posts/" class="selected">Posts</a></li><li><a href="/tags">Tags</a></li><li><a href="https://github.com/bandalrahul">GitHub</a></li></ul></nav></div></header><div class="wrapper"><article><div><button class="toc-toggle" id="toc-toggle" type="button" aria-expanded="false">On this page</button><div class="article-layout"><aside class="toc" id="article-toc"><p class="toc-heading">On this page</p><nav class="toc-nav" id="article-toc-nav"></nav></aside><div class="article-main"><div class="article-meta"><span>August 18, 2026</span><span> · </span><span>8 min read</span><span> · </span><ul class="tag-list"><li><a href="/tags/photos">Photos</a></li><li><a href="/tags/ios">iOS</a></li><li><a href="/tags/development">Development</a></li></ul></div><div class="content"><h1>PHPicker and Photo Library Access on iOS</h1><p>Accessing a user's photo and video library is a fundamental feature for many iOS applications, from social media platforms to utility tools. However, handling sensitive user data like personal photos comes with significant privacy implications and requires careful implementation. For years, <code>UIImagePickerController</code> was the go-to solution, but with iOS 14, Apple introduced <code>PHPickerViewController</code>, a modern, privacy-focused alternative that has become the recommended way to interact with the user's media library.</p><p>In this article, we'll dive deep into <code>PHPickerViewController</code>, exploring its advantages, how to implement it, and how to properly manage photo library access permissions in your iOS applications.</p><div style="text-align: center; margin: 2em 0;">
+<svg viewBox="0 0 700 250" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Comparison of UIImagePickerController and PHPickerViewController access models">
+  <title>Comparison of UIImagePickerController and PHPickerViewController access models</title>
+
+  <!-- UIImagePickerController Path -->
+  <rect x="20" y="30" width="180" height="60" rx="8" fill="#1565c0" stroke="#0e4a8c" stroke-width="2"/>
+  <text x="110" y="65" font-family="Arial, sans-serif" font-size="16" fill="white" text-anchor="middle">UIImagePickerController</text>
+
+  <path d="M200 60 H230 L250 50 L250 70 L230 60 Z" fill="#2A8367" stroke="#2A8367" stroke-width="1"/>
+  <text x="250" y="65" font-family="Arial, sans-serif" font-size="14" fill="#333" text-anchor="start">App requests full access</text>
+
+  <rect x="400" y="30" width="120" height="60" rx="8" fill="#F04B3E" stroke="#c03c32" stroke-width="2"/>
+  <text x="460" y="65" font-family="Arial, sans-serif" font-size="16" fill="white" text-anchor="middle">User Grants</text>
+
+  <path d="M520 60 H550 L570 50 L570 70 L550 60 Z" fill="#2A8367" stroke="#2A8367" stroke-width="1"/>
+  <text x="570" y="65" font-family="Arial, sans-serif" font-size="14" fill="#333" text-anchor="start">App browses library directly</text>
+
+  <!-- PHPickerViewController Path -->
+  <rect x="20" y="150" width="180" height="60" rx="8" fill="#1565c0" stroke="#0e4a8c" stroke-width="2"/>
+  <text x="110" y="185" font-family="Arial, sans-serif" font-size="16" fill="white" text-anchor="middle">PHPickerViewController</text>
+
+  <path d="M200 180 H230 L250 170 L250 190 L230 180 Z" fill="#2A8367" stroke="#2A8367" stroke-width="1"/>
+  <text x="250" y="185" font-family="Arial, sans-serif" font-size="14" fill="#333" text-anchor="start">App presents picker</text>
+
+  <rect x="400" y="150" width="120" height="60" rx="8" fill="#2A8367" stroke="#1f624d" stroke-width="2"/>
+  <text x="460" y="185" font-family="Arial, sans-serif" font-size="16" fill="white" text-anchor="middle">System UI</text>
+
+  <path d="M520 180 H550 L570 170 L570 190 L550 180 Z" fill="#2A8367" stroke="#2A8367" stroke-width="1"/>
+  <text x="570" y="185" font-family="Arial, sans-serif" font-size="14" fill="#333" text-anchor="start">System delivers assets</text>
+
+  <!-- Labels -->
+  <text x="350" y="15" font-family="Arial, sans-serif" font-size="18" fill="#333" text-anchor="middle" font-weight="bold">Older Approach (Full Access)</text>
+  <text x="350" y="135" font-family="Arial, sans-serif" font-size="18" fill="#333" text-anchor="middle" font-weight="bold">Modern Approach (Privacy-Preserving)</text>
+</svg>
+</div><h2>Why PHPickerViewController is the Modern Choice</h2><p>Before <code>PHPickerViewController</code>, <code>UIImagePickerController</code> allowed apps to present a system interface for selecting photos or videos. However, using <code>UIImagePickerController</code> inherently required your app to request and be granted full read access to the user's entire photo library (or at least the limited selection if the user chose that in iOS 14+). This meant if your user selected a single photo, your app still had the potential to access all their photos, which was a significant privacy concern.</p><p><code>PHPickerViewController</code>, introduced in iOS 14, fundamentally changes this model:</p><ol><li><strong>Enhanced Privacy</strong>: Your app does not need explicit photo library access permission to present <code>PHPickerViewController</code>. The picker runs in a separate process, and only the items explicitly selected by the user are shared with your app via <code>NSItemProvider</code>. This means your app never gains full access to the user's entire photo library.</li><li><strong>Multi-Selection</strong>: It natively supports selecting multiple photos and videos, a feature that was cumbersome or impossible with <code>UIImagePickerController</code>.</li><li><strong>Search and Filtering</strong>: Users can search their library directly within the picker, and you can configure filters to show only specific media types (images, videos, Live Photos).</li><li><strong>Modern UI</strong>: It offers a more modern and consistent user interface, aligning with the Photos app.</li></ol><p>For these reasons, <code>PHPickerViewController</code> is now the recommended API for allowing users to select media from their photo library.</p><h2>Implementing PHPickerViewController</h2><p>Integrating <code>PHPickerViewController</code> into your app involves a few straightforward steps:</p><ol><li><strong>Import <code>PhotosUI</code></strong>: This framework contains <code>PHPickerViewController</code> and related types.</li><li><strong>Configure the Picker</strong>: Create a <code>PHPickerConfiguration</code> instance to specify selection limits, media types, and other options.</li><li><strong>Present the Picker</strong>: Initialize <code>PHPickerViewController</code> with your configuration and present it modally.</li><li><strong>Handle Selections</strong>: Implement the <code>PHPickerViewControllerDelegate</code> protocol to receive the selected assets.</li></ol><p>Let's look at a practical example. We'll create a simple view controller that presents the picker and displays the selected images.</p><pre><code class="language-swift">import UIKit
+import PhotosUI // Don't forget to import PhotosUI!
+
+class PhotoSelectionViewController: UIViewController {
+
+    private lazy var selectPhotosButton: UIButton = {
+        let button = UIButton(type: .system)
+        button.setTitle("Select Photos", for: .normal)
+        button.addTarget(self, action: #selector(selectPhotosTapped), for: .touchUpInside)
+        return button
+    }()
+
+    private lazy var imageView: UIImageView = {
+        let imageView = UIImageView()
+        imageView.contentMode = .scaleAspectFit
+        imageView.backgroundColor = .systemGray6
+        imageView.layer.cornerRadius = 8
+        imageView.clipsToBounds = true
+        return imageView
+    }()
+
+    private lazy var activityIndicator: UIActivityIndicatorView = {
+        let indicator = UIActivityIndicatorView(style: .large)
+        indicator.hidesWhenStopped = true
+        return indicator
+    }()
+
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        setupUI()
+    }
+
+    private func setupUI() {
+        view.backgroundColor = .systemBackground
+
+        let stackView = UIStackView(arrangedSubviews: [selectPhotosButton, imageView])
+        stackView.axis = .vertical
+        stackView.spacing = 20
+        stackView.alignment = .fill
+        stackView.translatesAutoresizingMaskIntoConstraints = false
+
+        view.addSubview(stackView)
+        view.addSubview(activityIndicator)
+
+        NSLayoutConstraint.activate([
+            stackView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 20),
+            stackView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 20),
+            stackView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -20),
+            stackView.bottomAnchor.constraint(lessThanOrEqualTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -20),
+            imageView.heightAnchor.constraint(equalToConstant: 300),
+
+            activityIndicator.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            activityIndicator.centerYAnchor.constraint(equalTo: imageView.centerYAnchor)
+        ])
+    }
+
+    @objc private func selectPhotosTapped() {
+        var configuration = PHPickerConfiguration()
+        configuration.filter = .images // We only want images
+        configuration.selectionLimit = 1 // Allow selecting only one image. Use 0 for unlimited.
+        configuration.preferredAssetRepresentationMode = .current // Use .current for the highest quality available
+
+        let picker = PHPickerViewController(configuration: configuration)
+        picker.delegate = self
+        present(picker, animated: true)
+    }
+}
+</code></pre><p>Now, let's implement the <code>PHPickerViewControllerDelegate</code> to handle the selected photos.</p><pre><code class="language-swift">extension PhotoSelectionViewController: PHPickerViewControllerDelegate {
+    func picker(_ picker: PHPickerViewController, didFinishPicking results: [PHPickerResult]) {
+        picker.dismiss(animated: true)
+
+        guard let itemProvider = results.first?.itemProvider else { return }
+
+        // Start activity indicator while loading
+        activityIndicator.startAnimating()
+        imageView.image = nil // Clear previous image
+
+        if itemProvider.canLoadObject(ofClass: UIImage.self) {
+            itemProvider.loadObject(ofClass: UIImage.self) { [weak self] (image, error) in
+                DispatchQueue.main.async {
+                    self?.activityIndicator.stopAnimating()
+                    if let image = image as? UIImage {
+                        self?.imageView.image = image
+                    } else if let error = error {
+                        print("Error loading image: \(error.localizedDescription)")
+                        // Handle error, e.g., show an alert
+                    }
+                }
+            }
+        } else {
+            DispatchQueue.main.async {
+                self.activityIndicator.stopAnimating()
+                print("Item provider cannot load UIImage.")
+            }
+        }
+    }
+}
+</code></pre><p>In this example, we're loading a <code>UIImage</code> directly. For videos or other media types, you'd check for <code>AVAsset</code>, <code>Data</code>, or <code>URL</code> using <code>itemProvider.canLoadObject(ofClass:)</code> and <code>itemProvider.loadObject(ofClass:)</code> accordingly. Remember that <code>loadObject</code> is asynchronous, so update your UI on the main thread.</p><h2>Photo Library Access Permissions</h2><p>As mentioned, <code>PHPickerViewController</code> does <strong>not</strong> require explicit photo library access permission to function. This is its core privacy advantage. However, there are scenarios where your app might still need direct access to the photo library:</p><ul><li><strong>Saving photos/videos</strong>: If your app creates new media and wants to save it to the user's photo library.</li><li><strong>Custom photo browser</strong>: If you're building your own UI to browse the user's entire library, rather than using <code>PHPickerViewController</code>.</li><li><strong>Modifying existing assets</strong>: For advanced editing apps that need to alter metadata or content of existing photos.</li></ul><p>For these cases, you still need to request permission using <code>PHPhotoLibrary.requestAuthorization(for:)</code> and provide appropriate <code>Info.plist</code> entries.</p><h3>Info.plist Entries</h3><p>You must include one or both of these keys in your <code>Info.plist</code> file with a user-facing description:</p><ul><li><code>NSPhotoLibraryUsageDescription</code>: Required for <strong>read and write</strong> access to the photo library.</li><li><code>NSPhotoLibraryAddUsageDescription</code>: Required only for <strong>write-only</strong> access (e.g., saving a photo without browsing).</li></ul><p>Without these entries, your app will crash when attempting to request photo library access.</p><h3>Requesting Authorization</h3><p>You can check the current authorization status and request it using the <code>PHPhotoLibrary</code> class.</p><pre><code>┌─────────────────┐     ┌───────────────────────┐
+│   App Starts    │     │ Check Authorization   │
+│                 │────►│ (PHPhotoLibrary.auth) │
+└─────────────────┘     └───────────┬───────────┘
+                                    │
+                       .notDetermined / .denied / .restricted
+                                    ▼
+                      ┌───────────────────────────┐
+                      │ Request Authorization     │
+                      │ (PHPhotoLibrary.request)  │
+                      └───────────┬───────────┘
+                                  │
+                                  ▼
+                     ┌───────────────────────────┐
+                     │   User Grants/Denies      │
+                     └───────────┬───────────┘
+                                 │
+                                 ▼
+                    ┌───────────────────────────┐
+                    │ Handle New Status         │
+                    │ (.authorized, .denied, etc)│
+                    └───────────────────────────┘
+</code></pre><p>Here's how you might implement a utility to manage photo library authorization:</p><pre><code class="language-swift">import Photos
+
+class PhotoLibraryAccessManager {
+
+    enum AuthorizationStatus {
+        case authorized
+        case denied
+        case restricted
+        case notDetermined
+        case limited // Specific to iOS 14+ when user grants limited access
+    }
+
+    static func currentAuthorizationStatus() -&gt; AuthorizationStatus {
+        let status = PHPhotoLibrary.authorizationStatus(for: .readWrite)
+        switch status {
+        case .authorized: return .authorized
+        case .denied: return .denied
+        case .restricted: return .restricted
+        case .notDetermined: return .notDetermined
+        case .limited: return .limited // For iOS 14+
+        @unknown default:
+            // Future cases might be added, handle them gracefully
+            return .notDetermined
+        }
+    }
+
+    static func requestPhotoLibraryAuthorization(completion: @escaping (AuthorizationStatus) -&gt; Void) {
+        PHPhotoLibrary.requestAuthorization(for: .readWrite) { status in
+            DispatchQueue.main.async {
+                switch status {
+                case .authorized: completion(.authorized)
+                case .denied: completion(.denied)
+                case .restricted: completion(.restricted)
+                case .notDetermined: completion(.notDetermined)
+                case .limited: completion(.limited)
+                @unknown default:
+                    completion(.notDetermined)
+                }
+            }
+        }
+    }
+
+    // Example usage:
+    func checkAndRequestAccess() {
+        let status = PhotoLibraryAccessManager.currentAuthorizationStatus()
+        switch status {
+        case .authorized:
+            print("Full photo library access granted.")
+            // Proceed with operations that require full access
+        case .limited:
+            print("Limited photo library access granted (iOS 14+).")
+            // Proceed with operations, but be aware of limitations
+        case .notDetermined:
+            print("Authorization not determined. Requesting...")
+            PhotoLibraryAccessManager.requestPhotoLibraryAuthorization { newStatus in
+                self.handleAuthorizationStatus(newStatus)
+            }
+        case .denied:
+            print("Photo library access denied. Guide user to settings.")
+            // Show alert to user to go to Settings -&gt; Privacy &amp; Security -&gt; Photos
+        case .restricted:
+            print("Photo library access restricted, possibly by parental controls.")
+            // Inform user
+        }
+    }
+
+    private func handleAuthorizationStatus(_ status: AuthorizationStatus) {
+        switch status {
+        case .authorized: print("User granted full access.")
+        case .limited: print("User granted limited access.")
+        case .denied: print("User denied access.")
+        case .restricted: print("Access restricted.")
+        case .notDetermined: print("Access not determined (shouldn't happen after request).")
+        }
+        // Update UI or proceed based on new status
+    }
+}
+</code></pre><p>Remember to call <code>checkAndRequestAccess()</code> at an appropriate time, typically when the user attempts an action that requires photo library access.</p><h2>Advanced PHPicker Configuration</h2><p><code>PHPickerConfiguration</code> offers more than just filtering images. Here are a few useful properties:</p><ul><li><code>filter</code>: A <code>PHPickerFilter</code> enum that allows you to specify the types of media users can select (<code>.images</code>, <code>.videos</code>, <code>.livePhotos</code>, or combinations).</li><li><code>selectionLimit</code>: An <code>Int</code> that defines the maximum number of items a user can select. Set to <code>0</code> for unlimited selection.</li><li><code>selection</code>: A <code>PHPickerConfiguration.Selection</code> enum (introduced in iOS 16) for fine-grained control over how multiple selections are displayed (e.g., <code>.ordered</code>, <code>.continuous</code>).</li><li><code>preferredAssetRepresentationMode</code>: A <code>PHPickerConfiguration.AssetRepresentationMode</code> enum. <code>.current</code> provides the highest quality available, <code>.compatible</code> provides a format compatible with the current device, and <code>.thumbnail</code> provides a low-resolution thumbnail. Be mindful of memory usage when requesting <code>.current</code> for many items.</li></ul><div style="text-align: center; margin: 2em 0;">
+<svg viewBox="0 0 700 300" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Data flow from PHPickerViewController to an iOS application">
+  <title>Data flow from PHPickerViewController to an iOS application</title>
+
+  <!-- Start PHPickerVC -->
+  <rect x="20" y="20" width="150" height="60" rx="8" fill="#1565c0" stroke="#0e4a8c" stroke-width="2"/>
+  <text x="95" y="55" font-family="Arial, sans-serif" font-size="16" fill="white" text-anchor="middle">PHPickerViewController</text>
+
+  <!-- Arrow to Delegate -->
+  <path d="M170 50 H200 L220 40 L220 60 L200 50 Z" fill="#2A8367" stroke="#2A8367" stroke-width="1"/>
+  <text x="225" y="55" font-family="Arial, sans-serif" font-size="14" fill="#333">Delegate Call</text>
+
+  <!-- didFinishPicking -->
+  <rect x="280" y="20" width="180" height="60" rx="8" fill="#2A8367" stroke="#1f624d" stroke-width="2"/>
+  <text x="370" y="55" font-family="Arial, sans-serif" font-size="16" fill="white" text-anchor="middle">picker(_:didFinishPicking:)</text>
+
+  <!-- Arrow to PHPickerResult -->
+  <path d="M460 50 H490 L510 40 L510 60 L490 50 Z" fill="#2A8367" stroke="#2A8367" stroke-width="1"/>
+  <text x="515" y="55" font-family="Arial, sans-serif" font-size="14" fill="#333">Returns</text>
+
+  <!-- PHPickerResult -->
+  <rect x="570" y="20" width="100" height="60" rx="8" fill="#F04B3E" stroke="#c03c32" stroke-width="2"/>
+  <text x="620" y="55" font-family="Arial, sans-serif" font-size="16" fill="white" text-anchor="middle">PHPickerResult</text>
+
+  <!-- Arrow from PHPickerResult to itemProvider -->
+  <path d="M620 80 V110 L610 130 L630 130 L620 110 Z" fill="#2A8367" stroke="#2A8367" stroke-width="1"/>
+  <text x="630" y="125" font-family="Arial, sans-serif" font-size="14" fill="#333">.itemProvider</text>
+
+  <!-- NSItemProvider -->
+  <rect x="570" y="150" width="140" height="60" rx="8" fill="#1565c0" stroke="#0e4a8c" stroke-width="2"/>
+  <text x="640" y="185" font-family="Arial, sans-serif" font-size="16" fill="white" text-anchor="middle">NSItemProvider</text>
+
+  <!-- Arrow from NSItemProvider to loadObject -->
+  <path d="M640 210 V240 L630 260 L650 260 L640 240 Z" fill="#2A8367" stroke="#2A8367" stroke-width="1"/>
+  <text x="650" y="255" font-family="Arial, sans-serif" font-size="14" fill="#333">.loadObject(ofClass:)</text>
+
+  <!-- App Logic -->
+  <rect x="570" y="270" width="140" height="60" rx="8" fill="#2A8367" stroke="#1f624d" stroke-width="2"/>
+  <text x="640" y="305" font-family="Arial, sans-serif" font-size="16" fill="white" text-anchor="middle">App Logic/UI</text>
+
+  <!-- Alternative path for multiple selections -->
+  <path d="M400 80 V110 L390 130 L410 130 L400 110 Z" fill="#2A8367" stroke="#2A8367" stroke-width="1"/>
+  <text x="410" y="125" font-family="Arial, sans-serif" font-size="14" fill="#333">Iterate results</text>
+  <path d="M400 130 H570" stroke="#2A8367" stroke-width="1" fill="none"/>
+</svg>
+</div><h2>Best Practices and Considerations</h2><ul><li><strong>Memory Management</strong>: When dealing with <code>UIImage</code> or <code>Data</code> from <code>NSItemProvider</code>, especially for multiple selections or high-resolution assets, be mindful of memory usage. Process assets off the main thread and ensure you release memory when the assets are no longer needed.</li><li><strong>Error Handling</strong>: Always include robust error handling for <code>itemProvider.loadObject</code>. Network issues, corrupted files, or permission changes could lead to loading failures.</li><li><strong>User Experience</strong>: Provide clear feedback to the user, such as activity indicators while assets are loading, and inform them if access is denied or restricted. If your app requires full photo library access for a core feature, guide them to the Settings app to change permissions.</li><li><strong>Background Processing</strong>: If you're performing heavy image processing or uploading after selection, consider using <code>URLSession</code> background tasks or <code>BackgroundTasks</code> framework to ensure the operation completes even if the app goes to the background.</li><li><strong>Limited Access (iOS 14+):</strong> Users can grant "Limited Access" to their photo library, allowing your app to see only a subset of photos they explicitly selected. <code>PHPickerViewController</code> respects this. If your app needs to save to the library or interact with assets beyond those chosen in the picker, be aware of this limitation and gracefully handle scenarios where the user has granted limited access.</li></ul><h2>Summary</h2><p><code>PHPickerViewController</code> is a powerful and privacy-centric API that has revolutionized how iOS apps interact with the user's photo and video library. By running in a separate process, it eliminates the need for your app to request broad photo library permissions, enhancing user trust and simplifying development. While <code>PHPicker</code> handles media selection, remember that explicit <code>PHPhotoLibrary</code> authorization is still necessary for actions like saving new content to the library or building a custom library browser. Embrace <code>PHPickerViewController</code> for a modern, secure, and user-friendly media selection experience in your iOS applications.</p><p>Happy Swifting!</p></div><div class="article-tags"><span class="tags-label">Tagged: </span><ul class="tag-list"><li><a href="/tags/photos">Photos</a></li><li><a href="/tags/ios">iOS</a></li><li><a href="/tags/development">Development</a></li></ul></div><div class="ads-container"><ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-9268892677399703" data-ad-slot="8133392181" data-ad-format="auto" data-full-width-responsive="true"></ins><script>(adsbygoogle = window.adsbygoogle || []).push({});</script></div></div></div></div></article></div><footer><div class="wrapper"><p>© Swift By Rahul · <a href="/feed.rss">RSS</a> · <a href="https://github.com/bandalrahul">GitHub</a> · Built with <a href="https://github.com/johnsundell/publish">Publish</a></p></div></footer></body></html>
