@@ -113,6 +113,7 @@
     "understanding-enums-in-swift",
     "understanding-structs-in-swift",
     "understanding-classes-in-swift",
-    "understanding-extensions-in-swift"
+    "understanding-extensions-in-swift",
+    "understanding-property-wrappers-in-swift"
   ]
 }
