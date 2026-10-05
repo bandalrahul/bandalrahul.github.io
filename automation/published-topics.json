@@ -114,6 +114,7 @@
     "understanding-structs-in-swift",
     "understanding-classes-in-swift",
     "understanding-extensions-in-swift",
-    "understanding-property-wrappers-in-swift"
+    "understanding-property-wrappers-in-swift",
+    "understanding-result-type-in-swift"
   ]
 }
