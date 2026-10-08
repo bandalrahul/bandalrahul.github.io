@@ -117,6 +117,7 @@
     "understanding-property-wrappers-in-swift",
     "understanding-result-type-in-swift",
     "understanding-error-handling-in-swift",
-    "understanding-memory-management-in-swift"
+    "understanding-memory-management-in-swift",
+    "understanding-arc-in-swift"
   ]
 }
