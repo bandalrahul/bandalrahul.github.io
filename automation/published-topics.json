@@ -118,6 +118,7 @@
     "understanding-result-type-in-swift",
     "understanding-error-handling-in-swift",
     "understanding-memory-management-in-swift",
-    "understanding-arc-in-swift"
+    "understanding-arc-in-swift",
+    "understanding-weak-references-in-swift"
   ]
 }
