@@ -414,6 +414,11 @@
       "devto_id": 4807720,
       "url": "https://dev.to/rahul_bandal_afe623cbf2e2/understanding-error-handling-in-swift-n5n",
       "posted_at": "2026-10-06 15:41:01"
+    },
+    "UnderstandingWeakReferencesInSwift": {
+      "devto_id": 4824176,
+      "url": "https://dev.to/rahul_bandal_afe623cbf2e2/understanding-weak-references-in-swift-210k",
+      "posted_at": "2026-10-09 15:45:45"
     }
   }
 }
