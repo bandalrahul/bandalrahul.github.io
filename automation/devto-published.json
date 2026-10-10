@@ -419,6 +419,11 @@
       "devto_id": 4824176,
       "url": "https://dev.to/rahul_bandal_afe623cbf2e2/understanding-weak-references-in-swift-210k",
       "posted_at": "2026-10-09 15:45:45"
+    },
+    "UnderstandingUnownedReferencesInSwift": {
+      "devto_id": 4828969,
+      "url": "https://dev.to/rahul_bandal_afe623cbf2e2/understanding-unowned-references-in-swift-1a6e",
+      "posted_at": "2026-10-10 15:00:29"
     }
   }
 }
