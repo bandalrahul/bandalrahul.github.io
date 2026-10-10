@@ -1,0 +1,291 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"/><meta property="og:site_name" content="Swift By Rahul"/><link rel="canonical" href="https://www.swiftbyrahul.com/posts/UnderstandingWeakReferencesInSwift"/><meta name="twitter:url" content="https://www.swiftbyrahul.com/posts/UnderstandingWeakReferencesInSwift"/><meta property="og:url" content="https://www.swiftbyrahul.com/posts/UnderstandingWeakReferencesInSwift"/><title>Understanding Weak References in Swift | Swift By Rahul</title><meta name="twitter:title" content="Understanding Weak References in Swift | Swift By Rahul"/><meta property="og:title" content="Understanding Weak References in Swift | Swift By Rahul"/><meta name="description" content="Dive deep into weak references in Swift to prevent retain cycles and memory leaks, ensuring proper memory management in your iOS applications."/><meta name="twitter:description" content="Dive deep into weak references in Swift to prevent retain cycles and memory leaks, ensuring proper memory management in your iOS applications."/><meta property="og:description" content="Dive deep into weak references in Swift to prevent retain cycles and memory leaks, ensuring proper memory management in your iOS applications."/><meta name="twitter:card" content="summary"/><link rel="stylesheet" href="/styles.css" type="text/css"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><link rel="shortcut icon" href="/images/favicon.png" type="image/png"/><link rel="alternate" href="/feed.rss" type="application/rss+xml" title="Subscribe to Swift By Rahul"/></head><head><link rel="stylesheet" href="/css/prism.css" type="text/css"/><script src="/js/prism.js"></script><script src="/js/article.js"></script><script src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9268892677399703" async></script><meta name="twitter:card" content="summary_large_image"/><meta property="og:image" content="https://www.swiftbyrahul.com/images/posts/UnderstandingWeakReferencesInSwift.png"/><meta property="og:image:alt" content="Understanding Weak References in Swift"/><meta name="twitter:image" content="https://www.swiftbyrahul.com/images/posts/UnderstandingWeakReferencesInSwift.png"/></head><body class="item-page"><header><div class="wrapper"><a href="/" class="site-name">Swift By Rahul</a><nav class="site-nav"><ul><li><a href="/">Home</a></li><li><a href="/posts/" class="selected">Posts</a></li><li><a href="/tags">Tags</a></li><li><a href="https://github.com/bandalrahul">GitHub</a></li></ul></nav></div></header><div class="wrapper"><article><div><button class="toc-toggle" id="toc-toggle" type="button" aria-expanded="false">On this page</button><div class="article-layout"><aside class="toc" id="article-toc"><p class="toc-heading">On this page</p><nav class="toc-nav" id="article-toc-nav"></nav></aside><div class="article-main"><div class="article-meta"><span>October 9, 2026</span><span> · </span><span>12 min read</span><span> · </span><ul class="tag-list"><li><a href="/tags/swift">Swift</a></li><li><a href="/tags/ios">iOS</a></li><li><a href="/tags/programming">Programming</a></li></ul></div><div class="content"><h1>Understanding Weak References in Swift</h1><p>Memory management is a crucial aspect of writing robust and efficient applications. In Swift, Automatic Reference Counting (ARC) handles most of the heavy lifting for us, automatically deallocating objects when they are no longer needed. However, ARC isn't foolproof, and there are specific scenarios where we need to lend it a helping hand to prevent memory leaks. One of the most common and vital tools for this is the <strong>weak reference</strong>.</p><p>This article will dive deep into what weak references are, why they're essential, how they work, and when to use them effectively in your Swift and iOS projects.</p><h2>The Problem: Retain Cycles</h2><p>Before we can appreciate weak references, we must first understand the problem they solve: <strong>retain cycles</strong>.</p><p>In Swift, when you create an instance of a class, ARC allocates memory for it. As long as at least one <em>strong reference</em> to that instance exists, ARC will keep the instance alive. When the last strong reference is removed, ARC deallocates the instance and frees up its memory. This works perfectly in most cases.</p><p>A retain cycle occurs when two or more objects hold strong references to each other, creating a closed loop. Because each object has at least one strong reference pointing to it, ARC can never deallocate any of them, even if they are no longer reachable from the rest of your application. This leads to a memory leak: the memory occupied by these objects is never reclaimed.</p><p>Let's illustrate with a classic example: a <code>Person</code> and a <code>Laptop</code> class.</p><pre><code class="language-swift">class Person {
+    let name: String
+    var laptop: Laptop?
+
+    init(name: String) {
+        self.name = name
+        print("\(name) is being initialized.")
+    }
+
+    deinit {
+        print("\(name) is being deinitialized.")
+    }
+}
+
+class Laptop {
+    let model: String
+    var owner: Person?
+
+    init(model: String) {
+        self.model = model
+        print("Laptop \(model) is being initialized.")
+    }
+
+    deinit {
+        print("Laptop \(model) is being deinitialized.")
+    }
+}
+</code></pre><p>Now, let's create instances and see what happens:</p><pre><code class="language-swift">var rahul: Person?
+var macbook: Laptop?
+
+print("--- Setting up objects ---")
+rahul = Person(name: "Rahul")
+macbook = Laptop(model: "MacBook Pro")
+
+rahul?.laptop = macbook
+macbook?.owner = rahul
+
+print("--- Releasing strong references ---")
+rahul = nil
+macbook = nil
+print("--- Done releasing references ---")
+</code></pre><p>If you run this code, you'll see the initialization messages, but you won't see the <code>deinit</code> messages for "Rahul" or "MacBook Pro". This indicates a memory leak.</p><div style="text-align: center; margin: 2em 0;">
+<svg viewBox="0 0 600 220" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram showing a strong retain cycle between Person and Laptop objects">
+  <title>Strong Retain Cycle</title>
+
+  <!-- Person Box -->
+  <rect x="50" y="60" width="200" height="100" rx="10" fill="#1565c0" stroke="#0d47a1" stroke-width="2"/>
+  <text x="150" y="95" font-family="Arial, sans-serif" font-size="20" fill="white" text-anchor="middle">Person (Rahul)</text>
+  <text x="150" y="130" font-family="Arial, sans-serif" font-size="16" fill="white" text-anchor="middle">laptop: Strong Reference</text>
+
+  <!-- Laptop Box -->
+  <rect x="350" y="60" width="200" height="100" rx="10" fill="#F04B3E" stroke="#d32f2f" stroke-width="2"/>
+  <text x="450" y="95" font-family="Arial, sans-serif" font-size="20" fill="white" text-anchor="middle">Laptop (MacBook)</text>
+  <text x="450" y="130" font-family="Arial, sans-serif" font-size="16" fill="white" text-anchor="middle">owner: Strong Reference</text>
+
+  <!-- Arrow from Person to Laptop -->
+  <path d="M250 110 H330 M330 110 L320 100 M330 110 L320 120" stroke="#2A8367" stroke-width="3" fill="none" marker-end="url(#arrowhead)"/>
+  <text x="290" y="80" font-family="Arial, sans-serif" font-size="14" fill="#2A8367" text-anchor="middle">strong</text>
+
+  <!-- Arrow from Laptop to Person -->
+  <path d="M350 110 H270 M270 110 L280 100 M270 110 L280 120" stroke="#F04B3E" stroke-width="3" fill="none" marker-end="url(#arrowhead-red)"/>
+  <text x="310" y="140" font-family="Arial, sans-serif" font-size="14" fill="#F04B3E" text-anchor="middle">strong</text>
+
+  <!-- Define arrowheads -->
+  <defs>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#2A8367" />
+    </marker>
+    <marker id="arrowhead-red" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#F04B3E" />
+    </marker>
+  </defs>
+</svg>
+</div><p>The problem is that <code>rahul</code> has a strong reference to <code>macbook</code>, and <code>macbook</code> has a strong reference back to <code>rahul</code>. Even when we set <code>rahul = nil</code> and <code>macbook = nil</code>, their respective strong references to each other still exist, preventing ARC from deallocating them.</p><h2>The Solution: Weak References</h2><p>This is where the <code>weak</code> keyword comes to the rescue. A weak reference is a reference that <strong>does not keep a strong hold on the instance it refers to</strong>, and thus does not prevent ARC from deallocating that instance. If the instance it refers to is deallocated, a weak reference automatically becomes <code>nil</code>.</p><p>Because a weak reference can become <code>nil</code> at any point, it must always be declared as an optional type (<code>var OptionalType</code>). Furthermore, it must always be a variable (<code>var</code>), not a constant (<code>let</code>), because its value can change to <code>nil</code>.</p><p>Let's modify our <code>Laptop</code> class to use a <code>weak</code> reference for its <code>owner</code>:</p><pre><code class="language-swift">class Person {
+    let name: String
+    var laptop: Laptop? // Strong reference to Laptop
+
+    init(name: String) {
+        self.name = name
+        print("\(name) is being initialized.")
+    }
+
+    deinit {
+        print("\(name) is being deinitialized.")
+    }
+}
+
+class Laptop {
+    let model: String
+    weak var owner: Person? // WEAK reference to Person
+
+    init(model: String) {
+        self.model = model
+        print("Laptop \(model) is being initialized.")
+    }
+
+    deinit {
+        print("Laptop \(model) is being deinitialized.")
+    }
+}
+</code></pre><p>Now, let's run the same setup code again:</p><pre><code class="language-swift">var rahul: Person?
+var macbook: Laptop?
+
+print("--- Setting up objects ---")
+rahul = Person(name: "Rahul")
+macbook = Laptop(model: "MacBook Pro")
+
+rahul?.laptop = macbook
+macbook?.owner = rahul
+
+print("--- Releasing strong references ---")
+rahul = nil // Person (Rahul) loses its last strong reference.
+            // Laptop's weak reference to Person becomes nil.
+macbook = nil // Laptop (MacBook Pro) loses its last strong reference.
+print("--- Done releasing references ---")
+</code></pre><p>This time, the output will be:</p><pre><code>--- Setting up objects ---
+Rahul is being initialized.
+Laptop MacBook Pro is being initialized.
+--- Releasing strong references ---
+Rahul is being deinitialized.
+Laptop MacBook Pro is being deinitialized.
+--- Done releasing references ---
+</code></pre><p>Success! Both objects were deallocated correctly. When <code>rahul = nil</code> was executed, the <code>Person</code> instance lost its last strong reference and was deallocated. Consequently, <code>macbook</code>'s <code>weak var owner</code> property automatically became <code>nil</code>. Then, when <code>macbook = nil</code> was executed, the <code>Laptop</code> instance also lost its last strong reference and was deallocated. The retain cycle is broken.</p><h2>When to Use Weak References</h2><p>Weak references are typically used in scenarios where one object "owns" another, but the owned object also needs to refer back to its owner without creating a retain cycle.</p><p>Common use cases include:</p><ul><li><strong>Delegate Patterns</strong>: In Cocoa/Cocoa Touch, the delegate pattern is ubiquitous. A <code>ViewController</code> might be the delegate for a <code>UITableView</code>, for instance. The table view typically holds a <code>weak</code> reference to its delegate to prevent a retain cycle, as the view controller already strongly owns the table view.</li></ul><pre><code>    ┌───────────────┐     ┌─────────────────┐
+    │  ViewController ├───► │   TableView     │
+    │ (Strong owner) │     │ (Strongly held) │
+    └───────────────┘     └─────────────────┘
+           ▲                     │
+           └─────────────────────┘
+              Weak Reference
+              (delegate)
+    ```
+
+*   **Parent-Child Relationships**: As seen in our `Person` and `Laptop` example, if a parent object strongly holds a child object, and the child needs to reference its parent, the child's reference to the parent should be `weak`.
+*   **Closures**: This is one of the most frequent places you'll encounter `weak` references. When a closure captures `self`, it creates a strong reference to `self`. If `self` also holds a strong reference to the closure (e.g., a network request completion handler stored as a property or a timer), a retain cycle can form. Using `[weak self]` in the closure's capture list breaks this cycle.
+
+    ```swift
+    class DataFetcher {
+        var completionHandler: (() -&gt; Void)?
+
+        func fetchData() {
+            // Simulate an async operation
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1) { [weak self] in
+                guard let self = self else { return } // Safely unwrap weak self
+                print("Data fetched for \(self.description)")
+                self.completionHandler?()
+            }
+        }
+
+        init() { print("DataFetcher initialized") }
+        deinit { print("DataFetcher deinitialized") }
+    }
+
+    class ViewController: CustomStringConvertible {
+        var fetcher: DataFetcher?
+        var description: String { "ViewController" }
+
+        init() {
+            fetcher = DataFetcher()
+            fetcher?.completionHandler = { [weak self] in // Use weak self here
+                guard let self = self else {
+                    print("ViewController was deallocated before completion.")
+                    return
+                }
+                print("Completion handler executed for \(self.description)")
+                self.fetcher = nil // Clean up
+            }
+            print("ViewController initialized")
+        }
+
+        deinit {
+            print("ViewController deinitialized")
+        }
+    }
+
+    var vc: ViewController? = ViewController()
+    vc?.fetcher?.fetchData()
+
+    // Simulate navigation away from the ViewController
+    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+        vc = nil // ViewController should deallocate now, even if fetcher is still running
+    }
+
+    // Output will show ViewController deinit before "Data fetched" if vc becomes nil
+    // If [weak self] wasn't used, ViewController would leak until fetcher is released.
+    ```
+
+    In this example, without `[weak self]` in the completion handler, `ViewController` would strongly hold `fetcher`, and `fetcher`'s `completionHandler` closure would strongly capture `self` (the `ViewController`), leading to a retain cycle. By making `self` weak in the closure, the `ViewController` can be deallocated when `vc = nil`, even if the closure hasn't completed yet.
+
+## Weak vs. Unowned References
+
+Swift offers another non-strong reference type: `unowned`. While both `weak` and `unowned` references don't create strong holds, they have a crucial difference:
+
+*   **`weak`**: Can be `nil`. Use when the other instance might have a shorter lifetime or might be deallocated *before* the current instance.
+*   **`unowned`**: Is *never* `nil`. Use when the other instance has the same lifetime or a longer lifetime than the current instance. If you try to access an `unowned` reference after its instance has been deallocated, your app will crash at runtime.
+
+Consider the `CreditCard` and `Customer` relationship. A `Customer` might own multiple `CreditCard`s, and a `CreditCard` will *always* have an `owner`. In this scenario, the `CreditCard`'s reference to its `Customer` owner can be `unowned`, because the `CreditCard` will never exist without an owner.
+
+</code></pre><p>swift class Customer { let name: String var card: CreditCard?</p><p>init(name: String) { self.name = name } deinit { print("(name) is being deinitialized.") } }</p><p>class CreditCard { let number: UInt64 unowned let owner: Customer // Unowned reference</p><p>init(number: UInt64, owner: Customer) { self.number = number self.owner = owner } deinit { print("Card #(number) is being deinitialized.") } }</p><p>var john: Customer? john = Customer(name: "John Appleseed") john?.card = CreditCard(number: 1234<em>5678</em>9012_3456, owner: john!)</p><p>john = nil // Both Customer and CreditCard deallocate correctly.</p><pre><code>
+If `john` were to become `nil` while `john.card` still existed, the `CreditCard`'s `unowned owner` reference would immediately become invalid, but it wouldn't be `nil`. Accessing it would cause a runtime crash. This is why `unowned` is best used when you are absolutely certain the referenced object will outlive or have the same lifetime as the object holding the `unowned` reference.
+
+&lt;div style="text-align: center; margin: 2em 0;"&gt;
+&lt;svg viewBox="0 0 700 250" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Comparison of strong, weak, and unowned references in Swift"&gt;
+  &lt;title&gt;Strong, Weak, and Unowned References&lt;/title&gt;
+
+  &lt;!-- Strong Reference --&gt;
+  &lt;rect x="20" y="20" width="200" height="80" rx="10" fill="#1565c0" stroke="#0d47a1" stroke-width="2"/&gt;
+  &lt;text x="120" y="50" font-family="Arial, sans-serif" font-size="18" fill="white" text-anchor="middle"&gt;Object A&lt;/text&gt;
+  &lt;text x="120" y="75" font-family="Arial, sans-serif" font-size="14" fill="white" text-anchor="middle"&gt;Holds strong ref&lt;/text&gt;
+
+  &lt;rect x="20" y="140" width="200" height="80" rx="10" fill="#F04B3E" stroke="#d32f2f" stroke-width="2"/&gt;
+  &lt;text x="120" y="170" font-family="Arial, sans-serif" font-size="18" fill="white" text-anchor="middle"&gt;Object B&lt;/text&gt;
+  &lt;text x="120" y="195" font-family="Arial, sans-serif" font-size="14" fill="white" text-anchor="middle"&gt;Holds strong ref&lt;/text&gt;
+
+  &lt;path d="M220 60 H280 M280 60 L270 50 M280 60 L270 70" stroke="#2A8367" stroke-width="3" fill="none" marker-end="url(#arrowhead-strong)"/&gt;
+  &lt;text x="250" y="45" font-family="Arial, sans-serif" font-size="12" fill="#2A8367" text-anchor="middle"&gt;strong&lt;/text&gt;
+  &lt;path d="M220 180 H280 M280 180 L270 170 M280 180 L270 190" stroke="#F04B3E" stroke-width="3" fill="none" marker-end="url(#arrowhead-strong-red)"/&gt;
+  &lt;text x="250" y="165" font-family="Arial, sans-serif" font-size="12" fill="#F04B3E" text-anchor="middle"&gt;strong&lt;/text&gt;
+
+  &lt;text x="120" y="120" font-family="Arial, sans-serif" font-size="16" fill="black" text-anchor="middle"&gt;Retain Cycle!&lt;/text&gt;
+
+
+  &lt;!-- Weak Reference --&gt;
+  &lt;rect x="300" y="20" width="180" height="80" rx="10" fill="#1565c0" stroke="#0d47a1" stroke-width="2"/&gt;
+  &lt;text x="390" y="50" font-family="Arial, sans-serif" font-size="18" fill="white" text-anchor="middle"&gt;Object C&lt;/text&gt;
+  &lt;text x="390" y="75" font-family="Arial, sans-serif" font-size="14" fill="white" text-anchor="middle"&gt;Strong ref&lt;/text&gt;
+
+  &lt;rect x="500" y="20" width="180" height="80" rx="10" fill="#2A8367" stroke="#1c6b54" stroke-width="2"/&gt;
+  &lt;text x="590" y="50" font-family="Arial, sans-serif" font-size="18" fill="white" text-anchor="middle"&gt;Object D?&lt;/text&gt;
+  &lt;text x="590" y="75" font-family="Arial, sans-serif" font-size="14" fill="white" text-anchor="middle"&gt;Weak ref (Optional)&lt;/text&gt;
+
+  &lt;path d="M480 60 H540 M540 60 L530 50 M540 60 L530 70" stroke="#2A8367" stroke-width="3" fill="none" marker-end="url(#arrowhead-strong)"/&gt;
+  &lt;text x="510" y="45" font-family="Arial, sans-serif" font-size="12" fill="#2A8367" text-anchor="middle"&gt;strong&lt;/text&gt;
+  &lt;path d="M500 60 H440 M440 60 L450 50 M440 60 L450 70" stroke="#F04B3E" stroke-width="3" fill="none" marker-end="url(#arrowhead-weak)" stroke-dasharray="5,5"/&gt;
+  &lt;text x="470" y="75" font-family="Arial, sans-serif" font-size="12" fill="#F04B3E" text-anchor="middle"&gt;weak&lt;/text&gt;
+
+  &lt;text x="490" y="120" font-family="Arial, sans-serif" font-size="16" fill="black" text-anchor="middle"&gt;No Retain Cycle&lt;/text&gt;
+
+
+  &lt;!-- Unowned Reference --&gt;
+  &lt;rect x="300" y="140" width="180" height="80" rx="10" fill="#1565c0" stroke="#0d47a1" stroke-width="2"/&gt;
+  &lt;text x="390" y="170" font-family="Arial, sans-serif" font-size="18" fill="white" text-anchor="middle"&gt;Object E&lt;/text&gt;
+  &lt;text x="390" y="195" font-family="Arial, sans-serif" font-size="14" fill="white" text-anchor="middle"&gt;Strong ref&lt;/text&gt;
+
+  &lt;rect x="500" y="140" width="180" height="80" rx="10" fill="#2A8367" stroke="#1c6b54" stroke-width="2"/&gt;
+  &lt;text x="590" y="170" font-family="Arial, sans-serif" font-size="18" fill="white" text-anchor="middle"&gt;Object F&lt;/text&gt;
+  &lt;text x="590" y="195" font-family="Arial, sans-serif" font-size="14" fill="white" text-anchor="middle"&gt;Unowned ref (Non-optional)&lt;/text&gt;
+
+  &lt;path d="M480 180 H540 M540 180 L530 170 M540 180 L530 190" stroke="#2A8367" stroke-width="3" fill="none" marker-end="url(#arrowhead-strong)"/&gt;
+  &lt;text x="510" y="165" font-family="Arial, sans-serif" font-size="12" fill="#2A8367" text-anchor="middle"&gt;strong&lt;/text&gt;
+  &lt;path d="M500 180 H440 M440 180 L450 170 M440 180 L450 190" stroke="#F04B3E" stroke-width="3" fill="none" marker-end="url(#arrowhead-unowned)" stroke-dasharray="2,2"/&gt;
+  &lt;text x="470" y="195" font-family="Arial, sans-serif" font-size="12" fill="#F04B3E" text-anchor="middle"&gt;unowned&lt;/text&gt;
+
+  &lt;text x="490" y="230" font-family="Arial, sans-serif" font-size="16" fill="black" text-anchor="middle"&gt;No Retain Cycle (but unsafe if F outlives E)&lt;/text&gt;
+
+  &lt;!-- Define arrowheads --&gt;
+  &lt;defs&gt;
+    &lt;marker id="arrowhead-strong" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto"&gt;
+      &lt;polygon points="0 0, 10 3.5, 0 7" fill="#2A8367" /&gt;
+    &lt;/marker&gt;
+    &lt;marker id="arrowhead-strong-red" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto"&gt;
+      &lt;polygon points="0 0, 10 3.5, 0 7" fill="#F04B3E" /&gt;
+    &lt;/marker&gt;
+    &lt;marker id="arrowhead-weak" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto"&gt;
+      &lt;polygon points="0 0, 10 3.5, 0 7" fill="#F04B3E" /&gt;
+    &lt;/marker&gt;
+    &lt;marker id="arrowhead-unowned" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto"&gt;
+      &lt;polygon points="0 0, 10 3.5, 0 7" fill="#F04B3E" /&gt;
+    &lt;/marker&gt;
+  &lt;/defs&gt;
+&lt;/svg&gt;
+&lt;/div&gt;
+
+## Practical Advice: Safely Using `weak self` in Closures
+
+When using `[weak self]` in a closure, `self` becomes an optional (`self?`). It's good practice to safely unwrap it if you need to access its properties or methods within the closure. The `guard let self = self else { return }` pattern is ideal for this:
+
+</code></pre><p>swift class MyService { func performAsyncOperation(completion: @escaping (String) -&gt; Void) { DispatchQueue.global().asyncAfter(deadline: .now() + 2) { completion("Data from service") } } }</p><p>class ViewModel { let service = MyService() var data: String = ""</p><p>init() { print("ViewModel initialized") // Simulate a long-running operation service.performAsyncOperation { [weak self] fetchedData in // Safely unwrap self guard let self = self else { print("ViewModel was deallocated before data arrived.") return } self.data = fetchedData print("ViewModel received data: (self.data)") } }</p><p>deinit { print("ViewModel deinitialized") } }</p><p>var viewModel: ViewModel? = ViewModel()</p><p>// Let's release the strong reference to viewModel after a short delay // to see if the deinit is called correctly. DispatchQueue.main.asyncAfter(deadline: .now() + 1) { print("Releasing viewModel reference...") viewModel = nil }</p><p>// Keep the program alive long enough for the async operation to potentially complete DispatchQueue.main.asyncAfter(deadline: .now() + 3) { print("Program finished.") }</p><pre><code>
+In this example:
+1.  `ViewModel` is initialized, which starts an async operation in `MyService`.
+2.  The `completion` closure for `MyService` captures `[weak self]`.
+3.  After 1 second, `viewModel = nil` is executed. Since `MyService` does not hold a strong reference back to `ViewModel`, and the closure's capture of `self` is `weak`, `ViewModel`'s `deinit` is called.
+4.  When the `MyService` operation completes after 2 seconds, the closure is executed. `guard let self = self else { ... }` correctly identifies that `self` is now `nil` and returns, preventing a crash or access to a deallocated instance.
+
+This pattern is fundamental for preventing memory leaks in asynchronous operations and UI event handling in iOS development.
+
+## Summary
+
+Weak references are a cornerstone of proper memory management in Swift, particularly for preventing retain cycles. By understanding when and how to use the `weak` keyword, you can ensure your objects are deallocated correctly by ARC, leading to more stable and efficient applications. Remember to use `weak` when an object might outlive the object it refers to, and always declare it as an optional `var`. For situations where you're certain the referenced object will always be alive, `unowned` can be used, but with caution due to its crash-on-nil behavior. Mastering these concepts is essential for any intermediate Swift developer.
+
+Happy Swifting!
+</code></pre></div><div class="article-tags"><span class="tags-label">Tagged: </span><ul class="tag-list"><li><a href="/tags/swift">Swift</a></li><li><a href="/tags/ios">iOS</a></li><li><a href="/tags/programming">Programming</a></li></ul></div><div class="ads-container"><ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-9268892677399703" data-ad-slot="8133392181" data-ad-format="auto" data-full-width-responsive="true"></ins><script>(adsbygoogle = window.adsbygoogle || []).push({});</script></div></div></div></div></article></div><footer><div class="wrapper"><p>© Swift By Rahul · <a href="/feed.rss">RSS</a> · <a href="https://github.com/bandalrahul">GitHub</a> · Built with <a href="https://github.com/johnsundell/publish">Publish</a></p></div></footer></body></html>

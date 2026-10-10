@@ -1,0 +1,276 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"/><meta property="og:site_name" content="Swift By Rahul"/><link rel="canonical" href="https://www.swiftbyrahul.com/posts/SwiftClosuresExplainedWithPracticalExamples"/><meta name="twitter:url" content="https://www.swiftbyrahul.com/posts/SwiftClosuresExplainedWithPracticalExamples"/><meta property="og:url" content="https://www.swiftbyrahul.com/posts/SwiftClosuresExplainedWithPracticalExamples"/><title>Swift Closures Explained with Practical Examples | Swift By Rahul</title><meta name="twitter:title" content="Swift Closures Explained with Practical Examples | Swift By Rahul"/><meta property="og:title" content="Swift Closures Explained with Practical Examples | Swift By Rahul"/><meta name="description" content="Master Swift closures with this comprehensive guide, covering syntax, capturing values, and practical applications in iOS development like networking and UI callbacks."/><meta name="twitter:description" content="Master Swift closures with this comprehensive guide, covering syntax, capturing values, and practical applications in iOS development like networking and UI callbacks."/><meta property="og:description" content="Master Swift closures with this comprehensive guide, covering syntax, capturing values, and practical applications in iOS development like networking and UI callbacks."/><meta name="twitter:card" content="summary"/><link rel="stylesheet" href="/styles.css" type="text/css"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><link rel="shortcut icon" href="/images/favicon.png" type="image/png"/><link rel="alternate" href="/feed.rss" type="application/rss+xml" title="Subscribe to Swift By Rahul"/></head><head><link rel="stylesheet" href="/css/prism.css" type="text/css"/><script src="/js/prism.js"></script><script src="/js/article.js"></script><script src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9268892677399703" async></script><meta name="twitter:card" content="summary_large_image"/><meta property="og:image" content="https://www.swiftbyrahul.com/images/posts/SwiftClosuresExplainedWithPracticalExamples.png"/><meta property="og:image:alt" content="Swift Closures Explained with Practical Examples"/><meta name="twitter:image" content="https://www.swiftbyrahul.com/images/posts/SwiftClosuresExplainedWithPracticalExamples.png"/></head><body class="item-page"><header><div class="wrapper"><a href="/" class="site-name">Swift By Rahul</a><nav class="site-nav"><ul><li><a href="/">Home</a></li><li><a href="/posts/" class="selected">Posts</a></li><li><a href="/tags">Tags</a></li><li><a href="https://github.com/bandalrahul">GitHub</a></li></ul></nav></div></header><div class="wrapper"><article><div><button class="toc-toggle" id="toc-toggle" type="button" aria-expanded="false">On this page</button><div class="article-layout"><aside class="toc" id="article-toc"><p class="toc-heading">On this page</p><nav class="toc-nav" id="article-toc-nav"></nav></aside><div class="article-main"><div class="article-meta"><span>June 14, 2026</span><span> · </span><span>10 min read</span><span> · </span><ul class="tag-list"><li><a href="/tags/swift">Swift</a></li><li><a href="/tags/ios">iOS</a></li><li><a href="/tags/programming">Programming</a></li></ul></div><div class="content"><h1>Swift Closures Explained with Practical Examples</h1><p>Welcome back to Swift By Rahul! Today, we're diving deep into one of Swift's most fundamental and powerful features: closures. If you've worked with other languages, you might recognize them as lambdas or blocks. In Swift, closures are everywhere – from handling asynchronous network requests to animating UI elements and processing collections.</p><p>Understanding closures isn't just about knowing the syntax; it's about grasping how they enable flexible, functional programming patterns and manage complexity in your iOS apps. By the end of this article, you'll not only understand what closures are but also how to wield them effectively in your projects.</p><p>At their core, a closure is a self-contained block of functionality that can be passed around and used in your code. Think of it as a function that you can store in a variable, pass as an argument to another function, or even return as a value. This flexibility is what makes them so powerful.</p><div style="text-align: center; margin: 2em 0;">
+<svg viewBox="0 0 600 220" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram illustrating a Swift closure as a self-contained block of functionality.">
+  <title>Swift Closure Concept</title>
+
+  <!-- Main Closure Box -->
+  <rect x="200" y="50" width="200" height="120" rx="10" ry="10" fill="#2A8367" stroke="#1565c0" stroke-width="2"/>
+  <text x="300" y="85" font-family="Arial, sans-serif" font-size="20" fill="white" text-anchor="middle">Closure</text>
+
+  <!-- Internal elements of Closure -->
+  <rect x="220" y="100" width="160" height="30" rx="5" ry="5" fill="#1565c0" opacity="0.8"/>
+  <text x="300" y="120" font-family="Arial, sans-serif" font-size="14" fill="white" text-anchor="middle">Code Block</text>
+
+  <rect x="220" y="140" width="160" height="30" rx="5" ry="5" fill="#1565c0" opacity="0.8"/>
+  <text x="300" y="160" font-family="Arial, sans-serif" font-size="14" fill="white" text-anchor="middle">Captured Values</text>
+
+  <!-- Arrows and labels for usage -->
+  <line x1="150" y1="110" x2="200" y2="110" stroke="#1565c0" stroke-width="2" marker-end="url(#arrowheadBlue)"/>
+  <text x="75" y="105" font-family="Arial, sans-serif" font-size="14" fill="#1565c0" text-anchor="middle">Passed as Argument</text>
+
+  <line x1="400" y1="110" x2="450" y2="110" stroke="#1565c0" stroke-width="2" marker-end="url(#arrowheadBlue)"/>
+  <text x="525" y="105" font-family="Arial, sans-serif" font-size="14" fill="#1565c0" text-anchor="middle">Assigned to Variable</text>
+
+  <!-- Arrowhead definition -->
+  <defs>
+    <marker id="arrowheadBlue" markerWidth="10" markerHeight="7" refX="0" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#1565c0" />
+    </marker>
+  </defs>
+</svg>
+</div><h2>The Basics of Closure Syntax</h2><p>Let's start with the most explicit form of closure syntax and then progressively simplify it, just as Swift allows us to.</p><h3>Full Closure Expression Syntax</h3><p>The most complete way to define a closure in Swift is as follows:</p><pre><code class="language-swift">{ (parameters) -&gt; returnType in
+    statements
+}
+</code></pre><ul><li><code>parameters</code>: The input values the closure accepts.</li><li><code>returnType</code>: The type of value the closure returns.</li><li><code>in</code>: This keyword separates the parameters and return type from the closure's body.</li><li><code>statements</code>: The actual code block that the closure executes.</li></ul><p>Here's a simple example:</p><pre><code class="language-swift">let additionClosure: (Int, Int) -&gt; Int = { (a: Int, b: Int) -&gt; Int in
+    return a + b
+}
+
+let sum = additionClosure(10, 20)
+print(sum) // Output: 30
+</code></pre><p>In this example, <code>additionClosure</code> is a constant that holds a closure. The closure takes two <code>Int</code> parameters (<code>a</code> and <code>b</code>) and returns an <code>Int</code>.</p><h3>Inferring Type From Context</h3><p>Swift is smart. It can often infer the types of parameters and the return type if the closure is used as an argument to a function or assigned to a variable with an explicit type.</p><pre><code class="language-swift">// The type of additionClosure is already known from the assignment
+let inferredAdditionClosure: (Int, Int) -&gt; Int = { (a, b) in
+    return a + b
+}
+
+let inferredSum = inferredAdditionClosure(15, 25)
+print(inferredSum) // Output: 40
+</code></pre><p>Notice how we removed the explicit type annotations (<code>Int</code>) for <code>a</code> and <code>b</code>. Swift figures it out from the <code>(Int, Int) -&gt; Int</code> part.</p><h3>Implicit Returns from Single-Expression Closures</h3><p>If your closure consists of a single expression, Swift can implicitly return the result of that expression without needing the <code>return</code> keyword.</p><pre><code class="language-swift">let implicitReturnClosure: (Int, Int) -&gt; Int = { (a, b) in
+    a + b // No 'return' keyword needed
+}
+
+let implicitSum = implicitReturnClosure(5, 7)
+print(implicitSum) // Output: 12
+</code></pre><p>This makes closures much more concise, especially for simple operations.</p><h3>Shorthand Argument Names</h3><p>Swift provides an even shorter way to refer to the arguments of a closure: shorthand argument names. You can refer to the first argument as <code>$0</code>, the second as <code>$1</code>, and so on. When using shorthand argument names, you can omit the parameter list and the <code>in</code> keyword entirely.</p><pre><code class="language-swift">let shorthandSumClosure: (Int, Int) -&gt; Int = { $0 + $1 }
+
+let shorthandSum = shorthandSumClosure(3, 4)
+print(shorthandSum) // Output: 7
+</code></pre><p>This is incredibly common when working with Swift's collection methods like <code>map</code>, <code>filter</code>, and <code>sorted</code>.</p><pre><code class="language-swift">let numbers = [1, 5, 2, 8, 3]
+
+// Sorting an array using a closure with shorthand argument names
+let sortedNumbers = numbers.sorted { $0 &lt; $1 }
+print(sortedNumbers) // Output: [1, 2, 3, 5, 8]
+</code></pre><h2>Trailing Closures</h2><p>When the last argument of a function is a closure, you can use a special syntax called a <em>trailing closure</em>. Instead of writing the closure inside the function's parentheses, you write it immediately after the function call. This greatly enhances readability, especially for longer closures.</p><p>Consider the <code>sorted(by:)</code> method again:</p><pre><code class="language-swift">// Without trailing closure syntax
+let unsortedArray = [10, 2, 7, 5, 1]
+let sortedAscending = unsortedArray.sorted(by: { (n1: Int, n2: Int) -&gt; Bool in
+    return n1 &lt; n2
+})
+print(sortedAscending) // Output: [1, 2, 5, 7, 10]
+
+// With trailing closure syntax, type inference, implicit return, and shorthand arguments
+let sortedDescending = unsortedArray.sorted { $0 &gt; $1 }
+print(sortedDescending) // Output: [10, 7, 5, 2, 1]
+</code></pre><p>As you can see, the trailing closure syntax makes the code much cleaner and more expressive, almost like a natural language sentence. Many SwiftUI views and asynchronous APIs heavily leverage trailing closures.</p><h2>Capturing Values</h2><p>One of the most powerful features of closures is their ability to <em>capture</em> constants and variables from their surrounding context. This means that a closure can refer to and modify values from the scope in which it was defined, even after that scope has ceased to exist.</p><p>This concept is often referred to as a closure forming a "strong reference" to the variables it captures.</p><p>Consider this example:</p><pre><code class="language-swift">func makeIncrementer(forIncrement amount: Int) -&gt; () -&gt; Int {
+    var runningTotal = 0 // This variable is captured by the closure
+    return {
+        runningTotal += amount
+        return runningTotal
+    }
+}
+
+let incrementByTen = makeIncrementer(forIncrement: 10)
+print(incrementByTen()) // Output: 10
+print(incrementByTen()) // Output: 20
+print(incrementByTen()) // Output: 30
+
+let incrementBySeven = makeIncrementer(forIncrement: 7)
+print(incrementBySeven()) // Output: 7
+print(incrementByTen()) // Output: 40 (incrementByTen still has its own runningTotal)
+</code></pre><p>In this example, <code>makeIncrementer</code> returns a closure. The <code>runningTotal</code> variable and <code>amount</code> parameter are defined <em>outside</em> the returned closure, but the closure captures them. Each call to <code>makeIncrementer</code> creates a new <code>runningTotal</code> variable, which is then captured by its own unique incrementer closure.</p><p>This ability to capture values is what makes closures stateful and incredibly flexible for tasks like creating custom counters, managing private state, or handling callbacks that need access to specific data.</p><pre><code>┌──────────────────┐
+│ makeIncrementer  │
+│ - amount = 10    │
+│ - runningTotal=0 │
+└──────────────────┘
+         │
+         │  (Closure Definition)
+         ▼
+┌──────────────────┐
+│ Returned Closure │
+│ - Captures:      │
+│   'amount'       │
+│   'runningTotal' │
+│ - Increments     │
+│   runningTotal   │
+└──────────────────┘
+</code></pre><p><strong>Important Note on Memory:</strong> When a closure captures a variable, it captures a <em>reference</em> to it. If you capture an instance of a class (like <code>self</code> in an <code>UIViewController</code>), this can lead to strong reference cycles, causing memory leaks. To prevent this, Swift offers <code>capture lists</code> (e.g., <code>[weak self]</code>, <code>[unowned self]</code>) to specify how captured values should be referenced. While we won't deep dive into memory management here, it's a crucial consideration for more complex applications.</p><h2>Practical Examples in iOS Development</h2><p>Closures are the backbone of modern Swift and iOS development. Let's look at some common use cases.</p><h3>1. Asynchronous Operations (Completion Handlers)</h3><p>Network requests, file operations, and other long-running tasks often complete at an unknown future time. Closures are perfect for handling the result once the operation finishes. These are often called "completion handlers."</p><pre><code class="language-swift">import Foundation
+
+func fetchData(from url: URL, completion: @escaping (Data?, Error?) -&gt; Void) {
+    URLSession.shared.dataTask(with: url) { data, response, error in
+        // This closure is called when the network request completes
+        if let error = error {
+            print("Error fetching data: \(error.localizedDescription)")
+            completion(nil, error)
+            return
+        }
+
+        guard let httpResponse = response as? HTTPURLResponse,
+              (200...299).contains(httpResponse.statusCode) else {
+            print("Invalid response or status code")
+            completion(nil, NSError(domain: "HTTPError", code: 0, userInfo: nil))
+            return
+        }
+
+        completion(data, nil)
+    }.resume()
+}
+
+// Example usage:
+if let myURL = URL(string: "https://api.example.com/data") {
+    fetchData(from: myURL) { data, error in
+        if let data = data {
+            // Process the fetched data
+            print("Data received: \(data.count) bytes")
+            // Example: Decode JSON data
+            // let decodedObject = try? JSONDecoder().decode(MyModel.self, from: data)
+        } else if let error = error {
+            print("Failed to get data: \(error.localizedDescription)")
+        }
+    }
+}
+</code></pre><p>Here, the <code>completion</code> closure is passed to <code>fetchData</code> and then <em>escapes</em> that function to be called later by <code>URLSession</code> when the network request finishes.</p><div style="text-align: center; margin: 2em 0;">
+<svg viewBox="0 0 700 280" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Flowchart illustrating a network request using a closure as a completion handler.">
+  <title>Network Request with Completion Handler</title>
+
+  <!-- Network Request Box -->
+  <rect x="50" y="50" width="150" height="60" rx="10" ry="10" fill="#1565c0" stroke="#1565c0" stroke-width="2"/>
+  <text x="125" y="85" font-family="Arial, sans-serif" font-size="16" fill="white" text-anchor="middle">Network Request</text>
+
+  <!-- Arrow to Server -->
+  <line x1="200" y1="80" x2="250" y2="80" stroke="#1565c0" stroke-width="2" marker-end="url(#arrowheadBlue)"/>
+  <text x="225" y="70" font-family="Arial, sans-serif" font-size="12" fill="#1565c0" text-anchor="middle">Sends Data</text>
+
+  <!-- Server Box -->
+  <rect x="250" y="50" width="100" height="60" rx="10" ry="10" fill="#F04B3E" stroke="#F04B3E" stroke-width="2"/>
+  <text x="300" y="85" font-family="Arial, sans-serif" font-size="16" fill="white" text-anchor="middle">Server</text>
+
+  <!-- Arrow from Server to Response -->
+  <line x1="350" y1="80" x2="400" y2="80" stroke="#F04B3E" stroke-width="2" marker-end="url(#arrowheadRed)"/>
+  <text x="375" y="70" font-family="Arial, sans-serif" font-size="12" fill="#F04B3E" text-anchor="middle">Sends Response</text>
+
+  <!-- Response Data Box -->
+  <rect x="400" y="50" width="150" height="60" rx="10" ry="10" fill="#2A8367" stroke="#2A8367" stroke-width="2"/>
+  <text x="475" y="85" font-family="Arial, sans-serif" font-size="16" fill="white" text-anchor="middle">Response Data</text>
+
+  <!-- Arrow to Closure Call -->
+  <line x1="475" y1="110" x2="475" y2="150" stroke="#2A8367" stroke-width="2" marker-end="url(#arrowheadGreen)"/>
+  <text x="490" y="130" font-family="Arial, sans-serif" font-size="12" fill="#2A8367" text-anchor="start">Closure Invoked</text>
+
+  <!-- Closure Box (Completion Handler) -->
+  <rect x="350" y="150" width="250" height="80" rx="10" ry="10" fill="#1565c0" stroke="#1565c0" stroke-width="2"/>
+  <text x="475" y="175" font-family="Arial, sans-serif" font-size="16" fill="white" text-anchor="middle">Completion Handler Closure</text>
+
+  <!-- Internal steps of Closure -->
+  <rect x="370" y="195" width="210" height="25" rx="5" ry="5" fill="white" opacity="0.8"/>
+  <text x="475" y="212" font-family="Arial, sans-serif" font-size="14" fill="#1565c0" text-anchor="middle">1. Process Data (Parse JSON)</text>
+
+  <rect x="370" y="225" width="210" height="25" rx="5" ry="5" fill="white" opacity="0.8"/>
+  <text x="475" y="242" font-family="Arial, sans-serif" font-size="14" fill="#1565c0" text-anchor="middle">2. Update UI on Main Thread</text>
+
+  <!-- Arrowhead definition for this diagram -->
+  <defs>
+    <marker id="arrowheadBlue" markerWidth="10" markerHeight="7" refX="0" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#1565c0" />
+    </marker>
+    <marker id="arrowheadRed" markerWidth="10" markerHeight="7" refX="0" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#F04B3E" />
+    </marker>
+    <marker id="arrowheadGreen" markerWidth="10" markerHeight="7" refX="0" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#2A8367" />
+    </marker>
+  </defs>
+</svg>
+</div><h3>2. UI Callbacks</h3><p>Before <code>UIAction</code> (iOS 14+), you'd often use Objective-C selectors for button taps. Now, closures offer a modern, type-safe alternative.</p><pre><code class="language-swift">import UIKit
+
+class ViewController: UIViewController {
+    override func viewDidLoad() {
+        super.viewDidLoad()
+
+        let button = UIButton(type: .system)
+        button.setTitle("Tap Me!", for: .normal)
+        button.frame = CGRect(x: 100, y: 100, width: 100, height: 50)
+        view.addSubview(button)
+
+        // Using a closure for button tap event (iOS 14+)
+        button.addAction(UIAction { [weak self] _ in
+            self?.handleButtonTap()
+        }, for: .touchUpInside)
+    }
+
+    private func handleButtonTap() {
+        print("Button was tapped!")
+        // Perform UI updates or other logic
+    }
+}
+</code></pre><p>Notice the <code>[weak self]</code> in the capture list. This is crucial to prevent a strong reference cycle between the <code>ViewController</code> and the <code>UIAction</code> closure, which could lead to a memory leak.</p><h3>3. Animation Callbacks</h3><p><code>UIView.animate</code> is another common place to use closures, both for the animation block itself and for a completion handler.</p><pre><code class="language-swift">import UIKit
+
+func animateView(view: UIView) {
+    UIView.animate(withDuration: 0.5, delay: 0, options: .curveEaseInOut) {
+        // Animation block: Change view properties here
+        view.center.x += 100
+        view.alpha = 0.5
+    } completion: { finished in
+        // Completion block: What to do after the animation finishes
+        if finished {
+            print("Animation completed!")
+            view.backgroundColor = .systemGreen
+        }
+    }
+}
+
+// Example usage in a ViewController:
+// animateView(view: myAnimatedView)
+</code></pre><h3>4. Array Methods (<code>map</code>, <code>filter</code>, <code>reduce</code>)</h3><p>Functional programming paradigms heavily rely on closures. Swift's array methods are prime examples.</p><pre><code class="language-swift">let temperatures = [22, 28, 19, 31, 25]
+
+// map: Transforms each element
+let fahrenheitTemps = temperatures.map { celsius in
+    return (celsius * 9 / 5) + 32
+}
+print(fahrenheitTemps) // Output: [71, 82, 66, 87, 77]
+
+// filter: Selects elements based on a condition
+let warmTemps = temperatures.filter { $0 &gt; 25 }
+print(warmTemps) // Output: [28, 31]
+
+// reduce: Combines all elements into a single value
+let totalTemp = temperatures.reduce(0) { sum, temp in
+    sum + temp
+}
+print(totalTemp) // Output: 125 (22+28+19+31+25)
+</code></pre><p>These methods, combined with trailing closures and shorthand argument names, make data manipulation incredibly expressive and concise.</p><h2>Escaping vs. Non-Escaping Closures</h2><p>You might have noticed the <code>@escaping</code> keyword in some function signatures. What does it mean?</p><ul><li><strong>Non-escaping closure (default):</strong> A closure that is called <em>within</em> the function it's passed to and returns before the function returns. The closure's lifetime is tied to the function's execution.</li><li><strong>Escaping closure (<code>@escaping</code>):</strong> A closure that is called <em>after</em> the function it was passed to has returned. This happens when the closure is stored in a variable, passed to an asynchronous operation, or dispatched on another queue.</li></ul><p>The <code>@escaping</code> keyword is a compiler hint. If you try to store an unescaped closure in a property or use it asynchronously, the compiler will prompt you to mark it <code>@escaping</code>.</p><pre><code class="language-swift">var storedClosure: (() -&gt; Void)?
+
+func functionWithEscapingClosure(completion: @escaping () -&gt; Void) {
+    storedClosure = completion // The closure "escapes" the function's scope
+}
+
+func functionWithNonEscapingClosure(action: () -&gt; Void) {
+    action() // The closure is called immediately and doesn't escape
+}
+
+functionWithEscapingClosure {
+    print("This closure will be called later.")
+}
+
+storedClosure?() // Output: This closure will be called later.
+
+functionWithNonEscapingClosure {
+    print("This closure is called right away.")
+} // Output: This closure is called right away.
+</code></pre><p>Escaping closures often require <code>[weak self]</code> or <code>[unowned self]</code> in their capture lists to prevent strong reference cycles, especially when capturing <code>self</code> within a class instance.</p><h2><code>@autoclosure</code> (Briefly)</h2><p>A more advanced and less common use case, <code>@autoclosure</code> allows you to defer the evaluation of an expression by automatically wrapping it in a zero-argument closure. It's often used for short-circuiting logic or assertions.</p><pre><code class="language-swift">func logIfTrue(_ condition: @autoclosure () -&gt; Bool) {
+    if condition() { // The expression is only evaluated if needed
+        print("Condition is true!")
+    } else {
+        print("Condition is false!")
+    }
+}
+
+logIfTrue(2 &gt; 1) // Passed as an expression, wrapped into a closure automatically
+// Output: Condition is true!
+</code></pre><p>This avoids creating an explicit closure expression <code>logIfTrue({ 2 &gt; 1 })</code>, making the call site cleaner. It's used in Swift's <code>assert</code> function, for example.</p><h2>Summary</h2><p>Closures are an indispensable part of Swift programming. They provide a concise and powerful way to define blocks of code that can be passed around, executed later, and capture values from their surrounding context. From handling asynchronous events and UI interactions to performing functional transformations on collections, closures empower you to write more expressive, flexible, and maintainable Swift code.</p><p>Mastering their syntax, understanding value capturing, and knowing when to use <code>@escaping</code> are key steps in becoming a proficient Swift developer.</p><p>Happy Swifting!</p></div><div class="article-tags"><span class="tags-label">Tagged: </span><ul class="tag-list"><li><a href="/tags/swift">Swift</a></li><li><a href="/tags/ios">iOS</a></li><li><a href="/tags/programming">Programming</a></li></ul></div><div class="ads-container"><ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-9268892677399703" data-ad-slot="8133392181" data-ad-format="auto" data-full-width-responsive="true"></ins><script>(adsbygoogle = window.adsbygoogle || []).push({});</script></div></div></div></div></article></div><footer><div class="wrapper"><p>© Swift By Rahul · <a href="/feed.rss">RSS</a> · <a href="https://github.com/bandalrahul">GitHub</a> · Built with <a href="https://github.com/johnsundell/publish">Publish</a></p></div></footer></body></html>
