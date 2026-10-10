@@ -119,6 +119,7 @@
     "understanding-error-handling-in-swift",
     "understanding-memory-management-in-swift",
     "understanding-arc-in-swift",
-    "understanding-weak-references-in-swift"
+    "understanding-weak-references-in-swift",
+    "understanding-unowned-references-in-swift"
   ]
 }
