@@ -121,6 +121,7 @@
     "understanding-arc-in-swift",
     "understanding-weak-references-in-swift",
     "understanding-unowned-references-in-swift",
-    "understanding-copy-on-write-in-swift"
+    "understanding-copy-on-write-in-swift",
+    "understanding-value-semantics-in-swift"
   ]
 }
