@@ -429,6 +429,11 @@
       "devto_id": 4839754,
       "url": "https://dev.to/rahul_bandal_afe623cbf2e2/understanding-value-semantics-in-swift-3fa5",
       "posted_at": "2026-10-12 18:31:00"
+    },
+    "UnderstandingTypeErasureInSwift": {
+      "devto_id": 4845677,
+      "url": "https://dev.to/rahul_bandal_afe623cbf2e2/understanding-type-erasure-in-swift-53j8",
+      "posted_at": "2026-10-13 16:42:28"
     }
   }
 }
