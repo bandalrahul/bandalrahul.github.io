@@ -122,6 +122,7 @@
     "understanding-weak-references-in-swift",
     "understanding-unowned-references-in-swift",
     "understanding-copy-on-write-in-swift",
-    "understanding-value-semantics-in-swift"
+    "understanding-value-semantics-in-swift",
+    "understanding-type-erasure-in-swift"
   ]
 }
