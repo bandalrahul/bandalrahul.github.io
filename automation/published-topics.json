@@ -123,6 +123,7 @@
     "understanding-unowned-references-in-swift",
     "understanding-copy-on-write-in-swift",
     "understanding-value-semantics-in-swift",
-    "understanding-type-erasure-in-swift"
+    "understanding-type-erasure-in-swift",
+    "understanding-opaque-types-in-swift"
   ]
 }
