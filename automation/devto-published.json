@@ -439,6 +439,11 @@
       "devto_id": 4856920,
       "url": "https://dev.to/rahul_bandal_afe623cbf2e2/understanding-keypaths-in-swift-beyond-the-basics-367i",
       "posted_at": "2026-10-15 13:53:16"
+    },
+    "UnderstandingDynamicMemberLookupInSwift": {
+      "devto_id": 4862795,
+      "url": "https://dev.to/rahul_bandal_afe623cbf2e2/understanding-dynamic-member-lookup-in-swift-31hk",
+      "posted_at": "2026-10-16 13:43:40"
     }
   }
 }
