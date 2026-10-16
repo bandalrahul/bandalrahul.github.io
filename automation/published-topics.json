@@ -125,6 +125,7 @@
     "understanding-value-semantics-in-swift",
     "understanding-type-erasure-in-swift",
     "understanding-opaque-types-in-swift",
-    "understanding-keypaths-in-swift"
+    "understanding-keypaths-in-swift",
+    "understanding-dynamic-member-lookup-in-swift"
   ]
 }
