@@ -126,6 +126,7 @@
     "understanding-type-erasure-in-swift",
     "understanding-opaque-types-in-swift",
     "understanding-keypaths-in-swift",
-    "understanding-dynamic-member-lookup-in-swift"
+    "understanding-dynamic-member-lookup-in-swift",
+    "understanding-result-builders-in-swift"
   ]
 }
