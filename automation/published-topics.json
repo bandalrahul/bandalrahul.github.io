@@ -131,6 +131,7 @@
     "understanding-macros-in-swift",
     "understanding-sendable-in-swift",
     "understanding-isolation-in-swift",
-    "understanding-ownership-in-swift"
+    "understanding-ownership-in-swift",
+    "understanding-existential-types-in-swift"
   ]
 }
