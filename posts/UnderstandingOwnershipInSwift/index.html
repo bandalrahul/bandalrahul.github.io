@@ -1,0 +1,301 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"/><meta property="og:site_name" content="Swift By Rahul"/><link rel="canonical" href="https://www.swiftbyrahul.com/posts/UnderstandingOwnershipInSwift"/><meta name="twitter:url" content="https://www.swiftbyrahul.com/posts/UnderstandingOwnershipInSwift"/><meta property="og:url" content="https://www.swiftbyrahul.com/posts/UnderstandingOwnershipInSwift"/><title>Understanding Ownership in Swift | Swift By Rahul</title><meta name="twitter:title" content="Understanding Ownership in Swift | Swift By Rahul"/><meta property="og:title" content="Understanding Ownership in Swift | Swift By Rahul"/><meta name="description" content="Explore the fundamental concept of ownership in Swift, focusing on how strong references dictate the lifetime of class instances and prevent memory leaks."/><meta name="twitter:description" content="Explore the fundamental concept of ownership in Swift, focusing on how strong references dictate the lifetime of class instances and prevent memory leaks."/><meta property="og:description" content="Explore the fundamental concept of ownership in Swift, focusing on how strong references dictate the lifetime of class instances and prevent memory leaks."/><meta name="twitter:card" content="summary"/><link rel="stylesheet" href="/styles.css" type="text/css"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><link rel="shortcut icon" href="/images/favicon.png" type="image/png"/><link rel="alternate" href="/feed.rss" type="application/rss+xml" title="Subscribe to Swift By Rahul"/></head><head><link rel="stylesheet" href="/css/prism.css" type="text/css"/><script src="/js/prism.js"></script><script src="/js/article.js"></script><script src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9268892677399703" async></script><meta name="twitter:card" content="summary_large_image"/><meta property="og:image" content="https://www.swiftbyrahul.com/images/posts/UnderstandingOwnershipInSwift.png"/><meta property="og:image:alt" content="Understanding Ownership in Swift"/><meta name="twitter:image" content="https://www.swiftbyrahul.com/images/posts/UnderstandingOwnershipInSwift.png"/></head><body class="item-page"><header><div class="wrapper"><a href="/" class="site-name">Swift By Rahul</a><nav class="site-nav"><ul><li><a href="/">Home</a></li><li><a href="/posts/" class="selected">Posts</a></li><li><a href="/tags">Tags</a></li><li><a href="https://github.com/bandalrahul">GitHub</a></li></ul></nav></div></header><div class="wrapper"><article><div><button class="toc-toggle" id="toc-toggle" type="button" aria-expanded="false">On this page</button><div class="article-layout"><aside class="toc" id="article-toc"><p class="toc-heading">On this page</p><nav class="toc-nav" id="article-toc-nav"></nav></aside><div class="article-main"><div class="article-meta"><span>October 21, 2026</span><span> · </span><span>10 min read</span><span> · </span><ul class="tag-list"><li><a href="/tags/swift">Swift</a></li><li><a href="/tags/ios">iOS</a></li><li><a href="/tags/programming">Programming</a></li></ul></div><div class="content"><h1>Understanding Ownership in Swift</h1><p>As Swift developers, we often hear about Automatic Reference Counting (ARC) and memory management. While ARC is the <em>mechanism</em> Swift uses to manage memory for reference types, the underlying <em>concept</em> that governs an object's existence is <strong>ownership</strong>. Understanding ownership is crucial for writing robust, leak-free Swift applications, especially when dealing with classes and their interactions.</p><p>At its core, ownership in Swift dictates how long an instance of a class remains in memory. Simply put, an object "lives" as long as it has at least one "owner." When an object loses all its owners, it's deallocated. This article will demystify ownership, explaining how it works, how it affects your code, and how to manage it effectively.</p><h2>The Core Concept: Strong Ownership</h2><p>In Swift, when you create an instance of a class and assign it to a variable or constant, that variable or constant establishes a <strong>strong reference</strong> to the instance. This strong reference signifies ownership. As long as there's at least one strong reference pointing to an object, Swift's ARC system ensures that the object remains in memory.</p><p>Consider a <code>Person</code> class:</p><pre><code class="language-swift">class Person {
+    let name: String
+    var age: Int
+
+    init(name: String, age: Int) {
+        self.name = name
+        self.age = age
+        print("\(name) is being initialized.")
+    }
+
+    deinit {
+        print("\(name) is being deinitialized.")
+    }
+}
+</code></pre><p>Now, let's observe ownership in action:</p><pre><code class="language-swift">var rahul: Person? = Person(name: "Rahul", age: 30)
+print("Rahul has been created.")
+
+// At this point, 'rahul' holds a strong reference to the Person instance.
+// The object is owned.
+
+var anotherReference = rahul
+print("Another reference created.")
+
+// Now, both 'rahul' and 'anotherReference' strongly own the Person instance.
+// The ownership count is 2.
+
+rahul = nil
+print("Rahul reference set to nil.")
+
+// 'rahul' no longer owns the Person instance, but 'anotherReference' still does.
+// The object is still alive. Ownership count is 1.
+
+anotherReference = nil
+print("Another reference set to nil.")
+
+// 'anotherReference' no longer owns the Person instance.
+// There are no more strong references (owners).
+// The Person instance is deallocated.
+</code></pre><p>When you run this code, you'll see:</p><pre><code>Rahul is being initialized.
+Rahul has been created.
+Another reference created.
+Rahul reference set to nil.
+Another reference set to nil.
+Rahul is being deinitialized.
+</code></pre><p>This output clearly demonstrates that the <code>Person</code> instance persists in memory until all strong references to it are removed. Each strong reference acts as a claim of ownership, preventing deallocation.</p><div style="text-align: center; margin: 2em 0;">
+<svg viewBox="0 0 600 220" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram showing an object's lifetime tied to strong references">
+  <title>Object Lifetime and Strong References</title>
+
+  <!-- Object Box -->
+  <rect x="250" y="80" width="100" height="60" rx="8" ry="8" fill="#F0F0F0" stroke="#1565c0" stroke-width="2"/>
+  <text x="300" y="115" font-family="Arial" font-size="16" text-anchor="middle" fill="#333">Person Object</text>
+
+  <!-- Reference 1 -->
+  <rect x="50" y="80" width="80" height="40" rx="5" ry="5" fill="#E0F2F1" stroke="#2A8367" stroke-width="1"/>
+  <text x="90" y="105" font-family="Arial" font-size="14" text-anchor="middle" fill="#333">var rahul</text>
+  <line x1="130" y1="100" x2="250" y2="100" stroke="#2A8367" stroke-width="2" marker-end="url(#arrowhead)"/>
+
+  <!-- Reference 2 -->
+  <rect x="470" y="80" width="80" height="40" rx="5" ry="5" fill="#E0F2F1" stroke="#2A8367" stroke-width="1"/>
+  <text x="510" y="105" font-family="Arial" font-size="14" text-anchor="middle" fill="#333">var anotherRef</text>
+  <line x1="470" y1="100" x2="350" y2="100" stroke="#2A8367" stroke-width="2" marker-end="url(#arrowhead)"/>
+
+  <!-- Deallocation text -->
+  <text x="300" y="180" font-family="Arial" font-size="14" text-anchor="middle" fill="#F04B3E">Deallocated when no strong references remain</text>
+
+  <!-- Arrowhead definition -->
+  <defs>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="0" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#2A8367" />
+    </marker>
+  </defs>
+</svg>
+</div><h2>Retain Cycles: A Classic Ownership Dilemma</h2><p>The strong ownership model works perfectly in most scenarios. However, it can lead to a problem known as a <strong>retain cycle</strong> (or strong reference cycle). A retain cycle occurs when two or more objects hold strong references to each other, creating a closed loop of ownership. In such a scenario, even if there are no external strong references to these objects, ARC can never deallocate them because their ownership counts never drop to zero. This leads to a memory leak.</p><p>Let's illustrate with an <code>Apartment</code> class:</p><pre><code class="language-swift">class Apartment {
+    let unit: String
+    weak var tenant: Person? // Notice 'weak' here, but let's initially make it strong for the example
+    
+    init(unit: String) {
+        self.unit = unit
+        print("Apartment \(unit) is being initialized.")
+    }
+
+    deinit {
+        print("Apartment \(unit) is being deinitialized.")
+    }
+}
+
+extension Person {
+    var apartment: Apartment? // Let's make this strong initially too
+}
+</code></pre><p>Now, let's simulate a situation where a <code>Person</code> and an <code>Apartment</code> strongly reference each other:</p><pre><code class="language-swift">var john: Person? = Person(name: "John", age: 40)
+var unit4A: Apartment? = Apartment(unit: "4A")
+
+// Create the strong reference cycle
+john!.apartment = unit4A
+// Person "John" now strongly owns Apartment "4A"
+
+unit4A!.tenant = john
+// Apartment "4A" now strongly owns Person "John"
+
+print("References established. Attempting to clear...")
+
+john = nil
+unit4A = nil
+
+print("References cleared from outside.")
+// Expected: John and Apartment 4A deinitialized.
+// Actual: Nothing happens because of the retain cycle.
+</code></pre><p>If you run this code, you'll see:</p><pre><code>John is being initialized.
+Apartment 4A is being initialized.
+References established. Attempting to clear...
+References cleared from outside.
+</code></pre><p>Neither "John is being deinitialized." nor "Apartment 4A is being deinitialized." prints! This is a classic retain cycle. <code>john</code> strongly owns <code>unit4A</code>, and <code>unit4A</code> strongly owns <code>john</code>. Even when we set <code>john</code> and <code>unit4A</code> to <code>nil</code>, their internal strong references to each other keep them alive indefinitely.</p><pre><code>┌───────────┐     ┌───────────┐
+│ Person    │     │ Apartment │
+│ (John)    │ ◄───│ (Unit 4A) │
+│           │     │           │
+│ .apartment│ ───►│ .tenant   │
+└───────────┘     └───────────┘
+</code></pre><h2>Breaking Strong Ownership: Weak and Unowned References</h2><p>To resolve retain cycles, Swift provides <strong>weak</strong> and <strong>unowned</strong> references. These references do <em>not</em> establish ownership, meaning they don't contribute to an object's strong ownership count.</p><ul><li><strong><code>weak</code> references</strong>: These are always declared as optional variables (<code>var</code>). They don't keep a strong hold on the instance they refer to. If the instance they refer to is deallocated, a <code>weak</code> reference automatically becomes <code>nil</code>. This makes them suitable for situations where the referenced object might be deallocated at any point.</li></ul><ul><li><strong><code>unowned</code> references</strong>: These are used when you know for certain that the reference will always refer to an instance that has not been deallocated. An <code>unowned</code> reference is typically non-optional (<code>let</code> or <code>var</code>) and, unlike a <code>weak</code> reference, it does not become <code>nil</code> automatically. Accessing an <code>unowned</code> reference after its instance has been deallocated will result in a runtime crash. Therefore, <code>unowned</code> references are best used when the two objects have the same lifetime or when one object's lifetime is guaranteed to be shorter than the other, and the reference points from the longer-lived to the shorter-lived.</li></ul><p>To fix our <code>Person</code> and <code>Apartment</code> retain cycle, we need to decide which object should "own" the other, or if neither should strongly own the other. A common pattern is to have one relationship be strong and the other <code>weak</code>. In our example, it makes sense that a <code>Person</code> might or might not have an <code>Apartment</code>, and an <code>Apartment</code> might or might not have a <code>tenant</code>. If we consider the <code>Person</code> as the primary entity that "has" an apartment, then the <code>Apartment</code>'s reference back to the <code>Person</code> should be <code>weak</code>.</p><p>Let's modify the <code>Apartment</code> class's <code>tenant</code> property to be <code>weak</code>:</p><pre><code class="language-swift">class Apartment {
+    let unit: String
+    weak var tenant: Person? // Marked as weak
+    
+    init(unit: String) {
+        self.unit = unit
+        print("Apartment \(unit) is being initialized.")
+    }
+
+    deinit {
+        print("Apartment \(unit) is being deinitialized.")
+    }
+}
+
+extension Person {
+    var apartment: Apartment? // This remains a strong reference, establishing ownership
+}
+</code></pre><p>Now, re-run the example:</p><pre><code class="language-swift">var john: Person? = Person(name: "John", age: 40)
+var unit4A: Apartment? = Apartment(unit: "4A")
+
+john!.apartment = unit4A // John strongly owns Unit 4A
+unit4A!.tenant = john    // Unit 4A weakly references John (no ownership)
+
+print("References established. Attempting to clear...")
+
+john = nil // John is now deallocated because no one strongly owns him
+unit4A = nil // Unit 4A is now deallocated because no one strongly owns it
+</code></pre><p>Output:</p><pre><code>John is being initialized.
+Apartment 4A is being initialized.
+References established. Attempting to clear...
+John is being deinitialized.
+Apartment 4A is being deinitialized.
+References cleared from outside.
+</code></pre><p>Success! By making <code>tenant</code> a <code>weak</code> reference, we broke the strong ownership cycle. When <code>john = nil</code> is executed, the <code>Person</code> instance's strong ownership count drops to zero, leading to its deallocation. Consequently, <code>unit4A.tenant</code> automatically becomes <code>nil</code>. Then, when <code>unit4A = nil</code> is executed, the <code>Apartment</code> instance's strong ownership count also drops to zero, leading to its deallocation.</p><h2>Ownership in Closures: Capture Lists</h2><p>Closures in Swift also have a significant role in ownership, as they can "capture" variables and constants from their surrounding context. By default, a closure captures these values strongly, potentially leading to retain cycles, especially when capturing <code>self</code>.</p><p>Consider a <code>ServiceManager</code> that performs a task and then calls a completion handler:</p><pre><code class="language-swift">class ServiceManager {
+    var operationCount = 0
+
+    func performLongRunningOperation(completion: @escaping () -&gt; Void) {
+        operationCount += 1
+        // Simulate async work
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+            print("Operation \(self.operationCount) completed.")
+            completion()
+        }
+    }
+
+    deinit {
+        print("ServiceManager is being deinitialized.")
+    }
+}
+
+class ViewController {
+    var manager: ServiceManager?
+
+    init() {
+        manager = ServiceManager()
+        print("ViewController is being initialized.")
+    }
+
+    func setupOperation() {
+        manager?.performLongRunningOperation {
+            // By default, 'self' is captured strongly here
+            self.updateUI() 
+        }
+    }
+
+    func updateUI() {
+        print("UI updated in ViewController.")
+    }
+
+    deinit {
+        print("ViewController is being deinitialized.")
+    }
+}
+</code></pre><p>If we create and then dismiss a <code>ViewController</code>:</p><pre><code class="language-swift">var vc: ViewController? = ViewController()
+vc?.setupOperation()
+
+print("ViewController created and operation started.")
+
+vc = nil // Attempt to deallocate ViewController
+print("ViewController reference set to nil.")
+</code></pre><p>You'll observe:</p><pre><code>ServiceManager is being initialized.
+ViewController is being initialized.
+ViewController created and operation started.
+ViewController reference set to nil.
+Operation 1 completed.
+UI updated in ViewController.
+</code></pre><p>Neither <code>ViewController is being deinitialized.</code> nor <code>ServiceManager is being deinitialized.</code> prints. We have a retain cycle! The <code>ViewController</code> strongly owns the <code>ServiceManager</code>. The <code>ServiceManager</code>'s <code>performLongRunningOperation</code> method takes a closure. Inside this closure, <code>self</code> (which is the <code>ViewController</code> instance) is captured strongly by default. This means the closure now strongly owns the <code>ViewController</code>. Since the <code>ServiceManager</code> (owned by <code>ViewController</code>) holds onto this closure, and the closure holds onto <code>ViewController</code>, we have a cycle.</p><p>To break this, we use a <strong>capture list</strong> within the closure:</p><pre><code class="language-swift">class ViewController {
+    var manager: ServiceManager?
+
+    init() {
+        manager = ServiceManager()
+        print("ViewController is being initialized.")
+    }
+
+    func setupOperation() {
+        manager?.performLongRunningOperation { [weak self] in // Capture self weakly
+            guard let self = self else { return } // Safely unwrap weak self
+            self.updateUI()
+        }
+    }
+
+    func updateUI() {
+        print("UI updated in ViewController.")
+    }
+
+    deinit {
+        print("ViewController is being deinitialized.")
+    }
+}
+</code></pre><p>With <code>[weak self]</code>, the closure no longer creates a strong ownership link back to the <code>ViewController</code>. Now, when <code>vc = nil</code> is executed, the <code>ViewController</code> can be deallocated. The <code>ServiceManager</code> will also be deallocated since <code>ViewController</code> was its only strong owner.</p><p>Output with <code>[weak self]</code>:</p><pre><code>ServiceManager is being initialized.
+ViewController is being initialized.
+ViewController created and operation started.
+ViewController reference set to nil.
+ViewController is being deinitialized.
+ServiceManager is being deinitialized.
+Operation 1 completed.
+UI updated in ViewController.
+</code></pre><p>This works because <code>self</code> is captured weakly. If the <code>ViewController</code> is deallocated before the closure executes, <code>self</code> inside the closure will be <code>nil</code>, and <code>updateUI()</code> won't be called, which is usually the desired behavior. You could also use <code>[unowned self]</code> if you're absolutely certain <code>self</code> will always be alive when the closure executes (e.g., if the closure is guaranteed to execute immediately or within the lifetime of <code>self</code>). However, <code>weak self</code> is generally safer as it handles the case where <code>self</code> might be gone.</p><div style="text-align: center; margin: 2em 0;">
+<svg viewBox="0 0 600 280" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Comparison of strong vs. weak capture of self in closures">
+  <title>Strong vs. Weak Capture in Closures</title>
+
+  <!-- Title -->
+  <text x="300" y="20" font-family="Arial" font-size="18" text-anchor="middle" fill="#333" font-weight="bold">Closure Capture: Strong vs. Weak Self</text>
+
+  <!-- Strong Capture Section -->
+  <rect x="50" y="40" width="240" height="220" rx="10" ry="10" fill="#FFFBE6" stroke="#F04B3E" stroke-width="2"/>
+  <text x="170" y="65" font-family="Arial" font-size="16" text-anchor="middle" fill="#F04B3E" font-weight="bold">Strong Capture (Retain Cycle)</text>
+
+  <!-- VC Box (Strong) -->
+  <rect x="70" y="90" width="100" height="50" rx="5" ry="5" fill="#E0F2F1" stroke="#1565c0" stroke-width="1"/>
+  <text x="120" y="118" font-family="Arial" font-size="14" text-anchor="middle" fill="#333">ViewController</text>
+
+  <!-- Closure Box (Strong) -->
+  <rect x="180" y="150" width="100" height="50" rx="5" ry="5" fill="#F0F0F0" stroke="#1565c0" stroke-width="1"/>
+  <text x="230" y="178" font-family="Arial" font-size="14" text-anchor="middle" fill="#333">Closure</text>
+
+  <!-- VC -> Closure (Strong) -->
+  <line x1="170" y1="115" x2="180" y2="175" stroke="#F04B3E" stroke-width="2" marker-end="url(#arrowheadRed)"/>
+  <text x="175" y="140" font-family="Arial" font-size="12" fill="#F04B3E">Strong Capture</text>
+
+  <!-- Closure -> VC (Strong) -->
+  <line x1="230" y1="150" x2="120" y2="140" stroke="#F04B3E" stroke-width="2" marker-end="url(#arrowheadRed)"/>
+  <text x="175" y="145" font-family="Arial" font-size="12" fill="#F04B3E"></text>
+
+  <!-- Warning Text -->
+  <text x="170" y="225" font-family="Arial" font-size="12" text-anchor="middle" fill="#F04B3E">Memory Leak!</text>
+
+  <!-- Weak Capture Section -->
+  <rect x="310" y="40" width="240" height="220" rx="10" ry="10" fill="#E0F2F1" stroke="#2A8367" stroke-width="2"/>
+  <text x="430" y="65" font-family="Arial" font-size="16" text-anchor="middle" fill="#2A8367" font-weight="bold">Weak Capture (No Leak)</text>
+
+  <!-- VC Box (Weak) -->
+  <rect x="330" y="90" width="100" height="50" rx="5" ry="5" fill="#E0F2F1" stroke="#1565c0" stroke-width="1"/>
+  <text x="380" y="118" font-family="Arial" font-size="14" text-anchor="middle" fill="#333">ViewController</text>
+
+  <!-- Closure Box (Weak) -->
+  <rect x="440" y="150" width="100" height="50" rx="5" ry="5" fill="#F0F0F0" stroke="#1565c0" stroke-width="1"/>
+  <text x="490" y="178" font-family="Arial" font-size="14" text-anchor="middle" fill="#333">Closure</text>
+
+  <!-- VC -> Closure (Strong) -->
+  <line x1="430" y1="115" x2="440" y2="175" stroke="#2A8367" stroke-width="2" marker-end="url(#arrowheadGreen)"/>
+  <text x="435" y="140" font-family="Arial" font-size="12" fill="#2A8367">Strong Capture</text>
+
+  <!-- Closure -> VC (Weak) -->
+  <line x1="490" y1="150" x2="380" y2="140" stroke="#2A8367" stroke-width="1" stroke-dasharray="4 2" marker-end="url(#arrowheadGreenDashed)"/>
+  <text x="435" y="145" font-family="Arial" font-size="12" fill="#2A8367">[weak self]</text>
+
+  <!-- Success Text -->
+  <text x="430" y="225" font-family="Arial" font-size="12" text-anchor="middle" fill="#2A8367">No Memory Leak</text>
+
+  <!-- Arrowhead definitions -->
+  <defs>
+    <marker id="arrowheadRed" markerWidth="10" markerHeight="7" refX="0" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#F04B3E" />
+    </marker>
+    <marker id="arrowheadGreen" markerWidth="10" markerHeight="7" refX="0" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#2A8367" />
+    </marker>
+    <marker id="arrowheadGreenDashed" markerWidth="10" markerHeight="7" refX="0" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#2A8367" />
+    </marker>
+  </defs>
+</svg>
+</div><h2>Beyond References: Value Types and Ownership</h2><p>It's important to remember that the concept of ownership, as discussed here with strong, weak, and unowned references, primarily applies to <strong>reference types</strong> (classes). Swift's <strong>value types</strong> (structs, enums, tuples) behave differently. When you assign a value type instance to a new variable or pass it to a function, a copy is made. Each copy is independent; there's no shared ownership or reference counting involved. This is why value types inherently avoid retain cycles and simplify memory management for many common data structures.</p><p>While the discussion of value semantics is a topic in itself, understanding this distinction reinforces that ownership challenges are predominantly a concern when working with classes.</p><h2>Summary</h2><p>Ownership in Swift is a fundamental concept that dictates the lifespan of class instances. By default, strong references establish ownership, ensuring an object remains in memory as long as it's needed. However, this strong ownership can lead to retain cycles—a common source of memory leaks—when objects mutually own each other.</p><p>To manage and break these cycles, Swift provides <code>weak</code> and <code>unowned</code> references: <em> <strong>Strong References</strong>: Establish ownership, prevent deallocation. </em> <strong>Weak References</strong>: Do not establish ownership, automatically become <code>nil</code> when the referenced object is deallocated, ideal for breaking cycles where an object might outlive its reference. * <strong>Unowned References</strong>: Do not establish ownership, assume the referenced object will always be alive, and will crash if accessed after deallocation, suitable for tightly coupled objects with guaranteed lifetimes.</p><p>Understanding these ownership rules and mastering the use of <code>weak</code> and <code>unowned</code> (especially in closure capture lists) is essential for writing efficient, stable, and leak-free Swift applications.</p><p>Happy Swifting!</p></div><div class="article-tags"><span class="tags-label">Tagged: </span><ul class="tag-list"><li><a href="/tags/swift">Swift</a></li><li><a href="/tags/ios">iOS</a></li><li><a href="/tags/programming">Programming</a></li></ul></div><div class="ads-container"><ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-9268892677399703" data-ad-slot="8133392181" data-ad-format="auto" data-full-width-responsive="true"></ins><script>(adsbygoogle = window.adsbygoogle || []).push({});</script></div></div></div></div></article></div><footer><div class="wrapper"><p>© Swift By Rahul · <a href="/feed.rss">RSS</a> · <a href="https://github.com/bandalrahul">GitHub</a> · Built with <a href="https://github.com/johnsundell/publish">Publish</a></p></div></footer></body></html>
