@@ -132,6 +132,7 @@
     "understanding-sendable-in-swift",
     "understanding-isolation-in-swift",
     "understanding-ownership-in-swift",
-    "understanding-existential-types-in-swift"
+    "understanding-existential-types-in-swift",
+    "understanding-associated-types-in-swift"
   ]
 }
