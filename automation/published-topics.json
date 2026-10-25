@@ -133,6 +133,7 @@
     "understanding-isolation-in-swift",
     "understanding-ownership-in-swift",
     "understanding-existential-types-in-swift",
-    "understanding-associated-types-in-swift"
+    "understanding-associated-types-in-swift",
+    "understanding-pattern-matching-in-swift"
   ]
 }
