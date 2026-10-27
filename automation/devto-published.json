@@ -464,6 +464,11 @@
       "devto_id": 4910642,
       "url": "https://dev.to/rahul_bandal_afe623cbf2e2/understanding-associated-types-in-swift-21d0",
       "posted_at": "2026-10-24 13:05:59"
+    },
+    "UnderstandingDeferBlocksInSwift": {
+      "devto_id": 4929154,
+      "url": "https://dev.to/rahul_bandal_afe623cbf2e2/understanding-defer-blocks-in-swift-2ie7",
+      "posted_at": "2026-10-27 15:06:39"
     }
   }
 }
