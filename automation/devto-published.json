@@ -469,6 +469,11 @@
       "devto_id": 4929154,
       "url": "https://dev.to/rahul_bandal_afe623cbf2e2/understanding-defer-blocks-in-swift-2ie7",
       "posted_at": "2026-10-27 15:06:39"
+    },
+    "UnderstandingLazyPropertiesInSwift": {
+      "devto_id": 4942211,
+      "url": "https://dev.to/rahul_bandal_afe623cbf2e2/understanding-lazy-properties-in-swift-3ce2",
+      "posted_at": "2026-10-29 15:56:40"
     }
   }
 }
