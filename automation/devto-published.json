@@ -474,6 +474,11 @@
       "devto_id": 4942211,
       "url": "https://dev.to/rahul_bandal_afe623cbf2e2/understanding-lazy-properties-in-swift-3ce2",
       "posted_at": "2026-10-29 15:56:40"
+    },
+    "UnderstandingComputedPropertiesInSwift": {
+      "devto_id": 4948358,
+      "url": "https://dev.to/rahul_bandal_afe623cbf2e2/understanding-computed-properties-in-swift-5bda",
+      "posted_at": "2026-10-30 15:40:45"
     }
   }
 }
