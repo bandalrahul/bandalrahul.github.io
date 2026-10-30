@@ -1,0 +1,263 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"/><meta property="og:site_name" content="Swift By Rahul"/><link rel="canonical" href="https://www.swiftbyrahul.com/posts/UnderstandingGuardStatementsInSwift"/><meta name="twitter:url" content="https://www.swiftbyrahul.com/posts/UnderstandingGuardStatementsInSwift"/><meta property="og:url" content="https://www.swiftbyrahul.com/posts/UnderstandingGuardStatementsInSwift"/><title>Understanding Guard Statements in Swift | Swift By Rahul</title><meta name="twitter:title" content="Understanding Guard Statements in Swift | Swift By Rahul"/><meta property="og:title" content="Understanding Guard Statements in Swift | Swift By Rahul"/><meta name="description" content="Explore Swift's `guard` statement for early exits, improving code readability, and managing optionals effectively in your iOS apps."/><meta name="twitter:description" content="Explore Swift's `guard` statement for early exits, improving code readability, and managing optionals effectively in your iOS apps."/><meta property="og:description" content="Explore Swift's `guard` statement for early exits, improving code readability, and managing optionals effectively in your iOS apps."/><meta name="twitter:card" content="summary"/><link rel="stylesheet" href="/styles.css" type="text/css"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><link rel="shortcut icon" href="/images/favicon.png" type="image/png"/><link rel="alternate" href="/feed.rss" type="application/rss+xml" title="Subscribe to Swift By Rahul"/></head><head><link rel="stylesheet" href="/css/prism.css" type="text/css"/><script src="/js/prism.js"></script><script src="/js/article.js"></script><script src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9268892677399703" async></script><meta name="twitter:card" content="summary_large_image"/><meta property="og:image" content="https://www.swiftbyrahul.com/images/posts/UnderstandingGuardStatementsInSwift.png"/><meta property="og:image:alt" content="Understanding Guard Statements in Swift"/><meta name="twitter:image" content="https://www.swiftbyrahul.com/images/posts/UnderstandingGuardStatementsInSwift.png"/></head><body class="item-page"><header><div class="wrapper"><a href="/" class="site-name">Swift By Rahul</a><nav class="site-nav"><ul><li><a href="/">Home</a></li><li><a href="/posts/" class="selected">Posts</a></li><li><a href="/tags">Tags</a></li><li><a href="https://github.com/bandalrahul">GitHub</a></li></ul></nav></div></header><div class="wrapper"><article><div><button class="toc-toggle" id="toc-toggle" type="button" aria-expanded="false">On this page</button><div class="article-layout"><aside class="toc" id="article-toc"><p class="toc-heading">On this page</p><nav class="toc-nav" id="article-toc-nav"></nav></aside><div class="article-main"><div class="article-meta"><span>October 26, 2026</span><span> · </span><span>11 min read</span><span> · </span><ul class="tag-list"><li><a href="/tags/swift">Swift</a></li><li><a href="/tags/ios">iOS</a></li><li><a href="/tags/programming">Programming</a></li></ul></div><div class="content"><h1>Understanding Guard Statements in Swift</h1><p>As Swift developers, we're constantly striving for code that is not only functional but also clean, readable, and robust. One of Swift's powerful control flow statements that significantly aids in achieving these goals is the <code>guard</code> statement. While often seen as a counterpart to <code>if let</code>, <code>guard</code> serves a distinct purpose, primarily focused on enforcing preconditions and ensuring early exits from a scope.</p><p>In this article, we'll dive deep into <code>guard</code> statements, exploring their syntax, various use cases, and the benefits they bring to your Swift projects. By the end, you'll have a clear understanding of when and how to leverage <code>guard</code> to write more expressive and maintainable code.</p><h2>What is a <code>guard</code> Statement?</h2><p>At its core, a <code>guard</code> statement is designed to ensure that a condition is true before proceeding with the execution of the code block following it. If the condition evaluates to <code>false</code>, the <code>guard</code> statement's <code>else</code> block is executed, which <em>must</em> transfer control out of the current scope. This "fail fast" approach is a cornerstone of defensive programming.</p><p>Think of <code>guard</code> as a gatekeeper. If the required conditions aren't met, the gate remains closed, and the code inside the function or loop won't even be reached. This contrasts with an <code>if</code> statement, which executes its block only if a condition is true, and then potentially continues with the rest of the code.</p><p>Here's a visual representation of the <code>guard</code> statement's flow:</p><div style="text-align: center; margin: 2em 0;">
+<svg viewBox="0 0 600 220" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Guard Statement Flowchart">
+  <title>Guard Statement Flowchart</title>
+
+  <!-- Start Node -->
+  <rect x="250" y="10" width="100" height="40" rx="5" fill="#1565c0" stroke="#000" stroke-width="1"/>
+  <text x="300" y="35" font-family="Arial" font-size="14" fill="#FFF" text-anchor="middle">Start</text>
+
+  <!-- Condition Diamond -->
+  <polygon points="300,70 350,95 300,120 250,95" fill="#2A8367" stroke="#000" stroke-width="1"/>
+  <text x="300" y="98" font-family="Arial" font-size="14" fill="#FFF" text-anchor="middle">Condition True?</text>
+
+  <!-- Arrow from Start to Condition -->
+  <line x1="300" y1="50" x2="300" y2="70" stroke="#000" stroke-width="2" marker-end="url(#arrowhead)"/>
+
+  <!-- True Path (Proceed) -->
+  <line x1="350" y1="95" x2="450" y2="95" stroke="#000" stroke-width="2" marker-end="url(#arrowhead)"/>
+  <text x="400" y="85" font-family="Arial" font-size="12" fill="#000" text-anchor="middle">True</text>
+  <rect x="450" y="75" width="120" height="40" rx="5" fill="#D3D3D3" stroke="#000" stroke-width="1"/>
+  <text x="510" y="100" font-family="Arial" font-size="14" fill="#000" text-anchor="middle">Proceed with Code</text>
+
+  <!-- False Path (Exit) -->
+  <line x1="300" y1="120" x2="300" y2="150" stroke="#000" stroke-width="2" marker-end="url(#arrowhead)"/>
+  <text x="315" y="135" font-family="Arial" font-size="12" fill="#000" text-anchor="start">False</text>
+  <rect x="240" y="150" width="120" height="40" rx="5" fill="#F04B3E" stroke="#000" stroke-width="1"/>
+  <text x="300" y="175" font-family="Arial" font-size="14" fill="#FFF" text-anchor="middle">Execute else block (Exit)</text>
+
+  <!-- Arrowhead definition -->
+  <defs>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="0" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#000" />
+    </marker>
+  </defs>
+</svg>
+</div><h2>Syntax and Basic Usage</h2><p>The basic syntax of a <code>guard</code> statement is as follows:</p><pre><code class="language-swift">guard condition else {
+    // Code to execute if 'condition' is false.
+    // This block MUST exit the current scope.
+    // e.g., return, throw, break, continue
+}
+// Code to execute if 'condition' is true.
+// The program continues here.
+</code></pre><p>The <code>condition</code> can be any expression that evaluates to a <code>Bool</code>. The <code>else</code> block is mandatory and must contain a statement that exits the current scope. This could be:</p><ul><li><code>return</code> (from a function or method)</li><li><code>throw</code> (an error)</li><li><code>break</code> (from a loop or <code>switch</code> statement)</li><li><code>continue</code> (to the next iteration of a loop)</li><li><code>fatalError()</code> or <code>preconditionFailure()</code> (for unrecoverable errors)</li></ul><p>Let's look at a simple example:</p><pre><code class="language-swift">func greetUser(name: String?) {
+    guard let userName = name else {
+        print("User name is missing. Cannot greet.")
+        return // Exits the function
+    }
+    print("Hello, \(userName)!")
+}
+
+greetUser(name: "Alice") // Output: Hello, Alice!
+greetUser(name: nil)     // Output: User name is missing. Cannot greet.
+</code></pre><p>In this example, if <code>name</code> is <code>nil</code>, the <code>else</code> block is executed, printing a message, and the <code>return</code> statement immediately exits the <code>greetUser</code> function. The <code>print("Hello, \(userName)!")</code> line is only reached if <code>name</code> successfully unwraps to <code>userName</code>.</p><h2><code>guard let</code> for Optional Binding</h2><p>One of the most common and powerful applications of <code>guard</code> is with optional binding, using <code>guard let</code> (or <code>guard var</code>). This pattern allows you to unwrap an optional value and make it available for the rest of the current scope, but <em>only if</em> the optional contains a value. If the optional is <code>nil</code>, the <code>else</code> block is triggered, ensuring an early exit.</p><p>This approach significantly improves code readability by reducing nested <code>if let</code> statements, often referred to as the "pyramid of doom."</p><p>Consider a function that needs to process a user's order, requiring both a user ID and an order ID:</p><pre><code class="language-swift">func processOrder(userID: String?, orderID: String?) {
+    // Traditional nested if let approach
+    if let user = userID {
+        if let order = orderID {
+            print("Processing order \(order) for user \(user).")
+        } else {
+            print("Error: Order ID is missing.")
+            return
+        }
+    } else {
+        print("Error: User ID is missing.")
+        return
+    }
+}
+
+// With guard let
+func processOrderGuard(userID: String?, orderID: String?) {
+    guard let user = userID else {
+        print("Error: User ID is missing.")
+        return
+    }
+
+    guard let order = orderID else {
+        print("Error: Order ID is missing.")
+        return
+    }
+
+    // Both user and order are non-nil here and available in scope
+    print("Processing order \(order) for user \(user).")
+}
+
+processOrder(userID: "U123", orderID: "O456")
+processOrder(userID: nil, orderID: "O456")
+processOrder(userID: "U123", orderID: nil)
+
+processOrderGuard(userID: "U123", orderID: "O456")
+processOrderGuard(userID: nil, orderID: "O456")
+processOrderGuard(userID: "U123", orderID: nil)
+</code></pre><p>Notice how <code>processOrderGuard</code> is much flatter and easier to read. The preconditions (user ID and order ID must exist) are handled at the beginning, clearing the way for the main logic. The unwrapped <code>user</code> and <code>order</code> constants are available for the remainder of the function's scope.</p><h2><code>guard var</code> for Mutable Optional Binding</h2><p>Similar to <code>guard let</code>, you can use <code>guard var</code> to unwrap an optional into a mutable variable. This is particularly useful when you intend to modify the unwrapped value within the same scope after the <code>guard</code> statement.</p><pre><code class="language-swift">struct UserProfile {
+    var username: String
+    var email: String?
+}
+
+func updateEmail(profile: inout UserProfile?, newEmail: String) {
+    guard var userProfile = profile else {
+        print("Error: User profile is nil.")
+        return
+    }
+
+    userProfile.email = newEmail
+    profile = userProfile // Update the original optional
+    print("Email updated for \(userProfile.username) to \(newEmail).")
+}
+
+var myProfile: UserProfile? = UserProfile(username: "Rahul", email: nil)
+updateEmail(profile: &amp;myProfile, newEmail: "rahul@example.com")
+// Output: Email updated for Rahul to rahul@example.com.
+print(myProfile?.email ?? "nil") // Output: rahul@example.com
+
+var emptyProfile: UserProfile? = nil
+updateEmail(profile: &amp;emptyProfile, newEmail: "test@example.com")
+// Output: Error: User profile is nil.
+</code></pre><p>Here, <code>userProfile</code> is mutable, allowing us to modify its <code>email</code> property before assigning it back to the <code>profile</code> parameter.</p><h2><code>guard case let</code> for Pattern Matching</h2><p>Beyond simple optional binding, <code>guard</code> can be combined with <code>case let</code> for powerful pattern matching. This allows you to check if a value matches a specific case of an enum (especially one with associated values) or other patterns, and bind any associated values for use in the current scope.</p><pre><code class="language-swift">enum NetworkResponse {
+    case success(Data)
+    case failure(Int, String) // statusCode, message
+    case loading
+}
+
+func handleNetworkResponse(response: NetworkResponse) {
+    guard case let .success(data) = response else {
+        switch response {
+        case .failure(let code, let message):
+            print("Network request failed with error \(code): \(message)")
+        case .loading:
+            print("Network request is still loading...")
+        case .success(_): // Should not be reached due to guard
+            break
+        }
+        return
+    }
+
+    // Only reached if response is .success(data)
+    let dataString = String(data: data, encoding: .utf8) ?? "Unable to decode data"
+    print("Network request succeeded with data: \(dataString)")
+}
+
+let successResponse = NetworkResponse.success("Hello from server!".data(using: .utf8)!)
+let failureResponse = NetworkResponse.failure(404, "Not Found")
+let loadingResponse = NetworkResponse.loading
+
+handleNetworkResponse(response: successResponse)
+// Output: Network request succeeded with data: Hello from server!
+handleNetworkResponse(response: failureResponse)
+// Output: Network request failed with error 404: Not Found
+handleNetworkResponse(response: loadingResponse)
+// Output: Network request is still loading...
+</code></pre><p>This <code>guard case let</code> pattern is extremely useful for ensuring that a specific state or data structure is present before proceeding with complex logic, offloading the handling of other cases to the <code>else</code> block (often with a <code>switch</code> statement for exhaustive handling).</p><h2>Benefits of Using <code>guard</code> Statements</h2><p>The advantages of incorporating <code>guard</code> statements into your Swift code are numerous:</p><ol><li><strong>Early Exit and Fail-Fast Principle</strong>: <code>guard</code> statements enforce preconditions at the beginning of a scope. If a condition isn't met, the code immediately exits, preventing unnecessary computation or potential errors later on. This "fail fast" approach makes debugging easier and your code more predictable.</li></ol><ol start="2"><li><strong>Improved Readability and Reduced Nesting</strong>: By handling failure conditions upfront, <code>guard</code> statements keep the main "happy path" logic of your function at a shallow indentation level. This avoids the "pyramid of doom" often associated with deeply nested <code>if let</code> statements, making your code significantly easier to read and understand.</li></ol><div style="text-align: center; margin: 2em 0;">
+    <svg viewBox="0 0 600 220" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="If Let vs Guard Let Comparison">
+      <title>If Let vs Guard Let Comparison</title>
+
+      <!-- If Let Section -->
+      <rect x="20" y="20" width="270" height="180" rx="5" fill="#F0F0F0" stroke="#000" stroke-width="1"/>
+      <text x="155" y="40" font-family="Arial" font-size="16" fill="#000" text-anchor="middle" font-weight="bold">Traditional 'if let' Nesting</text>
+
+      <rect x="30" y="60" width="250" height="30" rx="3" fill="#D3D3D3" stroke="#888" stroke-width="0.5"/>
+      <text x="155" y="80" font-family="Arial" font-size="12" fill="#000" text-anchor="middle">func process(a: Int?, b: String?)</text>
+
+      <rect x="40" y="100" width="230" height="30" rx="3" fill="#D3D3D3" stroke="#888" stroke-width="0.5"/>
+      <text x="155" y="120" font-family="Arial" font-size="12" fill="#000" text-anchor="middle">if let valueA = a {</text>
+
+      <rect x="50" y="140" width="210" height="30" rx="3" fill="#D3D3D3" stroke="#888" stroke-width="0.5"/>
+      <text x="155" y="160" font-family="Arial" font-size="12" fill="#000" text-anchor="middle">  if let valueB = b { ... }</text>
+
+      <!-- Guard Let Section -->
+      <rect x="310" y="20" width="270" height="180" rx="5" fill="#F0F0F0" stroke="#000" stroke-width="1"/>
+      <text x="445" y="40" font-family="Arial" font-size="16" fill="#000" text-anchor="middle" font-weight="bold">'guard let' Flattening</text>
+
+      <rect x="320" y="60" width="250" height="30" rx="3" fill="#D3D3D3" stroke="#888" stroke-width="0.5"/>
+      <text x="445" y="80" font-family="Arial" font-size="12" fill="#000" text-anchor="middle">func process(a: Int?, b: String?)</text>
+
+      <rect x="320" y="100" width="250" height="30" rx="3" fill="#2A8367" stroke="#000" stroke-width="0.5"/>
+      <text x="445" y="120" font-family="Arial" font-size="12" fill="#FFF" text-anchor="middle">guard let valueA = a else { return }</text>
+
+      <rect x="320" y="140" width="250" height="30" rx="3" fill="#2A8367" stroke="#000" stroke-width="0.5"/>
+      <text x="445" y="160" font-family="Arial" font-size="12" fill="#FFF" text-anchor="middle">guard let valueB = b else { return }</text>
+
+      <rect x="320" y="180" width="250" height="30" rx="3" fill="#D3D3D3" stroke="#888" stroke-width="0.5"/>
+      <text x="445" y="200" font-family="Arial" font-size="12" fill="#000" text-anchor="middle">... main logic using valueA, valueB ...</text>
+    </svg>
+    </div><ol start="3"><li><strong>Clearer Scope for Unwrapped Values</strong>: With <code>guard let</code>, the unwrapped non-optional value is available for the <em>entire remaining scope</em> of the block (function, method, loop) where the <code>guard</code> statement is declared. This is a significant advantage over <code>if let</code>, where the unwrapped value is only available within the <code>if</code> block itself.</li></ol><ol start="4"><li><strong>Enforces Exhaustive Error Handling</strong>: The mandatory <code>else</code> block forces you to explicitly consider and handle the failure case. This reduces the chances of overlooking edge cases where preconditions aren't met.</li></ol><h2>When to Use <code>guard</code> vs. <code>if let</code></h2><p>While both <code>guard let</code> and <code>if let</code> are used for optional binding, their intentions are different:</p><ul><li><strong>Use <code>guard let</code> when:</strong><ul><li>You need to ensure a condition is true (or an optional has a value) <strong>before proceeding</strong> with the main logic of a function, method, or loop.</li><li>The absence of the condition or optional value implies an invalid state that should prevent further execution in that scope.</li><li>You want to keep the "happy path" code at a lower indentation level.</li><li>You need the unwrapped value to be available for the rest of the current scope.</li></ul></li></ul><ul><li><strong>Use <code>if let</code> when:</strong><ul><li>You want to execute a block of code <strong>only if</strong> an optional has a value, and then continue with other code <em>regardless</em> of whether the <code>if let</code> block was entered.</li><li>The optional value's presence is a conditional branch, not a precondition for the entire scope.</li><li>You only need the unwrapped value within the <code>if</code> block itself.</li></ul></li></ul><p>Here's an ASCII diagram summarizing the decision:</p><pre><code>┌─────────────────────────────────────────────────────────┐
+│              Should code proceed if condition fails?    │
+│              (Or if optional is nil?)                   │
+└───────────────────────┬─────────────────────────────────┘
+                        │
+                        ▼
+┌───────────────────┐ Yes                     No ┌───────────────────┐
+│                   │◄───────────────────────►│                   │
+│   Use 'if' / 'if let'   │                     │   Use 'guard' / 'guard let'   │
+│                   │                     │                   │
+└───────────────────┘                     └───────────────────┘
+        │                                         │
+        ▼                                         ▼
+┌───────────────────────────────────┐   ┌───────────────────────────────────┐
+│ Code continues after 'if' block   │   │ 'else' block MUST exit scope    │
+│ (unwrapped value only in 'if')    │   │ (unwrapped value available after) │
+└───────────────────────────────────┘   └───────────────────────────────────┘
+</code></pre><h2>Practical Examples</h2><p>Let's look at a few more real-world scenarios where <code>guard</code> shines.</p><h3>1. Validating User Input in a Form</h3><pre><code class="language-swift">func submitForm(username: String?, email: String?, password: String?) {
+    guard let username = username, !username.isEmpty else {
+        print("Username is required.")
+        return
+    }
+
+    guard let email = email, isValidEmail(email) else {
+        print("A valid email address is required.")
+        return
+    }
+
+    guard let password = password, password.count &gt;= 8 else {
+        print("Password must be at least 8 characters long.")
+        return
+    }
+
+    // All inputs are valid, proceed with submission
+    print("Form submitted successfully for \(username) with email \(email).")
+    // e.g., send to API, save to database
+}
+
+func isValidEmail(_ email: String) -&gt; Bool {
+    let emailRegex = "[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,64}"
+    let emailPredicate = NSPredicate(format: "SELF MATCHES %@", emailRegex)
+    return emailPredicate.evaluate(with: email)
+}
+
+submitForm(username: "Rahul", email: "rahul@example.com", password: "securepassword")
+// Output: Form submitted successfully for Rahul with email rahul@example.com.
+
+submitForm(username: nil, email: "rahul@example.com", password: "securepassword")
+// Output: Username is required.
+
+submitForm(username: "Rahul", email: "invalid-email", password: "securepassword")
+// Output: A valid email address is required.
+
+submitForm(username: "Rahul", email: "rahul@example.com", password: "short")
+// Output: Password must be at least 8 characters long.
+</code></pre><p>This example clearly demonstrates how <code>guard</code> statements create a series of preconditions, making sure each piece of required data is valid before the function's main logic is executed.</p><h3>2. Guarding Against Invalid States in a Game</h3><p>Imagine a game where you can only perform an action if the player is alive and has enough energy.</p><pre><code class="language-swift">struct Player {
+    var isAlive: Bool
+    var energy: Int
+}
+
+func performSpecialAttack(player: inout Player, cost: Int) {
+    guard player.isAlive else {
+        print("Player is defeated. Cannot perform action.")
+        return
+    }
+
+    guard player.energy &gt;= cost else {
+        print("Not enough energy for special attack. (Need \(cost), have \(player.energy))")
+        return
+    }
+
+    // Player is alive and has enough energy
+    player.energy -= cost
+    print("Special attack performed! Remaining energy: \(player.energy)")
+}
+
+var hero = Player(isAlive: true, energy: 100)
+performSpecialAttack(player: &amp;hero, cost: 30) // Output: Special attack performed! Remaining energy: 70
+performSpecialAttack(player: &amp;hero, cost: 80) // Output: Not enough energy for special attack. (Need 80, have 70)
+
+hero.isAlive = false
+performSpecialAttack(player: &amp;hero, cost: 10) // Output: Player is defeated. Cannot perform action.
+</code></pre><p>Again, <code>guard</code> statements quickly handle the invalid states, ensuring the core game logic only runs when all conditions are met.</p><h2>Best Practices and Common Pitfalls</h2><ul><li><strong>Keep <code>else</code> Blocks Concise</strong>: The <code>else</code> block should primarily contain cleanup or exit logic. Avoid complex computations within the <code>else</code> block if possible.</li><li><strong>Provide Clear Feedback</strong>: Whether it's printing to the console, logging an error, or throwing an error, make sure the <code>else</code> block provides meaningful feedback about why the condition failed.</li><li><strong>Don't Overuse for Simple Conditionals</strong>: For simple <code>if-then</code> scenarios where you don't need an early exit or the unwrapped optional value for the rest of the scope, an <code>if</code> statement is often more appropriate and readable.</li><li><strong>Remember the Exit</strong>: The most crucial rule: the <code>else</code> block <em>must</em> transfer control out of the current scope. Forgetting a <code>return</code>, <code>throw</code>, etc., will result in a compile-time error.</li></ul><h2>Summary</h2><p>The <code>guard</code> statement is an indispensable tool in a Swift developer's arsenal. By enforcing preconditions and enabling early exits, it promotes a "fail-fast" approach that leads to more robust, readable, and maintainable code. Whether you're unwrapping optionals with <code>guard let</code>, making mutable bindings with <code>guard var</code>, or performing advanced pattern matching with <code>guard case let</code>, mastering <code>guard</code> will undoubtedly elevate the quality of your Swift projects. Embrace it to clarify your intent and streamline your application's logic.</p><p>Happy Swifting!</p></div><div class="article-tags"><span class="tags-label">Tagged: </span><ul class="tag-list"><li><a href="/tags/swift">Swift</a></li><li><a href="/tags/ios">iOS</a></li><li><a href="/tags/programming">Programming</a></li></ul></div><div class="ads-container"><ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-9268892677399703" data-ad-slot="8133392181" data-ad-format="auto" data-full-width-responsive="true"></ins><script>(adsbygoogle = window.adsbygoogle || []).push({});</script></div></div></div></div></article></div><footer><div class="wrapper"><p>© Swift By Rahul · <a href="/feed.rss">RSS</a> · <a href="https://github.com/bandalrahul">GitHub</a> · Built with <a href="https://github.com/johnsundell/publish">Publish</a></p></div></footer></body></html>

@@ -1,0 +1,255 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"/><meta property="og:site_name" content="Swift By Rahul"/><link rel="canonical" href="https://www.swiftbyrahul.com/posts/UnderstandingCopyOnWriteInSwift"/><meta name="twitter:url" content="https://www.swiftbyrahul.com/posts/UnderstandingCopyOnWriteInSwift"/><meta property="og:url" content="https://www.swiftbyrahul.com/posts/UnderstandingCopyOnWriteInSwift"/><title>Understanding Copy-on-Write in Swift | Swift By Rahul</title><meta name="twitter:title" content="Understanding Copy-on-Write in Swift | Swift By Rahul"/><meta property="og:title" content="Understanding Copy-on-Write in Swift | Swift By Rahul"/><meta name="description" content="Explore Swift's Copy-on-Write (CoW) optimization for value types like Array, Dictionary, and String, and learn how to implement custom CoW for your own types."/><meta name="twitter:description" content="Explore Swift's Copy-on-Write (CoW) optimization for value types like Array, Dictionary, and String, and learn how to implement custom CoW for your own types."/><meta property="og:description" content="Explore Swift's Copy-on-Write (CoW) optimization for value types like Array, Dictionary, and String, and learn how to implement custom CoW for your own types."/><meta name="twitter:card" content="summary"/><link rel="stylesheet" href="/styles.css" type="text/css"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><link rel="shortcut icon" href="/images/favicon.png" type="image/png"/><link rel="alternate" href="/feed.rss" type="application/rss+xml" title="Subscribe to Swift By Rahul"/></head><head><link rel="stylesheet" href="/css/prism.css" type="text/css"/><script src="/js/prism.js"></script><script src="/js/article.js"></script><script src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9268892677399703" async></script><meta name="twitter:card" content="summary_large_image"/><meta property="og:image" content="https://www.swiftbyrahul.com/images/posts/UnderstandingCopyOnWriteInSwift.png"/><meta property="og:image:alt" content="Understanding Copy-on-Write in Swift"/><meta name="twitter:image" content="https://www.swiftbyrahul.com/images/posts/UnderstandingCopyOnWriteInSwift.png"/></head><body class="item-page"><header><div class="wrapper"><a href="/" class="site-name">Swift By Rahul</a><nav class="site-nav"><ul><li><a href="/">Home</a></li><li><a href="/posts/" class="selected">Posts</a></li><li><a href="/tags">Tags</a></li><li><a href="https://github.com/bandalrahul">GitHub</a></li></ul></nav></div></header><div class="wrapper"><article><div><button class="toc-toggle" id="toc-toggle" type="button" aria-expanded="false">On this page</button><div class="article-layout"><aside class="toc" id="article-toc"><p class="toc-heading">On this page</p><nav class="toc-nav" id="article-toc-nav"></nav></aside><div class="article-main"><div class="article-meta"><span>October 11, 2026</span><span> · </span><span>10 min read</span><span> · </span><ul class="tag-list"><li><a href="/tags/swift">Swift</a></li><li><a href="/tags/ios">iOS</a></li><li><a href="/tags/programming">Programming</a></li></ul></div><div class="content"><h1>Understanding Copy-on-Write in Swift</h1><p>Swift is a language that strongly encourages the use of value types, such as <code>struct</code>s and <code>enum</code>s. They offer significant benefits like predictable behavior, thread safety, and easier reasoning about your code. However, working with large value types can sometimes introduce performance overhead, especially when they are copied. This is where <strong>Copy-on-Write (CoW)</strong> comes to the rescue.</p><p>CoW is a clever optimization technique that Swift uses extensively for its built-in collection types (<code>Array</code>, <code>Dictionary</code>, <code>Set</code>) and <code>String</code>. It allows these value types to behave like reference types when they are merely copied, only performing a true, deep copy of their underlying storage when a modification is actually made. This article will dive deep into how CoW works, why it's beneficial, and how you can implement it for your own custom types.</p><h2>The Performance Challenge with Large Value Types</h2><p>Imagine you have a <code>struct</code> that encapsulates a significant amount of data, perhaps a large image buffer or a complex data model.</p><pre><code class="language-swift">struct ImageData {
+    var pixels: [UInt8] // Imagine this array holds millions of bytes
+    var width: Int
+    var height: Int
+
+    init(width: Int, height: Int) {
+        self.width = width
+        self.height = height
+        self.pixels = Array(repeating: 0, count: width * height * 4) // 4 bytes per pixel (RGBA)
+    }
+
+    mutating func invertColors() {
+        for i in 0..&lt;pixels.count {
+            pixels[i] = 255 - pixels[i]
+        }
+    }
+}
+
+// Create a large image data instance
+var originalImage = ImageData(width: 1920, height: 1080)
+</code></pre><p>Now, consider what happens when you "copy" this <code>originalImage</code>:</p><pre><code class="language-swift">var copiedImage = originalImage // This assignment performs a full copy
+</code></pre><p>Because <code>ImageData</code> is a <code>struct</code> (a value type), Swift's default behavior is to make a complete, member-wise copy of <code>originalImage</code> into <code>copiedImage</code>. If <code>pixels</code> contains millions of bytes, this means allocating new memory and copying all those bytes, even if <code>copiedImage</code> is never modified. This can be a significant performance hit if such copies happen frequently, leading to unnecessary memory allocations and CPU cycles.</p><p>This is the problem Copy-on-Write aims to solve: delaying the expensive copy operation until it's absolutely necessary.</p><div style="text-align: center; margin: 2em 0;">
+<svg viewBox="0 0 600 220" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Comparison of Value Type Copying without and with Copy-on-Write">
+  <title>Comparison of Value Type Copying without and with Copy-on-Write</title>
+
+  <!-- Title for the diagram -->
+  <text x="300" y="20" font-family="Arial, sans-serif" font-size="18" font-weight="bold" text-anchor="middle" fill="#333">Value Type Copying: Without CoW vs. With CoW</text>
+
+  <!-- Without CoW Section -->
+  <rect x="30" y="40" width="260" height="160" rx="8" ry="8" fill="#F0F0F0" stroke="#ccc" stroke-width="1"/>
+  <text x="160" y="60" font-family="Arial, sans-serif" font-size="14" font-weight="bold" text-anchor="middle" fill="#333">Without Copy-on-Write</text>
+
+  <rect x="50" y="80" width="100" height="40" rx="5" ry="5" fill="#1565c0" stroke="#1565c0" stroke-width="1"/>
+  <text x="100" y="105" font-family="Arial, sans-serif" font-size="12" fill="white" text-anchor="middle">var A</text>
+  <rect x="180" y="80" width="90" height="40" rx="5" ry="5" fill="#E0E0E0" stroke="#ccc" stroke-width="1"/>
+  <text x="225" y="105" font-family="Arial, sans-serif" font-size="12" fill="#333" text-anchor="middle">Data Block 1</text>
+  <line x1="150" y1="100" x2="180" y2="100" stroke="#1565c0" stroke-width="2" marker-end="url(#arrowhead)"/>
+
+  <rect x="50" y="140" width="100" height="40" rx="5" ry="5" fill="#F04B3E" stroke="#F04B3E" stroke-width="1"/>
+  <text x="100" y="165" font-family="Arial, sans-serif" font-size="12" fill="white" text-anchor="middle">var B = A</text>
+  <rect x="180" y="140" width="90" height="40" rx="5" ry="5" fill="#F0E0E0" stroke="#ccc" stroke-width="1"/>
+  <text x="225" y="165" font-family="Arial, sans-serif" font-size="12" fill="#333" text-anchor="middle">Data Block 2</text>
+  <line x1="150" y1="160" x2="180" y2="160" stroke="#F04B3E" stroke-width="2" marker-end="url(#arrowhead)"/>
+  <text x="160" y="127" font-family="Arial, sans-serif" font-size="10" fill="#F04B3E" text-anchor="middle">Deep Copy!</text>
+
+  <!-- With CoW Section -->
+  <rect x="310" y="40" width="260" height="160" rx="8" ry="8" fill="#F0F0F0" stroke="#ccc" stroke-width="1"/>
+  <text x="440" y="60" font-family="Arial, sans-serif" font-size="14" font-weight="bold" text-anchor="middle" fill="#333">With Copy-on-Write</text>
+
+  <rect x="330" y="80" width="100" height="40" rx="5" ry="5" fill="#1565c0" stroke="#1565c0" stroke-width="1"/>
+  <text x="380" y="105" font-family="Arial, sans-serif" font-size="12" fill="white" text-anchor="middle">var A</text>
+  <rect x="460" y="90" width="90" height="40" rx="5" ry="5" fill="#E0E0E0" stroke="#ccc" stroke-width="1"/>
+  <text x="505" y="115" font-family="Arial, sans-serif" font-size="12" fill="#333" text-anchor="middle">Data Block X</text>
+  <line x1="430" y1="100" x2="460" y2="100" stroke="#1565c0" stroke-width="2" marker-end="url(#arrowhead)"/>
+
+  <rect x="330" y="140" width="100" height="40" rx="5" ry="5" fill="#2A8367" stroke="#2A8367" stroke-width="1"/>
+  <text x="380" y="165" font-family="Arial, sans-serif" font-size="12" fill="white" text-anchor="middle">var B = A</text>
+  <line x1="430" y1="160" x2="460" y2="120" stroke="#2A8367" stroke-width="2" marker-end="url(#arrowhead)"/>
+  <text x="440" y="140" font-family="Arial, sans-serif" font-size="10" fill="#2A8367" text-anchor="middle">Shared Ref</text>
+
+  <text x="440" y="185" font-family="Arial, sans-serif" font-size="10" fill="#F04B3E" text-anchor="middle">(Copy only on modification)</text>
+
+
+  <!-- Arrowhead definition -->
+  <defs>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="0" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#333" />
+    </marker>
+  </defs>
+</svg>
+</div><h2>How Copy-on-Write Works in Swift</h2><p>Swift's CoW implementation leverages the distinction between value types (structs, enums) and reference types (classes). While your <code>Array</code>, <code>Dictionary</code>, <code>Set</code>, or <code>String</code> are value types, their <em>internal storage</em> is often managed by a private, heap-allocated class instance (a reference type).</p><p>Here's the mechanism:</p><ol><li><strong>Initial Assignment (Copying)</strong>: When you assign one CoW-enabled value type instance to another (e.g., <code>var newArray = originalArray</code>), Swift does <em>not</em> immediately create a deep copy of the underlying data. Instead, both <code>originalArray</code> and <code>newArray</code> now internally point to the <em>same</em> class instance that holds the actual data. Swift's runtime keeps track of how many references point to this shared storage.</li></ol><ol start="2"><li><strong>Modification (Copy Trigger)</strong>: If you then try to <em>modify</em> either <code>originalArray</code> or <code>newArray</code>, Swift performs a check. It asks: "Is this internal storage currently referenced by more than one variable?"<ul><li><strong>If Yes (Not Uniquely Referenced)</strong>: A new, independent copy of the underlying storage is created. The variable attempting the modification is then updated to point to this new copy. The modification is applied to this new copy, leaving the original shared storage untouched for the other variable(s). This is the "copy-on-write" step.</li><li><strong>If No (Uniquely Referenced)</strong>: If the internal storage is only referenced by the variable attempting the modification, no copy is needed. The modification is applied directly to the existing storage. This is an optimization that avoids unnecessary copying.</li></ul></li></ol><p>This strategy means that the expensive deep copy operation only occurs when it's truly needed – when a value type instance is modified while it's still being shared. If you copy a value type and never modify it, or if you modify it but it's not shared, you pay no performance penalty for the copy.</p><h2>Illustrating CoW with Swift's Built-in Types</h2><p>Let's use <code>Array</code> to see CoW in action. While we can't directly observe the internal storage, we can infer its behavior.</p><pre><code class="language-swift">var numbers = [1, 2, 3, 4, 5]
+print("Original numbers: \(numbers)") // Output: Original numbers: [1, 2, 3, 4, 5]
+
+// 'copiedNumbers' now shares the same internal storage as 'numbers'
+// No deep copy of the elements has occurred yet.
+var copiedNumbers = numbers
+print("Copied numbers (before modification): \(copiedNumbers)") // Output: Copied numbers (before modification): [1, 2, 3, 4, 5]
+
+// Now, modify 'copiedNumbers'.
+// At this point, Swift detects that 'numbers' also refers to the same storage.
+// Therefore, a *copy* of the underlying storage is made for 'copiedNumbers'.
+// The modification then applies to this new, independent storage.
+copiedNumbers[0] = 100
+print("Copied numbers (after modification): \(copiedNumbers)") // Output: Copied numbers (after modification): [100, 2, 3, 4, 5]
+
+// 'numbers' remains unchanged because 'copiedNumbers' now has its own copy.
+print("Original numbers (after copiedNumbers modification): \(numbers)") // Output: Original numbers (after copiedNumbers modification): [1, 2, 3, 4, 5]
+</code></pre><p>If we were to modify <code>numbers</code> <em>after</em> <code>copiedNumbers</code> was modified, <code>numbers</code> would also trigger a copy if it was still sharing. But in this case, <code>copiedNumbers</code> already has its own copy, so <code>numbers</code> remains uniquely referenced to its <em>original</em> copy.</p><pre><code>Initial State:
+┌───────────┐    ┌─────────────┐
+│  numbers  │───▶│ [1, 2, 3, 4, 5] │
+└───────────┘    └─────────────┘
+
+After `copiedNumbers = numbers`:
+┌───────────┐    ┌─────────────┐
+│  numbers  │───▶│ [1, 2, 3, 4, 5] │
+├───────────┤    ▲─────────────┘
+│copiedNumbers│───┘
+└───────────┘
+  (Shared Storage)
+
+After `copiedNumbers[0] = 100` (CoW triggered):
+┌───────────┐    ┌─────────────┐
+│  numbers  │───▶│ [1, 2, 3, 4, 5] │
+└───────────┘    └─────────────┘
+
+┌───────────┐    ┌─────────────┐
+│copiedNumbers│───▶│ [100, 2, 3, 4, 5] │
+└───────────┘    └─────────────┘
+  (Separate Storage)
+</code></pre><p>This ASCII diagram clearly illustrates how the shared storage is broken when a modification occurs, ensuring value semantics are preserved without unnecessary early copying.</p><h2>Performance Implications of Copy-on-Write</h2><p>CoW is a powerful optimization, but it's important to understand its performance characteristics:</p><ul><li><strong>Benefit</strong>: Reduced memory allocation and copying overhead. If you copy a large collection and never modify it, or modify it only when it's not shared, you get the performance of reference semantics (just copying a pointer) while retaining the safety and predictability of value semantics.</li><li><strong>Cost</strong>:<ul><li><strong>Reference Counting Overhead</strong>: Swift's runtime needs to track the number of references to the internal storage. This adds a small overhead to each assignment and deallocation.</li><li><strong>Uniqueness Check Overhead</strong>: Before modification, a check (<code>isKnownUniquelyReferenced</code>) is performed.</li><li><strong>Copy Penalty</strong>: If a modification <em>does</em> trigger a copy, you pay the full price of a deep copy at that moment. This can be less predictable than always copying immediately.</li></ul></li></ul><p>For most common use cases with <code>Array</code>, <code>Dictionary</code>, <code>Set</code>, and <code>String</code>, the benefits of CoW far outweigh these costs. Swift's standard library implementations are highly optimized.</p><h2>Implementing Custom Copy-on-Write for Your Own Types</h2><p>While Swift provides CoW for its built-in collections, you might have custom value types that manage large amounts of data and could benefit from this optimization. For instance, our <code>ImageData</code> struct from earlier.</p><p>To implement custom CoW, you'll typically follow this pattern:</p><ol><li><strong>Create a Reference Type (Class) for Storage</strong>: This class will hold the actual mutable data.</li><li><strong>Create a Value Type (Struct) as the Public API</strong>: This struct will wrap an instance of your storage class.</li><li><strong>Use <code>isKnownUniquelyReferenced(_:)</code></strong>: Inside the struct's mutating methods or computed properties, check if the wrapped storage class instance is uniquely referenced. If not, create a new copy of the storage before applying changes.</li></ol><p>Let's refactor our <code>ImageData</code> struct to use CoW:</p><pre><code class="language-swift">// 1. Reference Type for Storage
+final class ImageDataStorage {
+    var pixels: [UInt8]
+    let width: Int
+    let height: Int
+
+    init(width: Int, height: Int) {
+        self.width = width
+        self.height = height
+        self.pixels = Array(repeating: 0, count: width * height * 4)
+    }
+
+    // A convenience initializer for copying existing storage
+    init(copying storage: ImageDataStorage) {
+        self.width = storage.width
+        self.height = storage.height
+        self.pixels = storage.pixels // Deep copy of the array elements
+    }
+}
+
+// 2. Value Type as the Public API
+struct CoWImageData {
+    private var storage: ImageDataStorage // Holds a reference to the storage class
+
+    init(width: Int, height: Int) {
+        self.storage = ImageDataStorage(width: width, height: height)
+    }
+
+    // Private method to ensure unique storage before modification
+    private mutating func ensureUniqueStorage() {
+        if !isKnownUniquelyReferenced(&amp;storage) {
+            // If not unique, create a new copy of the storage
+            storage = ImageDataStorage(copying: storage)
+            print("--- CoW triggered: Made a new copy of ImageDataStorage ---")
+        } else {
+            print("--- Storage is unique: Modifying in place ---")
+        }
+    }
+
+    // Public properties and methods that trigger CoW on write
+    var width: Int { storage.width }
+    var height: Int { storage.height }
+
+    subscript(index: Int) -&gt; UInt8 {
+        get {
+            precondition(index &gt;= 0 &amp;&amp; index &lt; storage.pixels.count, "Index out of bounds")
+            return storage.pixels[index]
+        }
+        set {
+            precondition(index &gt;= 0 &amp;&amp; index &lt; storage.pixels.count, "Index out of bounds")
+            ensureUniqueStorage() // Check for uniqueness before modification
+            storage.pixels[index] = newValue
+        }
+    }
+
+    mutating func invertColors() {
+        ensureUniqueStorage() // Check for uniqueness before modification
+        for i in 0..&lt;storage.pixels.count {
+            storage.pixels[i] = 255 - storage.pixels[i]
+        }
+    }
+}
+</code></pre><p>Let's test our custom <code>CoWImageData</code>:</p><pre><code class="language-swift">print("--- Creating original image ---")
+var originalCoWImage = CoWImageData(width: 10, height: 10) // Small for demo
+originalCoWImage[0] = 50 // Storage is unique, modify in place
+print("OriginalCoWImage[0]: \(originalCoWImage[0])")
+
+print("\n--- Copying original image ---")
+var copiedCoWImage = originalCoWImage // Shares storage with originalCoWImage
+print("CopiedCoWImage[0] (before modification): \(copiedCoWImage[0])")
+
+print("\n--- Modifying copied image ---")
+// This will trigger CoW because 'originalCoWImage' also points to the same storage
+copiedCoWImage[0] = 150
+print("CopiedCoWImage[0] (after modification): \(copiedCoWImage[0])")
+print("OriginalCoWImage[0] (after copiedCoWImage modification): \(originalCoWImage[0])") // Remains 50
+
+print("\n--- Modifying original image (now unique) ---")
+originalCoWImage[1] = 200 // Storage is now unique, modify in place
+print("OriginalCoWImage[1]: \(originalCoWImage[1])")
+</code></pre><p><strong>Output:</strong></p><pre><code>--- Creating original image ---
+--- Storage is unique: Modifying in place ---
+OriginalCoWImage[0]: 50
+
+--- Copying original image ---
+CopiedCoWImage[0] (before modification): 50
+
+--- Modifying copied image ---
+--- CoW triggered: Made a new copy of ImageDataStorage ---
+CopiedCoWImage[0] (after modification): 150
+OriginalCoWImage[0] (after copiedCoWImage modification): 50
+
+--- Modifying original image (now unique) ---
+--- Storage is unique: Modifying in place ---
+OriginalCoWImage[1]: 200
+</code></pre><p>This output clearly demonstrates <code>ensureUniqueStorage()</code> and <code>isKnownUniquelyReferenced</code> at work, triggering a copy only when necessary.</p><div style="text-align: center; margin: 2em 0;">
+<svg viewBox="0 0 600 280" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Custom Copy-on-Write Implementation Flow Diagram">
+  <title>Custom Copy-on-Write Implementation Flow Diagram</title>
+
+  <!-- Title -->
+  <text x="300" y="20" font-family="Arial, sans-serif" font-size="18" font-weight="bold" text-anchor="middle" fill="#333">Custom Copy-on-Write Flow</text>
+
+  <!-- MyCoWStruct Box -->
+  <rect x="50" y="50" width="150" height="60" rx="8" ry="8" fill="#1565c0" stroke="#1565c0" stroke-width="1"/>
+  <text x="125" y="75" font-family="Arial, sans-serif" font-size="14" fill="white" text-anchor="middle">MyCoWStruct</text>
+  <text x="125" y="95" font-family="Arial, sans-serif" font-size="12" fill="white" text-anchor="middle">(Value Type)</text>
+
+  <!-- StorageClass Box -->
+  <rect x="400" y="50" width="150" height="60" rx="8" ry="8" fill="#E0E0E0" stroke="#ccc" stroke-width="1"/>
+  <text x="475" y="75" font-family="Arial, sans-serif" font-size="14" fill="#333" text-anchor="middle">StorageClass</text>
+  <text x="475" y="95" font-family="Arial, sans-serif" font-size="12" fill="#333" text-anchor="middle">(Reference Type)</text>
+
+  <!-- Arrow from Struct to Class -->
+  <line x1="200" y1="80" x2="400" y2="80" stroke="#1565c0" stroke-width="2" marker-end="url(#arrowhead)"/>
+  <text x="300" y="70" font-family="Arial, sans-serif" font-size="10" fill="#333" text-anchor="middle">Holds reference to</text>
+
+  <!-- Modification Flow -->
+  <rect x="50" y="140" width="150" height="40" rx="5" ry="5" fill="#F0F0F0" stroke="#ccc" stroke-width="1"/>
+  <text x="125" y="165" font-family="Arial, sans-serif" font-size="12" fill="#333" text-anchor="middle">Attempt to Modify</text>
+
+  <line x1="125" y1="180" x2="125" y2="200" stroke="#333" stroke-width="2" marker-end="url(#arrowhead)"/>
+
+  <!-- Decision Diamond -->
+  <polygon points="125,200 175,225 125,250 75,225" fill="#F0F0F0" stroke="#ccc" stroke-width="1"/>
+  <text x="125" y="228" font-family="Arial, sans-serif" font-size="12" fill="#333" text-anchor="middle">`isKnownUniquelyReferenced`?</text>
+
+  <!-- True Path (Green) -->
+  <line x1="175" y1="225" x2="270" y2="225" stroke="#2A8367" stroke-width="2" marker-end="url(#arrowhead)"/>
+  <text x="225" y="215" font-family="Arial, sans-serif" font-size="10" fill="#2A8367" text-anchor="middle">YES</text>
+  <rect x="270" y="205" width="150" height="40" rx="5" ry="5" fill="#2A8367" stroke="#2A8367" stroke-width="1"/>
+  <text x="345" y="230" font-family="Arial, sans-serif" font-size="12" fill="white" text-anchor="middle">Modify Storage Directly</text>
+
+  <!-- False Path (Red) -->
+  <line x1="125" y1="250" x2="125" y2="270" stroke="#F04B3E" stroke-width="2" marker-end="url(#arrowhead)"/>
+  <text x="100" y="260" font-family="Arial, sans-serif" font-size="10" fill="#F04B3E" text-anchor="middle">NO</text>
+  <rect x="20" y="270" width="210" height="40" rx="5" ry="5" fill="#F04B3E" stroke="#F04B3E" stroke-width="1"/>
+  <text x="125" y="295" font-family="Arial, sans-serif" font-size="12" fill="white" text-anchor="middle">Create New Storage Copy & Modify</text>
+
+  <!-- Arrowhead definition -->
+  <defs>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="0" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#333" />
+    </marker>
+  </defs>
+</svg>
+</div><h2>When to Use (and Not Use) Custom CoW</h2><p>Implementing custom CoW adds complexity to your code, so it's not a universal solution.</p><p><strong>You should consider implementing custom CoW when:</strong></p><ul><li><strong>Your value type wraps a large amount of data:</strong> The cost of copying this data directly is significant.</li><li><strong>Copies of your value type are frequent:</strong> If your type is passed around, assigned, or stored in collections often.</li><li><strong>Modifications after copying are relatively infrequent:</strong> The <code>CoW</code> mechanism shines when copies are common, but modifications are rare or happen only when the instance is no longer shared.</li><li><strong>You need strict value semantics:</strong> You want your type to behave like a struct, where each instance is independent, but you need the performance optimization of deferred copying.</li></ul><p><strong>Avoid implementing custom CoW when:</strong></p><ul><li><strong>Your value type is small and cheap to copy:</strong> The overhead of <code>isKnownUniquelyReferenced</code> and the indirection through a class might outweigh the benefits.</li><li><strong>Modifications after copying are <em>always</em> expected:</strong> If every copy of your type is immediately modified, you'll always incur the copy cost, plus the CoW overhead. In such cases, a simple struct or even a class might be more straightforward.</li><li><strong>You actually desire reference semantics:</strong> If multiple variables <em>should</em> refer to the same mutable data and see each other's changes, then a <code>class</code> is the appropriate choice.</li></ul><h2>Summary</h2><p>Copy-on-Write is a fundamental optimization in Swift that allows value types like <code>Array</code>, <code>Dictionary</code>, <code>Set</code>, and <code>String</code> to offer excellent performance for large data structures while maintaining their predictable value semantics. By delaying expensive deep copy operations until a modification occurs on a shared instance, CoW strikes a balance between performance and correctness.</p><p>For your own custom large value types, you can implement CoW using a private class for storage and the <code>isKnownUniquelyReferenced(_:)</code> function. However, always weigh the benefits against the added complexity and overhead to ensure it's the right solution for your specific performance needs.</p><p>Happy Swifting!</p></div><div class="article-tags"><span class="tags-label">Tagged: </span><ul class="tag-list"><li><a href="/tags/swift">Swift</a></li><li><a href="/tags/ios">iOS</a></li><li><a href="/tags/programming">Programming</a></li></ul></div><div class="ads-container"><ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-9268892677399703" data-ad-slot="8133392181" data-ad-format="auto" data-full-width-responsive="true"></ins><script>(adsbygoogle = window.adsbygoogle || []).push({});</script></div></div></div></div></article></div><footer><div class="wrapper"><p>© Swift By Rahul · <a href="/feed.rss">RSS</a> · <a href="https://github.com/bandalrahul">GitHub</a> · Built with <a href="https://github.com/johnsundell/publish">Publish</a></p></div></footer></body></html>
