@@ -137,6 +137,7 @@
     "understanding-pattern-matching-in-swift",
     "understanding-guard-statements-in-swift",
     "understanding-defer-blocks-in-swift",
-    "understanding-lazy-properties-in-swift"
+    "understanding-lazy-properties-in-swift",
+    "understanding-computed-properties-in-swift"
   ]
 }
