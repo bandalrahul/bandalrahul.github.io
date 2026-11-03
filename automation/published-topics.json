@@ -138,6 +138,7 @@
     "understanding-guard-statements-in-swift",
     "understanding-defer-blocks-in-swift",
     "understanding-lazy-properties-in-swift",
-    "understanding-computed-properties-in-swift"
+    "understanding-computed-properties-in-swift",
+    "understanding-subscripts-in-swift"
   ]
 }
