@@ -1,0 +1,292 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"/><meta property="og:site_name" content="Swift By Rahul"/><link rel="canonical" href="https://www.swiftbyrahul.com/posts/SwiftChartsFrameworkForIosDataVisualization"/><meta name="twitter:url" content="https://www.swiftbyrahul.com/posts/SwiftChartsFrameworkForIosDataVisualization"/><meta property="og:url" content="https://www.swiftbyrahul.com/posts/SwiftChartsFrameworkForIosDataVisualization"/><title>Swift Charts Framework for iOS Data Visualization | Swift By Rahul</title><meta name="twitter:title" content="Swift Charts Framework for iOS Data Visualization | Swift By Rahul"/><meta property="og:title" content="Swift Charts Framework for iOS Data Visualization | Swift By Rahul"/><meta name="description" content="Dive into Apple's Swift Charts framework to create beautiful, interactive data visualizations in your SwiftUI apps with ease."/><meta name="twitter:description" content="Dive into Apple's Swift Charts framework to create beautiful, interactive data visualizations in your SwiftUI apps with ease."/><meta property="og:description" content="Dive into Apple's Swift Charts framework to create beautiful, interactive data visualizations in your SwiftUI apps with ease."/><meta name="twitter:card" content="summary"/><link rel="stylesheet" href="/styles.css" type="text/css"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><link rel="shortcut icon" href="/images/favicon.png" type="image/png"/><link rel="alternate" href="/feed.rss" type="application/rss+xml" title="Subscribe to Swift By Rahul"/></head><head><link rel="stylesheet" href="/css/prism.css" type="text/css"/><script src="/js/prism.js"></script><script src="/js/article.js"></script><script src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9268892677399703" async></script><meta name="twitter:card" content="summary_large_image"/><meta property="og:image" content="https://www.swiftbyrahul.com/images/posts/SwiftChartsFrameworkForIosDataVisualization.png"/><meta property="og:image:alt" content="Swift Charts Framework for iOS Data Visualization"/><meta name="twitter:image" content="https://www.swiftbyrahul.com/images/posts/SwiftChartsFrameworkForIosDataVisualization.png"/></head><body class="item-page"><header><div class="wrapper"><a href="/" class="site-name">Swift By Rahul</a><nav class="site-nav"><ul><li><a href="/">Home</a></li><li><a href="/posts/" class="selected">Posts</a></li><li><a href="/tags">Tags</a></li><li><a href="https://github.com/bandalrahul">GitHub</a></li></ul></nav></div></header><div class="wrapper"><article><div><button class="toc-toggle" id="toc-toggle" type="button" aria-expanded="false">On this page</button><div class="article-layout"><aside class="toc" id="article-toc"><p class="toc-heading">On this page</p><nav class="toc-nav" id="article-toc-nav"></nav></aside><div class="article-main"><div class="article-meta"><span>August 31, 2026</span><span> · </span><span>9 min read</span><span> · </span><ul class="tag-list"><li><a href="/tags/swiftui">SwiftUI</a></li><li><a href="/tags/ios">iOS</a></li><li><a href="/tags/development">Development</a></li></ul></div><div class="content"><h1>Swift Charts Framework for iOS Data Visualization</h1><p>In today's data-driven world, presenting information clearly and engagingly is more important than ever. For iOS developers, this often means creating compelling data visualizations within our apps. While third-party libraries have long filled this gap, Apple introduced a game-changer at WWDC 2022: the Swift Charts framework.</p><p>Built natively on SwiftUI, Swift Charts provides a declarative and powerful way to construct a wide variety of charts and graphs with minimal code. It's designed to be flexible, performant, and deeply integrated with the Apple ecosystem, offering excellent accessibility and localization support right out of the box. If you've ever struggled with complex charting libraries or wanted a more "Swifty" approach to data visualization, Swift Charts is precisely what you've been waiting for.</p><p>In this article, we'll explore the fundamentals of Swift Charts, from basic bar charts to more complex layered and interactive visualizations. You'll learn how to transform your raw data into insightful graphs that enhance your app's user experience.</p><div style="text-align: center; margin: 2em 0;">
+<svg viewBox="0 0 600 220" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Swift Charts Core Components Flow">
+  <title>Swift Charts Core Components Flow</title>
+  <!-- Data Model -->
+  <rect x="50" y="70" width="120" height="80" rx="10" fill="#1565c0" stroke="#1565c0" stroke-width="2"/>
+  <text x="110" y="115" font-family="Arial, sans-serif" font-size="18" fill="white" text-anchor="middle">Data Model</text>
+
+  <!-- Arrow 1 -->
+  <line x1="170" y1="110" x2="220" y2="110" stroke="#2A8367" stroke-width="2" marker-end="url(#arrowhead)"/>
+  <polygon id="arrowhead" points="0,0 10,5 0,10" fill="#2A8367" transform="translate(220,105) rotate(0)"/>
+
+  <!-- Chart View -->
+  <rect x="230" y="70" width="140" height="80" rx="10" fill="#2A8367" stroke="#2A8367" stroke-width="2"/>
+  <text x="300" y="115" font-family="Arial, sans-serif" font-size="18" fill="white" text-anchor="middle">Chart View</text>
+
+  <!-- Arrow 2 -->
+  <line x1="370" y1="110" x2="420" y2="110" stroke="#2A8367" stroke-width="2" marker-end="url(#arrowhead2)"/>
+  <polygon id="arrowhead2" points="0,0 10,5 0,10" fill="#2A8367" transform="translate(420,105) rotate(0)"/>
+
+  <!-- Marks (Bar, Line, Point) -->
+  <rect x="430" y="70" width="120" height="80" rx="10" fill="#F04B3E" stroke="#F04B3E" stroke-width="2"/>
+  <text x="490" y="95" font-family="Arial, sans-serif" font-size="16" fill="white" text-anchor="middle">Marks</text>
+  <text x="490" y="115" font-family="Arial, sans-serif" font-size="14" fill="white" text-anchor="middle">(Bar, Line, Point)</text>
+
+  <!-- Labels -->
+  <text x="300" y="30" font-family="Arial, sans-serif" font-size="20" fill="black" text-anchor="middle">Swift Charts: From Data to Visualization</text>
+</svg>
+</div><h2>Getting Started: Your First Bar Chart</h2><p>At its core, Swift Charts revolves around the <code>Chart</code> view and various <code>Mark</code> types. The <code>Chart</code> view takes a collection of data and a series of <code>Mark</code> views to define how that data should be represented visually.</p><p>Let's imagine we want to visualize monthly expenses. First, we need a simple data model:</p><pre><code class="language-swift">import SwiftUI
+import Charts
+
+struct MonthlyExpense: Identifiable {
+    let id = UUID() // Essential for `Chart` to identify unique data points
+    let month: String
+    let amount: Double
+}
+
+let sampleExpenses: [MonthlyExpense] = [
+    .init(month: "Jan", amount: 1200),
+    .init(month: "Feb", amount: 1500),
+    .init(month: "Mar", amount: 1300),
+    .init(month: "Apr", amount: 1700),
+    .init(month: "May", amount: 1600),
+    .init(month: "Jun", amount: 1900),
+    .init(month: "Jul", amount: 1800),
+    .init(month: "Aug", amount: 2000),
+    .init(month: "Sep", amount: 1750),
+    .init(month: "Oct", amount: 1650),
+    .init(month: "Nov", amount: 2100),
+    .init(month: "Dec", amount: 2300)
+]
+</code></pre><p>Now, let's create a basic bar chart using this data:</p><pre><code class="language-swift">struct BasicBarChart: View {
+    var body: some View {
+        Chart(sampleExpenses) { expense in
+            BarMark(
+                x: .value("Month", expense.month),
+                y: .value("Amount", expense.amount)
+            )
+        }
+        .chartYAxisLabel("Expense Amount ($)")
+        .chartXAxisLabel("Month")
+        .padding()
+        .navigationTitle("Monthly Expenses")
+    }
+}
+</code></pre><p>In this code: <em> We initialize <code>Chart</code> with our <code>sampleExpenses</code> array. Since <code>MonthlyExpense</code> conforms to <code>Identifiable</code>, Swift Charts can efficiently manage the data. </em> Inside the <code>Chart</code>'s content closure, we iterate over each <code>expense</code> and create a <code>BarMark</code>. <em> <code>BarMark</code> requires <code>x</code> and <code>y</code> values. We use <code>.value(_:_: )</code> to map our <code>expense.month</code> to the x-axis and <code>expense.amount</code> to the y-axis. The string literal provides a label for the axis. </em> We then apply view modifiers like <code>chartYAxisLabel</code> and <code>chartXAxisLabel</code> to add descriptive text to our axes, making the chart more understandable.</p><p>This minimal code gives you a functional and aesthetically pleasing bar chart right away!</p><h2>Enhancing Visualizations: Customization and Interactivity</h2><p>Swift Charts offers a rich set of modifiers to customize the appearance of your charts and add interactivity. Let's explore how to create different types of marks and refine their presentation.</p><h3>Different Mark Types</h3><p>Besides <code>BarMark</code>, Swift Charts provides several other fundamental mark types: <em> <strong><code>LineMark</code></strong>: For connecting data points, ideal for trends over time. </em> <strong><code>PointMark</code></strong>: For individual data points, useful for scatter plots. <em> <strong><code>AreaMark</code></strong>: Similar to <code>LineMark</code>, but fills the area below the line. </em> <strong><code>RuleMark</code></strong>: For drawing horizontal or vertical lines, useful for thresholds or averages. * <strong><code>RectangleMark</code></strong>: For drawing rectangles, useful for heatmaps or Gantt charts.</p><p>Let's visualize our monthly expenses as a line chart and add some styling:</p><pre><code class="language-swift">struct StyledLineChart: View {
+    var body: some View {
+        Chart(sampleExpenses) { expense in
+            LineMark(
+                x: .value("Month", expense.month),
+                y: .value("Amount", expense.amount)
+            )
+            .foregroundStyle(.blue) // Custom color for the line
+            .symbol(.circle) // Add circles at each data point
+            
+            // Optionally add an AreaMark for a filled region below the line
+            AreaMark(
+                x: .value("Month", expense.month),
+                y: .value("Amount", expense.amount)
+            )
+            .foregroundStyle(by: .value("Category", "Expense")) // Use 'by' to categorize for legend
+            .opacity(0.3) // Make the area semi-transparent
+        }
+        .chartYAxis { // Customizing Y-axis labels
+            AxisMarks(position: .leading) { value in
+                AxisGridLine()
+                AxisTick()
+                AxisValueLabel() {
+                    if let amount = value.as(Double.self) {
+                        Text(amount, format: .currency(code: "USD"))
+                    }
+                }
+            }
+        }
+        .chartXAxis { // Customizing X-axis to show only month names
+            AxisMarks(values: .automatic) { _ in
+                AxisValueLabel()
+            }
+        }
+        .chartLegend(.visible) // Show legend for the AreaMark
+        .padding()
+        .navigationTitle("Monthly Expense Trend")
+    }
+}
+</code></pre><p>Here we've: <em> Used <code>LineMark</code> to show the trend. </em> Applied <code>foregroundStyle</code> to change the line color and <code>symbol</code> to add markers. <em> Overlaid an <code>AreaMark</code> to provide a filled region, using <code>foregroundStyle(by:)</code> to implicitly create a legend entry. </em> Customized <code>chartYAxis</code> to format labels as currency using <code>AxisMarks</code> and <code>AxisValueLabel</code>. <em> Simplified <code>chartXAxis</code> to only show the month labels. </em> Made the legend visible with <code>chartLegend(.visible)</code>.</p><h3>Adding Interactivity with <code>chartSelection</code></h3><p>Swift Charts integrates seamlessly with SwiftUI's state management. You can add selection capabilities to your charts using the <code>chartSelection</code> modifier.</p><pre><code class="language-swift">struct InteractiveBarChart: View {
+    @State private var selectedAmount: Double?
+
+    var body: some View {
+        VStack {
+            Chart(sampleExpenses) { expense in
+                BarMark(
+                    x: .value("Month", expense.month),
+                    y: .value("Amount", expense.amount)
+                )
+                // Highlight selected bar
+                .foregroundStyle(selectedAmount == expense.amount ? .green : .blue)
+            }
+            .chartSelection(value: $selectedAmount) // Binds selection to state
+            .chartOverlay { proxy in // Add a custom overlay for details
+                GeometryReader { geo in
+                    Rectangle().fill(.clear).contentShape(Rectangle())
+                        .onTapGesture { location in
+                            // Find the nearest data point to the tap location
+                            let (x, y) = (location.x, location.y)
+                            if let (month: tappedMonth, amount: tappedAmount) = proxy.value(at: x, as: (String, Double).self) {
+                                print("Tapped on month: \(tappedMonth), amount: \(tappedAmount)")
+                                selectedAmount = tappedAmount
+                            } else {
+                                selectedAmount = nil // Clear selection if no data point is tapped
+                            }
+                        }
+                }
+            }
+            .padding()
+
+            if let selectedAmount {
+                Text("Selected Expense: \(selectedAmount, format: .currency(code: "USD"))")
+                    .font(.headline)
+            } else {
+                Text("Tap a bar to see details.")
+                    .font(.headline)
+            }
+        }
+        .navigationTitle("Interactive Expenses")
+    }
+}
+</code></pre><p>In this example: <em> We use <code>@State private var selectedAmount: Double?</code> to hold the value of the selected bar. </em> <code>chartSelection(value: $selectedAmount)</code> binds the chart's selection to our state variable. When a bar is tapped, its y-value (amount) is stored. <em> We use <code>foregroundStyle</code> conditionally to highlight the selected bar. </em> The <code>chartOverlay</code> modifier allows us to add custom views on top of the chart. Here, we add a <code>Rectangle</code> with a <code>onTapGesture</code> to manually detect taps and use <code>proxy.value(at:as:)</code> to get the data point under the tap. This is a more advanced way to handle precise tap locations on the chart area itself, rather than just relying on the default selection behavior which might be less precise for smaller marks.</p><div style="text-align: center; margin: 2em 0;">
+<svg viewBox="0 0 700 250" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Comparison of Swift Charts Mark Types">
+  <title>Comparison of Swift Charts Mark Types</title>
+
+  <!-- Title -->
+  <text x="350" y="30" font-family="Arial, sans-serif" font-size="20" fill="black" text-anchor="middle">Common Swift Charts Mark Types</text>
+
+  <!-- BarMark -->
+  <rect x="50" y="70" width="180" height="150" rx="10" fill="none" stroke="#2A8367" stroke-width="2"/>
+  <text x="140" y="95" font-family="Arial, sans-serif" font-size="18" fill="black" text-anchor="middle">BarMark</text>
+  <rect x="80" y="190" width="20" height="20" fill="#1565c0"/>
+  <rect x="110" y="170" width="20" height="40" fill="#1565c0"/>
+  <rect x="140" y="150" width="20" height="60" fill="#1565c0"/>
+  <rect x="170" y="180" width="20" height="30" fill="#1565c0"/>
+  <line x1="70" y1="210" x2="210" y2="210" stroke="gray" stroke-width="1"/>
+  <line x1="70" y1="100" x2="70" y2="210" stroke="gray" stroke-width="1"/>
+
+  <!-- LineMark -->
+  <rect x="260" y="70" width="180" height="150" rx="10" fill="none" stroke="#2A8367" stroke-width="2"/>
+  <text x="350" y="95" font-family="Arial, sans-serif" font-size="18" fill="black" text-anchor="middle">LineMark</text>
+  <polyline points="290,190 320,170 350,150 380,180 410,160" fill="none" stroke="#F04B3E" stroke-width="3"/>
+  <circle cx="290" cy="190" r="4" fill="#F04B3E"/>
+  <circle cx="320" cy="170" r="4" fill="#F04B3E"/>
+  <circle cx="350" cy="150" r="4" fill="#F04B3E"/>
+  <circle cx="380" cy="180" r="4" fill="#F04B3E"/>
+  <circle cx="410" cy="160" r="4" fill="#F04B3E"/>
+  <line x1="280" y1="210" x2="420" y2="210" stroke="gray" stroke-width="1"/>
+  <line x1="280" y1="100" x2="280" y2="210" stroke="gray" stroke-width="1"/>
+
+  <!-- PointMark -->
+  <rect x="470" y="70" width="180" height="150" rx="10" fill="none" stroke="#2A8367" stroke-width="2"/>
+  <text x="560" y="95" font-family="Arial, sans-serif" font-size="18" fill="black" text-anchor="middle">PointMark</text>
+  <circle cx="500" cy="190" r="5" fill="#1565c0"/>
+  <circle cx="530" cy="160" r="5" fill="#1565c0"/>
+  <circle cx="560" cy="180" r="5" fill="#1565c0"/>
+  <circle cx="590" cy="150" r="5" fill="#1565c0"/>
+  <circle cx="620" cy="170" r="5" fill="#1565c0"/>
+  <line x1="490" y1="210" x2="630" y2="210" stroke="gray" stroke-width="1"/>
+  <line x1="490" y1="100" x2="490" y2="210" stroke="gray" stroke-width="1"/>
+</svg>
+</div><h2>Combining Marks and Layers</h2><p>One of Swift Charts' most powerful features is the ability to layer multiple marks within a single <code>Chart</code> view. This allows for rich, multi-dimensional visualizations.</p><p>Let's say we want to visualize monthly expenses as a line, but also show the overall average expense as a horizontal rule.</p><pre><code class="language-swift">struct LayeredChart: View {
+    let averageExpense = sampleExpenses.map(\.amount).reduce(0, +) / Double(sampleExpenses.count)
+
+    var body: some View {
+        Chart(sampleExpenses) { expense in
+            // Line Mark for monthly trend
+            LineMark(
+                x: .value("Month", expense.month),
+                y: .value("Amount", expense.amount)
+            )
+            .foregroundStyle(.blue)
+            .symbol(.circle)
+
+            // Rule Mark for average expense
+            RuleMark(y: .value("Average", averageExpense))
+                .foregroundStyle(.red)
+                .lineStyle(StrokeStyle(lineWidth: 1, dash: [5, 5])) // Dashed line
+                .annotation(position: .top, alignment: .leading) {
+                    Text("Avg: \(averageExpense, format: .currency(code: "USD"))")
+                        .font(.caption)
+                        .foregroundStyle(.red)
+                }
+        }
+        .chartYAxisLabel("Expense Amount ($)")
+        .chartXAxisLabel("Month")
+        .padding()
+        .navigationTitle("Expenses with Average")
+    }
+}
+</code></pre><p>Here, we've added a <code>RuleMark</code> that draws a horizontal line at the <code>averageExpense</code>. We've also customized its style with <code>lineStyle</code> and added an <code>annotation</code> to display the average value directly on the chart. This layering capability is incredibly flexible for creating informative dashboards.</p><h2>Working with Multiple Series and Grouping</h2><p>Often, your data will contain multiple categories or series you want to compare. Swift Charts makes this easy using the <code>by</code> parameter in mark modifiers. This automatically handles coloring, symbol assignment, and legend generation.</p><p>Let's extend our <code>MonthlyExpense</code> model to include a category:</p><pre><code class="language-swift">struct CategorizedExpense: Identifiable {
+    let id = UUID()
+    let month: String
+    let amount: Double
+    let category: String // e.g., "Housing", "Food", "Transport"
+}
+
+let categorizedExpenses: [CategorizedExpense] = [
+    .init(month: "Jan", amount: 600, category: "Housing"),
+    .init(month: "Jan", amount: 300, category: "Food"),
+    .init(month: "Jan", amount: 200, category: "Transport"),
+    .init(month: "Feb", amount: 600, category: "Housing"),
+    .init(month: "Feb", amount: 400, category: "Food"),
+    .init(month: "Feb", amount: 300, category: "Transport"),
+    .init(month: "Mar", amount: 600, category: "Housing"),
+    .init(month: "Mar", amount: 350, category: "Food"),
+    .init(month: "Mar", amount: 250, category: "Transport"),
+    .init(month: "Apr", amount: 650, category: "Housing"),
+    .init(month: "Apr", amount: 450, category: "Food"),
+    .init(month: "Apr", amount: 300, category: "Transport")
+]
+</code></pre><p>Now, let's create a grouped bar chart and a multi-line chart:</p><pre><code class="language-swift">struct GroupedCharts: View {
+    var body: some View {
+        VStack {
+            Text("Monthly Expenses by Category (Grouped Bar)")
+                .font(.headline)
+            Chart(categorizedExpenses) { expense in
+                BarMark(
+                    x: .value("Month", expense.month),
+                    y: .value("Amount", expense.amount)
+                )
+                .foregroundStyle(by: .value("Category", expense.category)) // Group by category for colors
+            }
+            .chartXAxis {
+                AxisMarks(values: .automatic) { _ in
+                    AxisValueLabel()
+                }
+            }
+            .chartYAxisLabel("Amount ($)")
+            .chartLegend(.visible)
+            .frame(height: 200)
+            .padding(.bottom)
+
+            Text("Monthly Expenses by Category (Multi-Line)")
+                .font(.headline)
+            Chart(categorizedExpenses) { expense in
+                LineMark(
+                    x: .value("Month", expense.month),
+                    y: .value("Amount", expense.amount)
+                )
+                .foregroundStyle(by: .value("Category", expense.category)) // Group by category for colors
+                .symbol(by: .value("Category", expense.category)) // Group by category for symbols
+            }
+            .chartXAxis {
+                AxisMarks(values: .automatic) { _ in
+                    AxisValueLabel()
+                }
+            }
+            .chartYAxisLabel("Amount ($)")
+            .chartLegend(.visible)
+            .frame(height: 200)
+        }
+        .padding()
+        .navigationTitle("Categorized Expenses")
+    }
+}
+</code></pre><p>By simply adding <code>.foregroundStyle(by: .value("Category", expense.category))</code> to our marks, Swift Charts automatically groups the data, assigns different colors to each category, and generates a legend. For line charts, adding <code>.symbol(by: .value("Category", expense.category))</code> further differentiates the lines with distinct symbols.</p><pre><code>┌─────────────────┐       ┌───────────────────────┐
+│   Data Model    │       │     Chart View        │
+│ (Identifiable)  │       │ (receives [Data])     │
+└─────────────────┘       └───────────────────────┘
+         │                         ▲
+         │                         │ (Maps Data to Axes)
+         ▼                         │
+┌─────────────────┐       ┌───────────────────────┐
+│   Mark Types    │───────►│   Visual Elements   │
+│ (Bar, Line, etc.)│       │ (Bars, Lines, Points) │
+└─────────────────┘       └───────────────────────┘
+</code></pre><h2>Advanced Features and Accessibility</h2><p>Swift Charts comes with a suite of advanced modifiers for fine-tuning your visualizations: <em> <strong><code>chartBackground</code></strong>: To add custom content behind the chart marks. </em> <strong><code>chartOverlay</code></strong>: To add custom content on top of the chart marks (as seen in our selection example). <em> <strong><code>chartScrollable</code></strong>: To enable scrolling for charts with many data points, preventing truncation. </em> <strong><code>chartXScale</code> / <code>chartYScale</code></strong>: To explicitly define the scale of your axes, e.g., <code>.continuous</code> or <code>.band</code>.</p><p>Crucially, Swift Charts is built with accessibility in mind. It leverages SwiftUI's accessibility features, automatically providing meaningful descriptions for chart elements to users who rely on VoiceOver. Always ensure your data labels and axis titles are clear and descriptive to maximize accessibility.</p><h2>Summary</h2><p>The Swift Charts framework is a powerful, declarative, and intuitive tool for building stunning data visualizations in your SwiftUI applications. By understanding the core concepts of <code>Chart</code> views, various <code>Mark</code> types, and the flexibility of modifiers like <code>foregroundStyle</code>, <code>chartSelection</code>, and <code>chartXAxis</code>, you can transform complex data into clear, interactive, and accessible insights. Embrace Swift Charts to elevate the data presentation in your iOS, macOS, and watchOS apps.</p><p>Happy Swifting!</p></div><div class="article-tags"><span class="tags-label">Tagged: </span><ul class="tag-list"><li><a href="/tags/swiftui">SwiftUI</a></li><li><a href="/tags/ios">iOS</a></li><li><a href="/tags/development">Development</a></li></ul></div><div class="ads-container"><ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-9268892677399703" data-ad-slot="8133392181" data-ad-format="auto" data-full-width-responsive="true"></ins><script>(adsbygoogle = window.adsbygoogle || []).push({});</script></div></div></div></div></article></div><footer><div class="wrapper"><p>© Swift By Rahul · <a href="/feed.rss">RSS</a> · <a href="https://github.com/bandalrahul">GitHub</a> · Built with <a href="https://github.com/johnsundell/publish">Publish</a></p></div></footer></body></html>

@@ -1,0 +1,389 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"/><meta property="og:site_name" content="Swift By Rahul"/><link rel="canonical" href="https://www.swiftbyrahul.com/posts/UnderstandingSendableInSwift"/><meta name="twitter:url" content="https://www.swiftbyrahul.com/posts/UnderstandingSendableInSwift"/><meta property="og:url" content="https://www.swiftbyrahul.com/posts/UnderstandingSendableInSwift"/><title>Understanding Sendable in Swift | Swift By Rahul</title><meta name="twitter:title" content="Understanding Sendable in Swift | Swift By Rahul"/><meta property="og:title" content="Understanding Sendable in Swift | Swift By Rahul"/><meta name="description" content="Demystify Swift's Sendable protocol, its role in safe concurrency, and how to make your types safely shareable across tasks and actors."/><meta name="twitter:description" content="Demystify Swift's Sendable protocol, its role in safe concurrency, and how to make your types safely shareable across tasks and actors."/><meta property="og:description" content="Demystify Swift's Sendable protocol, its role in safe concurrency, and how to make your types safely shareable across tasks and actors."/><meta name="twitter:card" content="summary"/><link rel="stylesheet" href="/styles.css" type="text/css"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><link rel="shortcut icon" href="/images/favicon.png" type="image/png"/><link rel="alternate" href="/feed.rss" type="application/rss+xml" title="Subscribe to Swift By Rahul"/></head><head><link rel="stylesheet" href="/css/prism.css" type="text/css"/><script src="/js/prism.js"></script><script src="/js/article.js"></script><script src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9268892677399703" async></script><meta name="twitter:card" content="summary_large_image"/><meta property="og:image" content="https://www.swiftbyrahul.com/images/posts/UnderstandingSendableInSwift.png"/><meta property="og:image:alt" content="Understanding Sendable in Swift"/><meta name="twitter:image" content="https://www.swiftbyrahul.com/images/posts/UnderstandingSendableInSwift.png"/></head><body class="item-page"><header><div class="wrapper"><a href="/" class="site-name">Swift By Rahul</a><nav class="site-nav"><ul><li><a href="/">Home</a></li><li><a href="/posts/" class="selected">Posts</a></li><li><a href="/tags">Tags</a></li><li><a href="https://github.com/bandalrahul">GitHub</a></li></ul></nav></div></header><div class="wrapper"><article><div><button class="toc-toggle" id="toc-toggle" type="button" aria-expanded="false">On this page</button><div class="article-layout"><aside class="toc" id="article-toc"><p class="toc-heading">On this page</p><nav class="toc-nav" id="article-toc-nav"></nav></aside><div class="article-main"><div class="article-meta"><span>October 19, 2026</span><span> · </span><span>11 min read</span><span> · </span><ul class="tag-list"><li><a href="/tags/swift">Swift</a></li><li><a href="/tags/ios">iOS</a></li><li><a href="/tags/programming">Programming</a></li></ul></div><div class="content"><h1>Understanding Sendable in Swift</h1><p>Swift's modern concurrency model, introduced with <code>async</code>/<code>await</code>, <code>Task</code>s, and <code>Actor</code>s, has revolutionized how we write concurrent code. It provides powerful tools to manage asynchronous operations with greater clarity and safety. However, concurrency always brings a fundamental challenge: how to safely share mutable state between different concurrent contexts without introducing data races.</p><p>This is where the <code>Sendable</code> protocol comes into play. <code>Sendable</code> is a cornerstone of Swift's structured concurrency, acting as a compile-time guarantee that a type can be safely passed across isolation domains (like between tasks or to/from actors). Without a proper understanding of <code>Sendable</code>, you might find yourself battling compiler warnings or, worse, elusive runtime bugs.</p><p>In this article, we'll demystify <code>Sendable</code>. We'll explore the problem it solves, how different types conform to it, and how to effectively use it to write robust, data-race-free concurrent Swift code.</p><div style="text-align: center; margin: 2em 0;">
+<svg viewBox="0 0 600 220" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram showing two tasks accessing a shared mutable resource leading to a data race.">
+  <title>The Problem: Unsafe Shared Mutable State</title>
+
+  <!-- Shared Mutable State Box -->
+  <rect x="250" y="70" width="100" height="80" rx="10" ry="10" fill="#F04B3E" stroke="#E03A2D" stroke-width="2"/>
+  <text x="300" y="115" font-family="Arial" font-size="16" fill="white" text-anchor="middle">Mutable</text>
+  <text x="300" y="135" font-family="Arial" font-size="16" fill="white" text-anchor="middle">Shared State</text>
+
+  <!-- Task 1 -->
+  <rect x="50" y="50" width="100" height="50" rx="10" ry="10" fill="#1565c0" stroke="#0F4C9B" stroke-width="2"/>
+  <text x="100" y="80" font-family="Arial" font-size="16" fill="white" text-anchor="middle">Task A</text>
+
+  <!-- Task 2 -->
+  <rect x="50" y="120" width="100" height="50" rx="10" ry="10" fill="#1565c0" stroke="#0F4C9B" stroke-width="2"/>
+  <text x="100" y="150" font-family="Arial" font-size="16" fill="white" text-anchor="middle">Task B</text>
+
+  <!-- Arrow Task A to Shared State -->
+  <line x1="150" y1="75" x2="250" y2="100" stroke="#F04B3E" stroke-width="3" marker-end="url(#arrowhead)"/>
+  <text x="190" y="70" font-family="Arial" font-size="14" fill="#F04B3E">Write/Read</text>
+
+  <!-- Arrow Task B to Shared State -->
+  <line x1="150" y1="145" x2="250" y2="120" stroke="#F04B3E" stroke-width="3" marker-end="url(#arrowhead)"/>
+  <text x="190" y="160" font-family="Arial" font-size="14" fill="#F04B3E">Write/Read</text>
+
+  <!-- Data Race Text -->
+  <text x="450" y="115" font-family="Arial" font-size="20" fill="#F04B3E" text-anchor="middle" font-weight="bold">Data Race!</text>
+  <path d="M 400 110 L 350 110 L 375 90 Z" fill="#F04B3E"/>
+  <path d="M 400 120 L 350 120 L 375 140 Z" fill="#F04B3E"/>
+
+  <!-- Arrowhead definition -->
+  <defs>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="0" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#F04B3E" />
+    </marker>
+  </defs>
+</svg>
+</div><h2>The Problem: Unsafe Sharing and Data Races</h2><p>Before diving into <code>Sendable</code>, let's understand the problem it aims to solve: data races. A data race occurs when multiple threads or concurrent tasks access the same mutable shared state, and at least one of those accesses is a write operation, without any proper synchronization mechanism.</p><p>Consider a simple counter that multiple tasks try to increment:</p><pre><code class="language-swift">class UnsafeCounter {
+    var value: Int = 0
+
+    func increment() {
+        value += 1
+    }
+}
+
+let counter = UnsafeCounter()
+
+func runUnsafeTasks() async {
+    await withTaskGroup(of: Void.self) { group in
+        for _ in 0..&lt;1000 {
+            group.addTask {
+                // Warning: Non-Sendable type 'UnsafeCounter' in asynchronous call to function
+                // that does not conform to 'Sendable' protocol
+                counter.increment()
+            }
+        }
+    }
+    print("Final unsafe counter value: \(counter.value)") // Will likely be less than 1000
+}
+
+// To run this example, wrap it in a Task:
+// Task { await runUnsafeTasks() }
+</code></pre><p>If you run this code, you'll likely find that <code>counter.value</code> is less than 1000, and its exact value will vary between runs. This non-deterministic behavior is a hallmark of a data race. The <code>increment()</code> operation (<code>value += 1</code>) is not atomic; it involves reading <code>value</code>, adding 1, and then writing the new <code>value</code>. If two tasks perform this sequence concurrently, one task's write might overwrite another's, leading to lost updates.</p><p>Swift's concurrency model aims to prevent such issues at compile time. When you try to pass <code>counter</code> (an instance of <code>UnsafeCounter</code>) into <code>group.addTask { ... }</code>, the compiler issues a warning: "Non-Sendable type 'UnsafeCounter' in asynchronous call to function that does not conform to 'Sendable' protocol." This warning is your first line of defense, signaling a potential data race.</p><h2>Introducing the <code>Sendable</code> Protocol</h2><p><code>Sendable</code> is a marker protocol. It doesn't define any methods or properties; its sole purpose is to tell the Swift compiler that an instance of a type can be safely copied or moved across different concurrency domains (e.g., from one <code>Task</code> to another, or into/out of an <code>Actor</code>).</p><p>When the compiler sees a type conforming to <code>Sendable</code>, it gains a crucial guarantee: any instance of that type, or any reference to it, can be safely used in a concurrent context without introducing data races, <em>provided the type itself is correctly implemented</em>. This allows the compiler to enforce isolation rules at compile time, preventing a whole class of concurrency bugs before your code even runs.</p><p>The compiler performs a static analysis to determine if a type is <code>Sendable</code>. If a type is <code>Sendable</code>, it means one of the following is true:</p><ol><li>It is a value type (struct, enum) with <code>Sendable</code> members.</li><li>It is an immutable reference type with <code>Sendable</code> members.</li><li>It is an actor type.</li><li>It uses internal synchronization to protect its mutable state.</li><li>It is explicitly marked as <code>@unchecked Sendable</code> by the developer, taking full responsibility.</li></ol><h2>What Makes a Type <code>Sendable</code>?</h2><p>Let's break down how different Swift types achieve <code>Sendable</code> conformance.</p><h3>Value Types: Structs and Enums</h3><p>Value types are generally the easiest to make <code>Sendable</code>. A <code>struct</code> or <code>enum</code> is automatically <code>Sendable</code> if all of its stored properties (for structs) or associated values (for enums) are themselves <code>Sendable</code>.</p><p><strong>Why?</strong> Because value types are copied when passed across concurrency boundaries. Each task gets its own independent copy, eliminating the shared mutable state problem. Even if a <code>struct</code> contains a <code>class</code> instance, if that <code>class</code> instance is immutable (and <code>Sendable</code>), then the <code>struct</code> itself can be <code>Sendable</code>.</p><pre><code class="language-swift">// Example 1: Sendable Struct
+struct UserID: Sendable, Hashable {
+    let id: String // String is Sendable
+}
+
+struct Message: Sendable {
+    let sender: UserID // UserID is Sendable
+    let content: String // String is Sendable
+    let timestamp: Date // Date is Sendable
+}
+
+// Example 2: Sendable Enum
+enum NetworkError: Error, Sendable {
+    case invalidURL
+    case serverError(code: Int) // Int is Sendable
+    case customError(message: String, code: Int) // String, Int are Sendable
+}
+</code></pre><p>In both examples, the types are automatically inferred as <code>Sendable</code> because their components are also <code>Sendable</code> value types or immutable reference types.</p><h3>Reference Types: Classes</h3><p>Classes are trickier. Since they are reference types, multiple tasks can hold references to the <em>same instance</em> of a class. For a class to be <code>Sendable</code>, it must guarantee that its state cannot be mutated concurrently by different tasks in an unsafe way.</p><p>A <code>class</code> can be <code>Sendable</code> if:</p><ol><li><strong>It's immutable</strong>: All its stored properties are <code>let</code> constants, and their types are <code>Sendable</code>. <code></code>`swift final class ImmutableConfiguration: Sendable { let apiKey: String let environment: String</li></ol><p>init(apiKey: String, environment: String) { self.apiKey = apiKey self.environment = environment } } <code></code>` Note the <code>final</code> keyword. While not strictly required for <code>Sendable</code> conformance itself, it's good practice for immutable classes to prevent subclasses from introducing mutable state. The compiler can infer <code>Sendable</code> for such classes.</p><ol start="2"><li><strong>It's an <code>Actor</code></strong>: <code>Actor</code>s provide their own isolation mechanism, ensuring that access to their mutable state is serialized. Therefore, <code>Actor</code> types are implicitly <code>Sendable</code>. <code></code>`swift actor SafeCounter: Sendable { // Actor types implicitly conform to Sendable var value: Int = 0</li></ol><p>func increment() { value += 1 }</p><p>func getValue() -&gt; Int { return value } }</p><p>func runSafeActorTasks() async { let counter = SafeCounter()</p><p>await withTaskGroup(of: Void.self) { group in for _ in 0..<1000 {
+                group.addTask {
+                    await counter.increment() // Safe access via actor isolation
+                }
+            }
+        }
+        let finalValue = await counter.getValue()
+        print("Final safe actor counter value: \(finalValue)") // Will be 1000
+    }
+
+    // To run this example, wrap it in a Task:
+    // Task { await runSafeActorTasks() }
+    ```
+    Here, the `SafeCounter` actor handles concurrent access safely, and its type is `Sendable`.
+
+3.  **It uses internal synchronization**: If a class manages its mutable state using internal synchronization primitives (like `NSLock` or a dispatch queue), it can also be `Sendable`. However, the Swift compiler cannot automatically verify this. In such cases, you might need to manually mark it as `Sendable` (often with `@unchecked Sendable`, as discussed later). This is generally discouraged in favor of actors or value types.
+
+### Functions and Closures: `@Sendable`
+
+Functions and closures can also be `Sendable`. A function or closure is `@Sendable` if it captures only `Sendable` values. This is crucial because when you pass a closure to a `Task` or an `Actor`, the closure's captured environment must be safe to move across concurrency domains.
+
+```swift
+func processData(completion: @Sendable @escaping (Result<String, NetworkError>) -> Void) {
+    // This function can be called from any concurrency domain
+    // The completion handler can be safely passed to another task/actor
+    Task {
+        await Task.sleep(nanoseconds: 1_000_000_000) // Simulate work
+        let result: Result<String, NetworkError> = .success("Data processed!")
+        completion(result)
+    }
+}
+
+// Example of using a @Sendable closure
+let myID = UserID(id: "user123") // UserID is Sendable
+
+func performOperation() async {
+    let operation: @Sendable () async -> String = {
+        // 'myID' is captured here. Since UserID is Sendable, this closure is Sendable.
+        await Task.sleep(nanoseconds: 500_000_000)
+        return "Operation for \(myID.id) completed."
+    }
+
+    let result = await Task { await operation() }.value
+    print(result)
+}
+
+// To run this example, wrap it in a Task:
+// Task { await performOperation() }
+```
+
+```
+┌───────────────────────┐             ┌───────────────────────┐
+│       Value Type      │             │     Reference Type    │
+│    (struct, enum)     │             │        (class)        │
+└───────────┬───────────┘             └───────────┬───────────┘
+            │                                     │
+            │ All stored properties/              │ All stored properties are:
+            │ associated values are Sendable?     │  - `let` (immutable) AND Sendable
+            │                                     │  - OR, type is an Actor
+            │                                     │  - OR, protected by internal sync
+            ▼                                     ▼
+┌───────────────────────┐             ┌───────────────────────┐
+│     Automatically     │             │  Compiler can infer   │
+│       Sendable        │             │    (if immutable)     │
+└───────────────────────┘             │  Manual conformance   │
+                                      │   (e.g., @unchecked)  │
+                                      └───────────────────────┘
+```
+
+## Automatic vs. Manual Conformance
+
+Swift's compiler is smart. For many common types, it can automatically infer `Sendable` conformance:
+
+*   Most standard library value types (`Int`, `String`, `Array`, `Dictionary`, `Date`, `URL`, `UUID`, etc.) are `Sendable`.
+*   Structs and enums containing only `Sendable` types are automatically `Sendable`.
+*   Final classes with only `let` stored properties of `Sendable` types are automatically `Sendable`.
+*   Actor types are automatically `Sendable`.
+
+However, there are situations where you might need to explicitly declare `Sendable` conformance:
+
+### Explicit `Sendable` Conformance
+
+If you have a custom type that the compiler cannot infer as `Sendable` (e.g., a class that uses internal synchronization that Swift doesn't understand, or an `NSObject` subclass), but you know it's safe, you can declare its conformance:
+
+```swift
+// Example: A class that uses a lock internally
+import Foundation
+
+final class ThreadSafeCache<Key: Hashable, Value>: @unchecked Sendable {
+    private var storage: [Key: Value] = [:]
+    private let lock = NSLock()
+
+    func set(_ value: Value, forKey key: Key) {
+        lock.lock()
+        defer { lock.unlock() }
+        storage[key] = value
+    }
+
+    func get(forKey key: Key) -> Value? {
+        lock.lock()
+        defer { lock.unlock() }
+        return storage[key]
+    }
+}
+```
+
+Notice the `@unchecked Sendable`. This is a powerful and dangerous tool.
+
+### `@unchecked Sendable`: The Escape Hatch
+
+`@unchecked Sendable` is an attribute you apply to a type's `Sendable` conformance declaration. It tells the compiler: "I, the developer, guarantee that this type is safe to send across concurrency domains, even if you can't prove it. Please trust me and suppress any related warnings."
+
+**When to use it:**
+*   When integrating with Objective-C classes that are thread-safe but not marked as such for Swift.
+*   When implementing complex custom synchronization mechanisms that the Swift compiler cannot analyze.
+
+**When NOT to use it:**
+*   **Never use it blindly.** If your type is truly not `Sendable`, using `@unchecked Sendable` will reintroduce data races and undefined behavior, bypassing Swift's safety guarantees.
+*   Avoid it if you can achieve `Sendable` conformance through other means (e.g., making a class immutable, using an actor, or refactoring to value types).
+
+Using `@unchecked Sendable` places the burden of correctness entirely on you. If you get it wrong, you're back to debugging elusive concurrency bugs.
+
+## `Sendable` in Action: Practical Scenarios
+
+Let's look at how `Sendable` plays a role in common Swift concurrency patterns.
+
+### Passing Data to `Task`s
+
+When you create a `Task`, any values captured by its closure or passed as parameters should ideally be `Sendable` to ensure safe operation.
+
+```swift
+struct WorkItem: Sendable {
+    let id: UUID
+    let data: String
+}
+
+func processWorkItem(_ item: WorkItem) async {
+    print("Processing work item \(item.id) with data: \(item.data)")
+    await Task.sleep(nanoseconds: 100_000_000)
+}
+
+func startProcessingTasks() async {
+    let item1 = WorkItem(id: UUID(), data: "First batch")
+    let item2 = WorkItem(id: UUID(), data: "Second batch")
+
+    await Task {
+        await processWorkItem(item1) // item1 is Sendable, safe to capture
+    }.value
+
+    await Task {
+        await processWorkItem(item2) // item2 is Sendable, safe to capture
+    }.value
+}
+
+// To run this example, wrap it in a Task:
+// Task { await startProcessingTasks() }
+```
+Because `WorkItem` is a `Sendable` struct (assuming `UUID` and `String` are `Sendable`), `item1` and `item2` can be safely captured by the respective `Task` closures. Each task gets its own copy of the `WorkItem` value.
+
+### Actors and `Sendable`
+
+Actors are designed to isolate mutable state. When you interact with an actor, you're either sending it `Sendable` data or receiving `Sendable` data from it. The actor itself is `Sendable`.
+
+```swift
+actor DataProcessor {
+    private var processedCount: Int = 0
+
+    // Input must be Sendable
+    func process(_ data: WorkItem) async -> String { // WorkItem is Sendable
+        processedCount += 1
+        print("Actor processing item \(data.id). Total processed: \(processedCount)")
+        await Task.sleep(nanoseconds: 50_000_000)
+        return "Processed \(data.id)"
+    }
+
+    // Output must be Sendable
+    func getProcessedCount() -> Int { // Int is Sendable
+        return processedCount
+    }
+}
+
+func coordinateProcessing() async {
+    let processor = DataProcessor()
+    let items = (0..<5).map { _ in WorkItem(id: UUID(), data: "Data \($0)") }
+
+    await withTaskGroup(of: String.self) { group in
+        for item in items {
+            group.addTask {
+                await processor.process(item) // item (WorkItem) is Sendable
+            }
+        }
+
+        for await result in group {
+            print("Received result: \(result)")
+        }
+    }
+
+    let finalCount = await processor.getProcessedCount()
+    print("Final processed count: \(finalCount)")
+}
+
+// To run this example, wrap it in a Task:
+// Task { await coordinateProcessing() }
+```
+Here, `WorkItem` is `Sendable`, allowing it to be safely passed to the `DataProcessor` actor. The `Int` return type of `getProcessedCount()` is also `Sendable`, allowing it to be safely returned from the actor.
+
+### `TaskGroup`s and `Sendable`
+
+When using `TaskGroup`s, the values passed to `group.addTask` and the return values from the child tasks should be `Sendable`.
+
+```swift
+struct CalculationInput: Sendable {
+    let value: Int
+}
+
+struct CalculationResult: Sendable {
+    let originalValue: Int
+    let squaredValue: Int
+}
+
+func performCalculation(input: CalculationInput) async -> CalculationResult {
+    await Task.sleep(nanoseconds: UInt64.random(in: 10_000_000...100_000_000))
+    return CalculationResult(originalValue: input.value, squaredValue: input.value * input.value)
+}
+
+func runCalculations() async {
+    let inputs = (1...5).map { CalculationInput(value: $0) }
+
+    await withTaskGroup(of: CalculationResult.self) { group in
+        for input in inputs {
+            group.addTask {
+                // input (CalculationInput) is Sendable
+                await performCalculation(input: input)
+            }
+        }
+
+        for await result in group {
+            // result (CalculationResult) is Sendable
+            print("Calculated: \(result.originalValue)^2 = \(result.squaredValue)")
+        }
+    }
+}
+
+// To run this example, wrap it in a Task:
+// Task { await runCalculations() }
+```
+Both `CalculationInput` and `CalculationResult` are `Sendable` structs, ensuring safe data flow within the `TaskGroup`.
+
+## Common Pitfalls and Best Practices
+
+*   **Compiler Warnings are Your Friends**: Don't ignore "Non-Sendable type..." warnings. They are Swift's way of telling you there's a potential data race. Address them by making your types `Sendable`.
+*   **Embrace Value Types and Immutability**: Whenever possible, design your data models using structs and enums. For reference types, prefer `final class` with `let` properties. This naturally leads to `Sendable` types and simplifies concurrent programming.
+*   **Leverage Actors for Mutable State**: When you absolutely need shared mutable state, use actors. Actors provide built-in isolation and are implicitly `Sendable`.
+*   **Avoid `@unchecked Sendable`**: Use this escape hatch only when you fully understand the implications and have thoroughly verified the thread safety of your type through other means (e.g., locks, queues). It's a last resort.
+*   **Understand Captured Values in Closures**: Be mindful of what your closures capture. If a closure captures a non-`Sendable` reference type, the closure itself becomes non-`Sendable`, potentially leading to compiler errors when passed to `Task`s or `Actor`s.
+
+<div style="text-align: center; margin: 2em 0;">
+<svg viewBox="0 0 600 250" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram showing Sendable as a gatekeeper for safe data flow between concurrent domains.">
+  <title>Sendable as a Safe Data Flow Gatekeeper</title>
+
+  <!-- Concurrent Context 1 -->
+  <rect x="50" y="30" width="120" height="60" rx="10" ry="10" fill="#1565c0" stroke="#0F4C9B" stroke-width="2"/>
+  <text x="110" y="65" font-family="Arial" font-size="16" fill="white" text-anchor="middle">Task A / Actor 1</text>
+
+  <!-- Concurrent Context 2 -->
+  <rect x="50" y="160" width="120" height="60" rx="10" ry="10" fill="#1565c0" stroke="#0F4C9B" stroke-width="2"/>
+  <text x="110" y="195" font-family="Arial" font-size="16" fill="white" text-anchor="middle">Task B / Actor 2</text>
+
+  <!-- Shared Data Before Sendable (Unsafe) -->
+  <rect x="250" y="80" width="100" height="40" rx="5" ry="5" fill="#F04B3E" stroke="#E03A2D" stroke-width="2"/>
+  <text x="300" y="105" font-family="Arial" font-size="14" fill="white" text-anchor="middle">Unsafe Data</text>
+
+  <!-- Arrows to Unsafe Data -->
+  <line x1="170" y1="60" x2="250" y2="90" stroke="#F04B3E" stroke-width="2" marker-end="url(#arrowheadRed)"/>
+  <line x1="170" y1="190" x2="250" y2="100" stroke="#F04B3E" stroke-width="2" marker-end="url(#arrowheadRed)"/>
+  <text x="210" y="70" font-family="Arial" font-size="12" fill="#F04B3E">Access</text>
+  <text x="210" y="180" font-family="Arial" font-size="12" fill="#F04B3E">Access</text>
+
+  <!-- Sendable Data (Safe) -->
+  <rect x="450" y="80" width="100" height="40" rx="5" ry="5" fill="#2A8367" stroke="#226B52" stroke-width="2"/>
+  <text x="500" y="105" font-family="Arial" font-size="14" fill="white" text-anchor="middle">Sendable Data</text>
+
+  <!-- Arrows to Sendable Data -->
+  <line x1="170" y1="60" x2="450" y2="90" stroke="#2A8367" stroke-width="2" marker-end="url(#arrowheadGreen)"/>
+  <text x="310" y="70" font-family="Arial" font-size="12" fill="#2A8367">Pass Safely</text>
+  <line x1="170" y1="190" x2="450" y2="100" stroke="#2A8367" stroke-width="2" marker-end="url(#arrowheadGreen)"/>
+  <text x="310" y="180" font-family="Arial" font-size="12" fill="#2A8367">Pass Safely</text>
+
+  <!-- Label for Unsafe vs Safe -->
+  <text x="300" y="40" font-family="Arial" font-size="18" fill="#F04B3E" text-anchor="middle">Without Sendable (Unsafe)</text>
+  <text x="500" y="40" font-family="Arial" font-size="18" fill="#2A8367" text-anchor="middle">With Sendable (Safe)</text>
+
+  <!-- Arrowhead definitions -->
+  <defs>
+    <marker id="arrowheadRed" markerWidth="10" markerHeight="7" refX="0" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#F04B3E" />
+    </marker>
+    <marker id="arrowheadGreen" markerWidth="10" markerHeight="7" refX="0" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#2A8367" />
+    </marker>
+  </defs>
+</svg>
+</div>
+
+## Summary
+
+The `Sendable` protocol is a critical component of Swift's modern concurrency model, providing compile-time safety guarantees against data races when sharing data across concurrent tasks and actors. By understanding how different types conform to `Sendable` – with value types often being automatically `Sendable` and reference types requiring immutability or actor isolation – you can write more robust and predictable concurrent code. Embrace `Sendable` to harness the full power of Swift's structured concurrency safely and effectively.
+
+Happy Swifting!
+</p></div><div class="article-tags"><span class="tags-label">Tagged: </span><ul class="tag-list"><li><a href="/tags/swift">Swift</a></li><li><a href="/tags/ios">iOS</a></li><li><a href="/tags/programming">Programming</a></li></ul></div><div class="ads-container"><ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-9268892677399703" data-ad-slot="8133392181" data-ad-format="auto" data-full-width-responsive="true"></ins><script>(adsbygoogle = window.adsbygoogle || []).push({});</script></div></div></div></div></article></div><footer><div class="wrapper"><p>© Swift By Rahul · <a href="/feed.rss">RSS</a> · <a href="https://github.com/bandalrahul">GitHub</a> · Built with <a href="https://github.com/johnsundell/publish">Publish</a></p></div></footer></body></html>

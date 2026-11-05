@@ -1,0 +1,282 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"/><meta property="og:site_name" content="Swift By Rahul"/><link rel="canonical" href="https://www.swiftbyrahul.com/posts/CleanArchitecturePrinciplesForIos"/><meta name="twitter:url" content="https://www.swiftbyrahul.com/posts/CleanArchitecturePrinciplesForIos"/><meta property="og:url" content="https://www.swiftbyrahul.com/posts/CleanArchitecturePrinciplesForIos"/><title>Clean Architecture Principles for iOS | Swift By Rahul</title><meta name="twitter:title" content="Clean Architecture Principles for iOS | Swift By Rahul"/><meta property="og:title" content="Clean Architecture Principles for iOS | Swift By Rahul"/><meta name="description" content="Explore Clean Architecture principles for iOS, focusing on separation of concerns, testability, and maintainability with practical Swift examples."/><meta name="twitter:description" content="Explore Clean Architecture principles for iOS, focusing on separation of concerns, testability, and maintainability with practical Swift examples."/><meta property="og:description" content="Explore Clean Architecture principles for iOS, focusing on separation of concerns, testability, and maintainability with practical Swift examples."/><meta name="twitter:card" content="summary"/><link rel="stylesheet" href="/styles.css" type="text/css"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><link rel="shortcut icon" href="/images/favicon.png" type="image/png"/><link rel="alternate" href="/feed.rss" type="application/rss+xml" title="Subscribe to Swift By Rahul"/></head><head><link rel="stylesheet" href="/css/prism.css" type="text/css"/><script src="/js/prism.js"></script><script src="/js/article.js"></script><script src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9268892677399703" async></script><meta name="twitter:card" content="summary_large_image"/><meta property="og:image" content="https://www.swiftbyrahul.com/images/posts/CleanArchitecturePrinciplesForIos.png"/><meta property="og:image:alt" content="Clean Architecture Principles for iOS"/><meta name="twitter:image" content="https://www.swiftbyrahul.com/images/posts/CleanArchitecturePrinciplesForIos.png"/></head><body class="item-page"><header><div class="wrapper"><a href="/" class="site-name">Swift By Rahul</a><nav class="site-nav"><ul><li><a href="/">Home</a></li><li><a href="/posts/" class="selected">Posts</a></li><li><a href="/tags">Tags</a></li><li><a href="https://github.com/bandalrahul">GitHub</a></li></ul></nav></div></header><div class="wrapper"><article><div><button class="toc-toggle" id="toc-toggle" type="button" aria-expanded="false">On this page</button><div class="article-layout"><aside class="toc" id="article-toc"><p class="toc-heading">On this page</p><nav class="toc-nav" id="article-toc-nav"></nav></aside><div class="article-main"><div class="article-meta"><span>August 6, 2026</span><span> · </span><span>9 min read</span><span> · </span><ul class="tag-list"><li><a href="/tags/architecture">Architecture</a></li><li><a href="/tags/ios">iOS</a></li><li><a href="/tags/development">Development</a></li></ul></div><div class="content"><h1>Clean Architecture Principles for iOS</h1><p>As iOS applications grow in complexity, so does the need for a robust and scalable architecture. While patterns like MVC, MVVM, and VIPER provide valuable structure, they often focus on UI-centric concerns. Clean Architecture, popularized by Robert C. Martin (Uncle Bob), offers a more holistic approach that prioritizes separation of concerns, testability, and independence from external frameworks, UI, and databases.</p><p>For intermediate iOS developers looking to build highly maintainable and adaptable applications, understanding Clean Architecture is a significant step forward. It helps you design systems where the core business logic remains pristine and unaffected by changes in the presentation layer, persistence layer, or even the underlying frameworks.</p><p>At its heart, Clean Architecture envisions your application as a set of concentric circles, often referred to as the "onion" architecture. Each circle represents a different layer of your application, with strict rules about how dependencies flow.</p><div style="text-align: center; margin: 2em 0;">
+<svg viewBox="0 0 600 220" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Clean Architecture Concentric Circles Diagram">
+  <title>Clean Architecture Concentric Circles Diagram</title>
+
+  <!-- Circles -->
+  <circle cx="300" cy="110" r="100" fill="none" stroke="#1565c0" stroke-width="2"/>
+  <circle cx="300" cy="110" r="70" fill="none" stroke="#2A8367" stroke-width="2"/>
+  <circle cx="300" cy="110" r="40" fill="none" stroke="#F04B3E" stroke-width="2"/>
+
+  <!-- Labels -->
+  <text x="300" y="115" font-family="Arial, sans-serif" font-size="14" text-anchor="middle" fill="#333">Entities</text>
+  <text x="300" y="70" font-family="Arial, sans-serif" font-size="14" text-anchor="middle" fill="#333">Use Cases</text>
+  <text x="300" y="30" font-family="Arial, sans-serif" font-size="14" text-anchor="middle" fill="#333">Interface Adapters</text>
+  <text x="300" y="15" font-family="Arial, sans-serif" font-size="14" text-anchor="middle" fill="#333">Frameworks & Devices</text>
+
+  <!-- Arrows indicating dependency flow -->
+  <line x1="300" y1="180" x2="300" y2="150" stroke="#888" stroke-width="1" marker-end="url(#arrowhead)"/>
+  <line x1="300" y1="150" x2="300" y2="120" stroke="#888" stroke-width="1" marker-end="url(#arrowhead)"/>
+  <line x1="300" y1="120" x2="300" y2="90" stroke="#888" stroke-width="1" marker-end="url(#arrowhead)"/>
+  <line x1="300" y1="90" x2="300" y2="60" stroke="#888" stroke-width="1" marker-end="url(#arrowhead)"/>
+
+  <!-- Definition for arrowhead marker -->
+  <defs>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="0" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#888" />
+    </marker>
+  </defs>
+
+  <!-- Legend -->
+  <rect x="10" y="10" width="10" height="10" fill="#F04B3E"/>
+  <text x="25" y="19" font-family="Arial, sans-serif" font-size="12" fill="#333">Entities</text>
+  <rect x="10" y="30" width="10" height="10" fill="#2A8367"/>
+  <text x="25" y="39" font-family="Arial, sans-serif" font-size="12" fill="#333">Use Cases</text>
+  <rect x="10" y="50" width="10" height="10" fill="#1565c0"/>
+  <text x="25" y="59" font-family="Arial, sans-serif" font-size="12" fill="#333">Interface Adapters</text>
+  <rect x="10" y="70" width="10" height="10" fill="#888"/>
+  <text x="25" y="79" font-family="Arial, sans-serif" font-size="12" fill="#333">Frameworks & Devices</text>
+
+  <text x="300" y="195" font-family="Arial, sans-serif" font-size="12" text-anchor="middle" fill="#333">Dependencies point inwards</text>
+</svg>
+</div><h2>The Core Principles of Clean Architecture</h2><p>Before diving into the layers, let's understand the fundamental principles that underpin Clean Architecture:</p><ol><li><strong>Independence of Frameworks</strong>: Your core business rules should not know anything about your chosen UI framework (UIKit, SwiftUI), database (Core Data, SwiftData, Realm), or web server. These are "details" that can be easily swapped.</li><li><strong>Independence of UI</strong>: The UI can change without affecting the rest of the system. You could switch from a mobile app to a web app, or even a command-line interface, with minimal changes to your business logic.</li><li><strong>Independence of Database</strong>: Your business rules should not be tied to a specific database technology. Switching from a SQL database to a NoSQL database, or even an in-memory store for testing, should be straightforward.</li><li><strong>Independence of External Agencies</strong>: Your business rules should not be aware of external services or APIs. They should interact with them through abstract interfaces.</li><li><strong>Testability</strong>: The most crucial benefit. Because the business rules are isolated, they can be tested independently of the UI, database, web services, or any other external component. This makes unit testing incredibly efficient and reliable.</li></ol><h2>Layers of Clean Architecture: The Onion Model</h2><p>Let's peel back the layers of the onion, from the innermost to the outermost:</p><h3>1. Entities (Enterprise Business Rules)</h3><p>This is the innermost layer, containing the most general and high-level rules. Entities encapsulate your application's core data structures and business logic that is fundamental to the entire system, regardless of how it's used. They are pure Swift objects (structs, enums, or simple classes) with no external dependencies on iOS frameworks.</p><p><strong>Example:</strong> A <code>Product</code> entity might define properties like <code>id</code>, <code>name</code>, <code>price</code>, and <code>description</code>. It might also contain methods for basic validation or calculations that are intrinsic to a product.</p><pre><code class="language-swift">// Entities Layer
+struct Product: Identifiable, Equatable {
+    let id: String
+    var name: String
+    var description: String
+    var price: Double
+
+    // Example of an intrinsic business rule
+    func calculateDiscountedPrice(percentage: Double) -&gt; Double {
+        guard percentage &gt; 0 &amp;&amp; percentage &lt; 1 else { return price }
+        return price * (1 - percentage)
+    }
+}
+</code></pre><h3>2. Use Cases (Application Business Rules)</h3><p>The Use Case layer contains the application-specific business rules. These orchestrate the flow of data to and from the Entities, defining how a specific feature or interaction within your application works. They are often represented as classes that perform a single, well-defined operation.</p><p>Use Cases define interfaces (protocols) that the outer layers (Interface Adapters, Frameworks) must implement. This is crucial for maintaining the Dependency Rule.</p><p><strong>Example:</strong> A <code>FetchProductsUseCase</code> might coordinate with a <code>ProductRepository</code> (defined as a protocol in this layer) to retrieve a list of <code>Product</code> entities.</p><pre><code class="language-swift">// Use Cases Layer
+
+// A protocol defining how to interact with product data
+// This is defined IN the Use Cases layer, NOT in the Frameworks layer.
+protocol ProductRepository {
+    func fetchProducts() async throws -&gt; [Product]
+    func saveProduct(_ product: Product) async throws
+}
+
+// The Use Case itself
+final class FetchProductsUseCase {
+    private let productRepository: ProductRepository
+
+    init(productRepository: ProductRepository) {
+        self.productRepository = productRepository
+    }
+
+    func execute() async throws -&gt; [Product] {
+        // Here you could add application-specific business logic
+        // E.g., filtering, sorting, or combining data from multiple sources
+        let products = try await productRepository.fetchProducts()
+        return products.sorted { $0.name &lt; $1.name } // Example application rule
+    }
+}
+</code></pre><pre><code>┌─────────────────┐     ┌─────────────────────┐     ┌─────────────────┐
+│ Presenter/ViewModel │ ◄── │  FetchProductsUseCase │ ──► │ ProductRepository │
+└─────────────────┘     └─────────────────────┘     └─────────────────┘
+      ▲                                                   │
+      │                                                   │ (Implements)
+      │                                                   ▼
+      │                                             ┌─────────────────┐
+      └───────────────────────────────────────────────┤ APIProductGateway │
+                                                    └─────────────────┘
+</code></pre><p><em>ASCII Diagram: Flow of data and dependency between Presentation, Use Case, and Gateway layers.</em></p><h3>3. Interface Adapters (Gateways, Presenters, Controllers)</h3><p>This layer acts as a translator between the Use Case layer and the outermost layer (Frameworks &amp; Devices). It converts data from the format most convenient for the Use Cases and Entities into the format most convenient for the Frameworks and Devices, and vice-versa.</p><ul><li><strong>Presenters / ViewModels</strong>: Prepare data in a format suitable for the UI. They take data from Use Cases and transform it into "view models" or "presentation models" that the UI can directly display.</li><li><strong>Gateways / Repositories</strong>: Implement the protocols defined by the Use Cases. For instance, a concrete <code>APIRepository</code> would implement the <code>ProductRepository</code> protocol, making actual network requests.</li><li><strong>Controllers</strong>: In UIKit, these often handle user input and translate it into calls to Use Cases. In SwiftUI, this might be handled by the View or ViewModel.</li></ul><pre><code class="language-swift">// Interface Adapters Layer
+
+// Data Transfer Object (DTO) for the UI
+struct ProductDisplayItem: Identifiable, Equatable {
+    let id: String
+    let name: String
+    let formattedPrice: String
+    let description: String
+}
+
+// Presenter: Transforms Entities into UI-friendly display items
+final class ProductListPresenter {
+    func present(_ products: [Product]) -&gt; [ProductDisplayItem] {
+        return products.map { product in
+            ProductDisplayItem(
+                id: product.id,
+                name: product.name,
+                formattedPrice: "$\(String(format: "%.2f", product.price))",
+                description: product.description
+            )
+        }
+    }
+}
+
+// API Gateway / Repository: Concrete implementation of ProductRepository
+enum NetworkError: Error {
+    case invalidURL
+    case noData
+    case decodingFailed
+    case apiError(String)
+}
+
+final class APIProductGateway: ProductRepository {
+    private let session: URLSession
+
+    init(session: URLSession = .shared) {
+        self.session = session
+    }
+
+    func fetchProducts() async throws -&gt; [Product] {
+        guard let url = URL(string: "https://api.example.com/products") else {
+            throw NetworkError.invalidURL
+        }
+
+        let (data, response) = try await session.data(from: url)
+
+        guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
+            throw NetworkError.apiError("Invalid HTTP response")
+        }
+
+        let apiProducts = try JSONDecoder().decode([APIProduct].self, from: data)
+        return apiProducts.map { Product(id: $0.id, name: $0.name, description: $0.description, price: $0.price) }
+    }
+
+    func saveProduct(_ product: Product) async throws {
+        // Implementation for saving product to API
+        print("Saving product \(product.name) to API...")
+        // This would involve encoding the product and sending a POST/PUT request
+    }
+}
+
+// Helper DTO for decoding API response
+private struct APIProduct: Decodable {
+    let id: String
+    let name: String
+    let description: String
+    let price: Double
+}
+</code></pre><h3>4. Frameworks &amp; Devices (Web, DB, UI)</h3><p>This is the outermost layer, consisting of all the specific frameworks and tools you use. This includes your UI (UIKit <code>UIViewController</code>s, SwiftUI <code>View</code>s), databases (Core Data, SwiftData), networking libraries (<code>URLSession</code>), and any other external dependencies.</p><p>This layer contains the concrete implementations that interact with the actual hardware or external services. It depends on the inner layers, but crucially, the inner layers know nothing about it.</p><pre><code class="language-swift">// Frameworks &amp; Devices Layer (e.g., SwiftUI View)
+
+import SwiftUI
+
+struct ProductListView: View {
+    @State private var products: [ProductDisplayItem] = []
+    @State private var errorMessage: String?
+    @State private var isLoading = false
+
+    // Dependencies are injected, typically at app startup
+    private let fetchProductsUseCase: FetchProductsUseCase
+    private let productListPresenter: ProductListPresenter
+
+    init(fetchProductsUseCase: FetchProductsUseCase, productListPresenter: ProductListPresenter) {
+        self.fetchProductsUseCase = fetchProductsUseCase
+        self.productListPresenter = productListPresenter
+    }
+
+    var body: some View {
+        NavigationView {
+            Group {
+                if isLoading {
+                    ProgressView("Loading Products...")
+                } else if let errorMessage = errorMessage {
+                    Text("Error: \(errorMessage)")
+                        .foregroundColor(.red)
+                } else if products.isEmpty {
+                    Text("No products available.")
+                        .foregroundColor(.gray)
+                } else {
+                    List(products) { product in
+                        VStack(alignment: .leading) {
+                            Text(product.name)
+                                .font(.headline)
+                            Text(product.formattedPrice)
+                                .font(.subheadline)
+                                .foregroundColor(.green)
+                            Text(product.description)
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                }
+            }
+            .navigationTitle("Products")
+            .task {
+                await loadProducts()
+            }
+        }
+    }
+
+    private func loadProducts() async {
+        isLoading = true
+        errorMessage = nil
+        do {
+            let fetchedProducts = try await fetchProductsUseCase.execute()
+            products = productListPresenter.present(fetchedProducts)
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+        isLoading = false
+    }
+}
+
+// Example of how to compose and inject dependencies (e.g., in your App struct)
+/*
+@main
+struct MyApp: App {
+    var body: some Scene {
+        WindowGroup {
+            let apiGateway = APIProductGateway() // Frameworks layer
+            let fetchUseCase = FetchProductsUseCase(productRepository: apiGateway) // Use Cases layer
+            let presenter = ProductListPresenter() // Interface Adapters layer
+
+            ProductListView(fetchProductsUseCase: fetchUseCase, productListPresenter: presenter)
+        }
+    }
+}
+*/
+</code></pre><h2>The Dependency Rule</h2><p>The most critical rule in Clean Architecture is the <strong>Dependency Rule</strong>:</p><p><strong>Dependencies can only point inwards.</strong></p><p>This means that code in an outer circle can depend on code in an inner circle, but never the other way around. Inner circles know nothing about outer circles.</p><p>How is this achieved? Through <strong>protocols</strong> and the <strong>Dependency Inversion Principle</strong>. As seen in our example, the <code>FetchProductsUseCase</code> (inner layer) depends on a <code>ProductRepository</code> <em>protocol</em> (also defined in the inner layer). The concrete <code>APIProductGateway</code> (outer layer) then <em>implements</em> this protocol. This "inverts" the dependency: the inner layer defines what it needs, and the outer layer provides it.</p><div style="text-align: center; margin: 2em 0;">
+<svg viewBox="0 0 600 200" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Clean Architecture Dependency Rule Diagram">
+  <title>Clean Architecture Dependency Rule Diagram</title>
+
+  <!-- Boxes for layers -->
+  <rect x="10" y="10" width="120" height="40" fill="#F04B3E" stroke="#333" stroke-width="1"/>
+  <text x="70" y="35" font-family="Arial, sans-serif" font-size="14" text-anchor="middle" fill="#FFF">Entities</text>
+
+  <rect x="150" y="10" width="120" height="40" fill="#2A8367" stroke="#333" stroke-width="1"/>
+  <text x="210" y="35" font-family="Arial, sans-serif" font-size="14" text-anchor="middle" fill="#FFF">Use Cases</text>
+
+  <rect x="290" y="10" width="120" height="40" fill="#1565c0" stroke="#333" stroke-width="1"/>
+  <text x="350" y="35" font-family="Arial, sans-serif" font-size="14" text-anchor="middle" fill="#FFF">Interface Adapters</text>
+
+  <rect x="430" y="10" width="120" height="40" fill="#888" stroke="#333" stroke-width="1"/>
+  <text x="490" y="35" font-family="Arial, sans-serif" font-size="14" text-anchor="middle" fill="#FFF">Frameworks/UI</text>
+
+  <!-- Inward dependencies -->
+  <path d="M130 30 H150" stroke="#333" stroke-width="1" marker-end="url(#arrowhead-black)"/>
+  <path d="M270 30 H290" stroke="#333" stroke-width="1" marker-end="url(#arrowhead-black)"/>
+  <path d="M410 30 H430" stroke="#333" stroke-width="1" marker-end="url(#arrowhead-black)"/>
+
+  <!-- Dependency Inversion Principle illustration -->
+  <text x="210" y="90" font-family="Arial, sans-serif" font-size="14" text-anchor="middle" fill="#333">Use Case (Inner)</text>
+  <rect x="150" y="100" width="120" height="40" fill="#2A8367" stroke="#333" stroke-width="1"/>
+  <text x="210" y="125" font-family="Arial, sans-serif" font-size="14" text-anchor="middle" fill="#FFF">Fetches Products</text>
+
+  <text x="210" y="150" font-family="Arial, sans-serif" font-size="14" text-anchor="middle" fill="#333">Depends on:</text>
+  <rect x="150" y="160" width="120" height="40" fill="#F04B3E" stroke="#333" stroke-width="1"/>
+  <text x="210" y="185" font-family="Arial, sans-serif" font-size="14" text-anchor="middle" fill="#FFF">ProductRepository Protocol</text>
+
+  <path d="M270 120 C320 120, 320 180, 270 180" stroke="#333" stroke-width="1" fill="none" marker-end="url(#arrowhead-black)"/>
+
+  <text x="490" y="90" font-family="Arial, sans-serif" font-size="14" text-anchor="middle" fill="#333">API Gateway (Outer)</text>
+  <rect x="430" y="100" width="120" height="40" fill="#888" stroke="#333" stroke-width="1"/>
+  <text x="490" y="125" font-family="Arial, sans-serif" font-size="14" text-anchor="middle" fill="#FFF">Implements Protocol</text>
+
+  <text x="490" y="150" font-family="Arial, sans-serif" font-size="14" text-anchor="middle" fill="#333">Provides:</text>
+  <rect x="430" y="160" width="120" height="40" fill="#1565c0" stroke="#333" stroke-width="1"/>
+  <text x="490" y="185" font-family="Arial, sans-serif" font-size="14" text-anchor="middle" fill="#FFF">Concrete Implementation</text>
+
+  <!-- Definition for arrowhead marker -->
+  <defs>
+    <marker id="arrowhead-black" markerWidth="10" markerHeight="7" refX="0" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#333" />
+    </marker>
+  </defs>
+</svg>
+</div><h2>Benefits in iOS Development</h2><p>Adopting Clean Architecture, even in a simplified form, brings significant advantages to iOS projects:</p><ul><li><strong>Enhanced Testability</strong>: The core business logic (Entities and Use Cases) is completely independent of the UI, database, and networking. This means you can write fast, reliable unit tests for your most critical logic without needing to mock complex iOS frameworks.</li><li><strong>Improved Maintainability</strong>: Changes in the UI, database, or external APIs have minimal impact on your core business rules. You can update a SwiftUI view or swap out a persistence layer without rewriting your application's fundamental logic.</li><li><strong>Increased Flexibility</strong>: Want to switch from UIKit to SwiftUI? Or perhaps move from Core Data to SwiftData? With Clean Architecture, these architectural shifts become significantly easier, as only the outermost layer needs to change.</li><li><strong>Clearer Separation of Concerns</strong>: Each layer has a distinct responsibility, making the codebase easier to understand, navigate, and scale. This is especially beneficial for larger teams working on different parts of the application.</li><li><strong>Framework Independence</strong>: Your application's brain doesn't care if it's running on iOS, macOS, or even a server. The business rules are pure Swift.</li></ul><h2>Challenges and Considerations</h2><p>While powerful, Clean Architecture isn't a silver bullet and comes with its own set of challenges:</p><ul><li><strong>Increased Boilerplate</strong>: Introducing more protocols, classes, and layers naturally leads to more files and code, which can feel like overhead for smaller applications.</li><li><strong>Steeper Learning Curve</strong>: Understanding and correctly applying the Dependency Rule and the roles of each layer requires a deeper architectural understanding than simpler patterns like MVVM.</li><li><strong>Potential for Over-engineering</strong>: For very simple apps, the full overhead of Clean Architecture might be overkill. It's important to apply these principles pragmatically and incrementally as your application grows.</li><li><strong>Dependency Management Complexity</strong>: Wiring up all the dependencies correctly can become complex, especially without a dedicated Dependency Injection framework or container.</li></ul><h2>Summary</h2><p>Clean Architecture provides a robust and scalable blueprint for building iOS applications that are highly testable, maintainable, and flexible. By strictly adhering to the Dependency Rule and separating your application into distinct layers – Entities, Use Cases, Interface Adapters, and Frameworks – you create a system where your core business logic remains independent of external "details." While it introduces some initial complexity, the long-term benefits in terms of project health and adaptability are immense, making it a worthy investment for any serious iOS development effort.</p><p>Happy Swifting!</p></div><div class="article-tags"><span class="tags-label">Tagged: </span><ul class="tag-list"><li><a href="/tags/architecture">Architecture</a></li><li><a href="/tags/ios">iOS</a></li><li><a href="/tags/development">Development</a></li></ul></div><div class="ads-container"><ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-9268892677399703" data-ad-slot="8133392181" data-ad-format="auto" data-full-width-responsive="true"></ins><script>(adsbygoogle = window.adsbygoogle || []).push({});</script></div></div></div></div></article></div><footer><div class="wrapper"><p>© Swift By Rahul · <a href="/feed.rss">RSS</a> · <a href="https://github.com/bandalrahul">GitHub</a> · Built with <a href="https://github.com/johnsundell/publish">Publish</a></p></div></footer></body></html>

@@ -1,0 +1,315 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"/><meta property="og:site_name" content="Swift By Rahul"/><link rel="canonical" href="https://www.swiftbyrahul.com/posts/UnderstandingOpaqueTypesInSwift"/><meta name="twitter:url" content="https://www.swiftbyrahul.com/posts/UnderstandingOpaqueTypesInSwift"/><meta property="og:url" content="https://www.swiftbyrahul.com/posts/UnderstandingOpaqueTypesInSwift"/><title>Understanding Opaque Types in Swift | Swift By Rahul</title><meta name="twitter:title" content="Understanding Opaque Types in Swift | Swift By Rahul"/><meta property="og:title" content="Understanding Opaque Types in Swift | Swift By Rahul"/><meta name="description" content="Explore Swift's opaque types using the 'some' keyword, their benefits for API design, and how they preserve type identity while hiding implementation details."/><meta name="twitter:description" content="Explore Swift's opaque types using the 'some' keyword, their benefits for API design, and how they preserve type identity while hiding implementation details."/><meta property="og:description" content="Explore Swift's opaque types using the 'some' keyword, their benefits for API design, and how they preserve type identity while hiding implementation details."/><meta name="twitter:card" content="summary"/><link rel="stylesheet" href="/styles.css" type="text/css"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><link rel="shortcut icon" href="/images/favicon.png" type="image/png"/><link rel="alternate" href="/feed.rss" type="application/rss+xml" title="Subscribe to Swift By Rahul"/></head><head><link rel="stylesheet" href="/css/prism.css" type="text/css"/><script src="/js/prism.js"></script><script src="/js/article.js"></script><script src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9268892677399703" async></script><meta name="twitter:card" content="summary_large_image"/><meta property="og:image" content="https://www.swiftbyrahul.com/images/posts/UnderstandingOpaqueTypesInSwift.png"/><meta property="og:image:alt" content="Understanding Opaque Types in Swift"/><meta name="twitter:image" content="https://www.swiftbyrahul.com/images/posts/UnderstandingOpaqueTypesInSwift.png"/></head><body class="item-page"><header><div class="wrapper"><a href="/" class="site-name">Swift By Rahul</a><nav class="site-nav"><ul><li><a href="/">Home</a></li><li><a href="/posts/" class="selected">Posts</a></li><li><a href="/tags">Tags</a></li><li><a href="https://github.com/bandalrahul">GitHub</a></li></ul></nav></div></header><div class="wrapper"><article><div><button class="toc-toggle" id="toc-toggle" type="button" aria-expanded="false">On this page</button><div class="article-layout"><aside class="toc" id="article-toc"><p class="toc-heading">On this page</p><nav class="toc-nav" id="article-toc-nav"></nav></aside><div class="article-main"><div class="article-meta"><span>October 14, 2026</span><span> · </span><span>12 min read</span><span> · </span><ul class="tag-list"><li><a href="/tags/swift">Swift</a></li><li><a href="/tags/ios">iOS</a></li><li><a href="/tags/programming">Programming</a></li></ul></div><div class="content"><h1>Understanding Opaque Types in Swift</h1><p>Swift is a language designed for safety, performance, and modern programming paradigms. Over the years, it has introduced powerful features that simplify complex problems, enhance type safety, and improve API design. One such feature, introduced in Swift 5.1, is <strong>Opaque Types</strong>, identified by the <code>some</code> keyword.</p><p>If you've spent any time with SwiftUI, you've undoubtedly encountered <code>some View</code> in your <code>body</code> property. But what exactly does <code>some</code> mean, and why is it so powerful? This article will demystify opaque types, explain the problem they solve, and show you how to leverage them in your Swift code beyond SwiftUI.</p><h2>The Problem with Returning Protocols</h2><p>Before opaque types, if you wanted a function to return an object that conformed to a specific protocol, you'd typically declare its return type as the protocol itself.</p><p>Consider a simple <code>Shape</code> protocol:</p><pre><code class="language-swift">protocol Shape {
+    func area() -&gt; Double
+    func description() -&gt; String
+}
+
+struct Circle: Shape {
+    let radius: Double
+    func area() -&gt; Double {
+        .pi * radius * radius
+    }
+    func description() -&gt; String {
+        "Circle with radius \(radius)"
+    }
+    // A method specific to Circle
+    func circumference() -&gt; Double {
+        2 * .pi * radius
+    }
+}
+
+struct Square: Shape {
+    let side: Double
+    func area() -&gt; Double {
+        side * side
+    }
+    func description() -&gt; String {
+        "Square with side \(side)"
+    }
+    // A method specific to Square
+    func perimeter() -&gt; Double {
+        4 * side
+    }
+}
+</code></pre><p>Now, imagine a factory function designed to produce different shapes:</p><pre><code class="language-swift">func makeRandomShape() -&gt; Shape {
+    if Bool.random() {
+        return Circle(radius: 5)
+    } else {
+        return Square(side: 4)
+    }
+}
+
+let shape = makeRandomShape()
+print(shape.area()) // Works fine
+print(shape.description()) // Works fine
+
+// shape.circumference() // ERROR: Value of type 'Shape' has no member 'circumference'
+// shape.perimeter() // ERROR: Value of type 'Shape' has no member 'perimeter'
+</code></pre><p>The issue here is that when <code>makeRandomShape()</code> returns <code>Shape</code>, it effectively <strong>erases</strong> the specific type information of <code>Circle</code> or <code>Square</code>. The caller only knows that <code>shape</code> conforms to <code>Shape</code>. It cannot access any methods or properties that are specific to <code>Circle</code> or <code>Square</code>, even if the underlying concrete type has them. This is because the compiler can't guarantee that a <code>Shape</code> <em>always</em> has a <code>circumference()</code> method.</p><p>This loss of specific type information can be limiting, especially when dealing with complex APIs or when you want to return a type that has an associated type.</p><div style="text-align: center; margin: 2em 0;">
+<svg viewBox="0 0 600 220" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Comparison of returning a protocol type versus an opaque type">
+  <title>Returning Protocol vs. Opaque Type</title>
+
+  <!-- Box for returning Protocol -->
+  <rect x="20" y="20" width="260" height="80" rx="10" fill="#F04B3E" stroke="#E03A2B" stroke-width="2"/>
+  <text x="150" y="45" font-family="Arial, sans-serif" font-size="16" fill="white" text-anchor="middle">`func makeShape() -> Shape`</text>
+  <text x="150" y="75" font-family="Arial, sans-serif" font-size="14" fill="white" text-anchor="middle">Loses specific type information</text>
+
+  <!-- Arrow from Protocol box -->
+  <line x1="150" y1="100" x2="150" y2="130" stroke="#F04B3E" stroke-width="2" marker-end="url(#arrowheadRed)"/>
+  <text x="150" y="145" font-family="Arial, sans-serif" font-size="12" fill="#F04B3E" text-anchor="middle">Caller only sees `Shape`</text>
+  <text x="150" y="165" font-family="Arial, sans-serif" font-size="12" fill="#F04B3E" text-anchor="middle">Cannot access `circumference()`</text>
+
+  <!-- Box for returning Opaque Type -->
+  <rect x="320" y="20" width="260" height="80" rx="10" fill="#2A8367" stroke="#226B54" stroke-width="2"/>
+  <text x="450" y="45" font-family="Arial, sans-serif" font-size="16" fill="white" text-anchor="middle">`func makeShape() -> some Shape`</text>
+  <text x="450" y="75" font-family="Arial, sans-serif" font-size="14" fill="white" text-anchor="middle">Preserves specific type information</text>
+
+  <!-- Arrow from Opaque Type box -->
+  <line x1="450" y1="100" x2="450" y2="130" stroke="#2A8367" stroke-width="2" marker-end="url(#arrowheadGreen)"/>
+  <text x="450" y="145" font-family="Arial, sans-serif" font-size="12" fill="#2A8367" text-anchor="middle">Caller sees `some Shape`</text>
+  <text x="450" y="165" font-family="Arial, sans-serif" font-size="12" fill="#2A8367" text-anchor="middle">Compiler knows concrete type</text>
+  <text x="450" y="185" font-family="Arial, sans-serif" font-size="12" fill="#2A8367" text-anchor="middle">Allows internal specific method calls</text>
+
+  <!-- Arrowheads -->
+  <defs>
+    <marker id="arrowheadRed" markerWidth="10" markerHeight="7" refX="0" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#F04B3E" />
+    </marker>
+    <marker id="arrowheadGreen" markerWidth="10" markerHeight="7" refX="0" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#2A8367" />
+    </marker>
+  </defs>
+</svg>
+</div><h2>Introducing <code>some</code>: The Opaque Type Keyword</h2><p>This is where <code>some</code> comes to the rescue. When you use <code>some Protocol</code> as a return type, you are telling the compiler: "This function will return a value of <em>a specific type</em> that conforms to <code>Protocol</code>, but I'm not telling you <em>which</em> specific type it is. The compiler will figure it out."</p><p>The key distinction is that while the <em>caller</em> of the function doesn't know the concrete type, the <em>compiler</em> <strong>does</strong>. And crucially, for any given call to that function, it will <em>always</em> return the <strong>same concrete type</strong>.</p><p>Let's modify our <code>makeRandomShape</code> function using <code>some Shape</code>:</p><pre><code class="language-swift">func makeSpecificShape() -&gt; some Shape {
+    // This function MUST always return the same concrete type for a given opaque type.
+    // So, we can't randomly return Circle or Square from the SAME function.
+    // Let's say it always returns a Circle for this example.
+    return Circle(radius: 5)
+}
+
+let specificShape = makeSpecificShape()
+print(specificShape.area()) // Works
+print(specificShape.description()) // Works
+
+// Now, if `makeSpecificShape` returns a Circle, we can technically access `circumference()`
+// through type inference or by casting, but the point of 'some' is that the *caller*
+// doesn't need to know it's a Circle. The compiler ensures type safety.
+// For the purpose of the 'some' keyword, the API consumer only knows it's *a* Shape.
+// The benefit comes when the concrete type has associated types or specific generic constraints.
+
+// Example where the compiler knows the type, but the caller doesn't explicitly:
+// If specificShape was a Circle, and Circle had a unique method:
+// func uniqueCircleMethod() {}
+// You *cannot* call specificShape.uniqueCircleMethod() directly, because the
+// return type is `some Shape`, not `Circle`.
+// The power lies in satisfying generic constraints and associated types.
+</code></pre><p>The example above highlights a common misunderstanding: <code>some</code> doesn't magically let you call concrete methods on a protocol-typed value if the protocol doesn't define them. Its power lies in <strong>preserving type identity</strong> for the compiler and enabling <strong>more flexible API design</strong>, especially with associated types and generics.</p><h3>The Real Power of <code>some</code>: Preserving Type Identity</h3><p>The true magic of <code>some</code> shines when dealing with scenarios where the exact type matters for the compiler, but you don't want to expose that detail to the API consumer.</p><h4>1. SwiftUI's <code>some View</code></h4><p>This is the most famous application of opaque types. The <code>body</code> property of a <code>View</code> returns <code>some View</code>:</p><pre><code class="language-swift">struct ContentView: View {
+    var body: some View { // Declares an opaque type
+        VStack {
+            Text("Hello, World!")
+            Button("Tap Me") {
+                // ...
+            }
+        }
+    }
+}
+</code></pre><p>Why <code>some View</code> and not <code>View</code>? If <code>body</code> returned just <code>View</code>, it would lose the specific type information of the <code>VStack</code>, <code>Text</code>, and <code>Button</code> combination. This would break SwiftUI's internal mechanisms, particularly how it compares views for updates. The underlying type of <code>VStack { Text("...") Button("...") }</code> is a complex, specific, compiler-generated type. <code>some View</code> tells the compiler: "Yes, this <code>body</code> always returns <em>one specific type</em> that conforms to <code>View</code>, and you, compiler, know what it is, even if I don't write out its full, convoluted name."</p><h4>2. Protocols with Associated Types</h4><p>This is where opaque types truly excel beyond what returning a simple protocol type can do.</p><p>Consider a protocol with an associated type:</p><pre><code class="language-swift">protocol Container {
+    associatedtype Item
+    var items: [Item] { get }
+    mutating func add(_ item: Item)
+}
+
+struct IntContainer: Container {
+    var items: [Int] = []
+    mutating func add(_ item: Int) {
+        items.append(item)
+    }
+}
+
+struct StringContainer: Container {
+    var items: [String] = []
+    mutating func add(_ item: String) {
+        items.append(item)
+    }
+}
+</code></pre><p>If you try to return <code>Container</code> from a function, you'll get an error: "Protocol 'Container' can only be used as a generic constraint because it has an associated type."</p><pre><code class="language-swift">// func makeContainer() -&gt; Container { // Error!
+//     return IntContainer()
+// }
+</code></pre><p>Before opaque types, you'd have to use generics:</p><pre><code class="language-swift">func makeGenericContainer&lt;T: Container&gt;() -&gt; T {
+    return IntContainer() as! T // Requires a cast, or the caller specifies the type.
+}
+
+// let container: IntContainer = makeGenericContainer() // Caller specifies IntContainer
+</code></pre><p>This forces the <em>caller</em> to specify the exact type, which isn't always ideal for API design. With opaque types, the <em>function</em> decides the concrete type, and the caller gets <code>some Container</code> without needing to know the specific <code>Item</code> type:</p><pre><code class="language-swift">func makeOpaqueIntContainer() -&gt; some Container {
+    return IntContainer()
+}
+
+func makeOpaqueStringContainer() -&gt; some Container {
+    return StringContainer()
+}
+
+let intContainer = makeOpaqueIntContainer() // intContainer is of type some Container (whose Item is Int)
+let stringContainer = makeOpaqueStringContainer() // stringContainer is of type some Container (whose Item is String)
+
+// print(intContainer.items) // Error: Value of type 'some Container' has no member 'items'
+// Wait, why the error? Because 'some Container' hides the Item type from the *caller*.
+// The compiler knows, but the caller doesn't get to infer it directly.
+// The primary benefit here is that the function *can* return a protocol with an associated type.
+// To work with the items, you'd typically have methods on the protocol itself.
+
+protocol ContainerWithPrint {
+    associatedtype Item: CustomStringConvertible // Item must be printable
+    var items: [Item] { get }
+    mutating func add(_ item: Item)
+    func printItems()
+}
+
+struct IntContainerPrintable: ContainerWithPrint {
+    var items: [Int] = []
+    mutating func add(_ item: Int) {
+        items.append(item)
+    }
+    func printItems() {
+        print("Int items: \(items.map { "\($0)" }.joined(separator: ", "))")
+    }
+}
+
+func makePrintableIntContainer() -&gt; some ContainerWithPrint {
+    var container = IntContainerPrintable()
+    container.add(10)
+    container.add(20)
+    return container
+}
+
+let printableContainer = makePrintableIntContainer()
+printableContainer.printItems() // Output: Int items: 10, 20
+</code></pre><p>Here, <code>printItems()</code> is a method on the <code>ContainerWithPrint</code> protocol, so it's accessible. The <code>Item</code> type (which is <code>Int</code> in this case) is resolved internally by the compiler for <code>makePrintableIntContainer</code>, allowing it to conform to <code>ContainerWithPrint</code> even with the associated type.</p><div style="text-align: center; margin: 2em 0;">
+<svg viewBox="0 0 600 280" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="How opaque types work with associated types">
+  <title>Opaque Types and Associated Types</title>
+
+  <!-- Protocol Definition -->
+  <rect x="50" y="20" width="200" height="70" rx="10" fill="#1565c0" stroke="#0F4C81" stroke-width="2"/>
+  <text x="150" y="45" font-family="Arial, sans-serif" font-size="16" fill="white" text-anchor="middle">`protocol Container`</text>
+  <text x="150" y="65" font-family="Arial, sans-serif" font-size="14" fill="white" text-anchor="middle">`associatedtype Item`</text>
+
+  <!-- Concrete Type 1 -->
+  <rect x="50" y="120" width="200" height="70" rx="10" fill="#2A8367" stroke="#226B54" stroke-width="2"/>
+  <text x="150" y="145" font-family="Arial, sans-serif" font-size="16" fill="white" text-anchor="middle">`struct IntContainer`</text>
+  <text x="150" y="165" font-family="Arial, sans-serif" font-size="14" fill="white" text-anchor="middle">`Item` is `Int`</text>
+
+  <!-- Concrete Type 2 -->
+  <rect x="350" y="120" width="200" height="70" rx="10" fill="#2A8367" stroke="#226B54" stroke-width="2"/>
+  <text x="450" y="145" font-family="Arial, sans-serif" font-size="16" fill="white" text-anchor="middle">`struct StringContainer`</text>
+  <text x="450" y="165" font-family="Arial, sans-serif" font-size="14" fill="white" text-anchor="middle">`Item` is `String`</text>
+
+  <!-- Function returning opaque type -->
+  <rect x="150" y="210" width="300" height="50" rx="10" fill="#1565c0" stroke="#0F4C81" stroke-width="2"/>
+  <text x="300" y="240" font-family="Arial, sans-serif" font-size="16" fill="white" text-anchor="middle">`func makeContainer() -> some Container`</text>
+
+  <!-- Arrows from concrete types to function -->
+  <line x1="150" y1="190" x2="250" y2="210" stroke="#2A8367" stroke-width="2" marker-end="url(#arrowheadGreen)"/>
+  <line x1="450" y1="190" x2="350" y2="210" stroke="#2A8367" stroke-width="2" marker-end="url(#arrowheadGreen)"/>
+
+  <!-- Arrows from protocol to concrete types -->
+  <line x1="150" y1="90" x2="150" y2="120" stroke="#1565c0" stroke-width="2" marker-end="url(#arrowheadBlue)"/>
+  <line x1="150" y1="90" x2="450" y2="120" stroke="#1565c0" stroke-width="2" marker-end="url(#arrowheadBlue)"/>
+
+  <!-- Text for "Compiler knows" -->
+  <text x="300" y="100" font-family="Arial, sans-serif" font-size="12" fill="gray" text-anchor="middle">"Compiler knows concrete type for each call"</text>
+  <text x="300" y="200" font-family="Arial, sans-serif" font-size="12" fill="gray" text-anchor="middle">"Caller only sees 'some Container'"</text>
+
+
+  <!-- Arrowheads -->
+  <defs>
+    <marker id="arrowheadGreen" markerWidth="10" markerHeight="7" refX="0" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#2A8367" />
+    </marker>
+    <marker id="arrowheadBlue" markerWidth="10" markerHeight="7" refX="0" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#1565c0" />
+    </marker>
+  </defs>
+</svg>
+</div><h3>Opaque Types vs. Generics</h3><p>It's common to confuse opaque types with generics, but they serve different purposes:</p><ul><li><strong>Generics (<code>&lt;T: SomeProtocol&gt;</code>)</strong>: The <em>caller</em> of the function specifies the type. <code></code>`swift func process<T: Shape>(shape: T) {
+        // ...
+    }
+    process(shape: Circle(radius: 1)) // Caller specifies Circle
+    ```
+*   **Opaque Types (`-> some SomeProtocol`)**: The *function implementation* specifies the type, but hides it from the caller.
+    ```swift
+    func createShape() -> some Shape {
+        return Square(side: 2) // Function implementation specifies Square
+    }
+    let myShape = createShape() // Caller doesn't know it's a Square, just that it's 'some Shape'
+    ```
+They are complementary. Generics allow for flexible *input* types, while opaque types allow for flexible yet type-safe *output* types.
+
+### Opaque Types vs. Type Erasure (`any`)
+
+Swift 5.6 introduced the `any` keyword for existential types (what we previously just called "protocol types" like `Shape`). This is a crucial distinction.
+
+```swift
+func makeAnyShape() -> any Shape {
+    if Bool.random() {
+        return Circle(radius: 5)
+    } else {
+        return Square(side: 4)
+    }
+}
+
+let anyShape = makeAnyShape()
+// print(anyShape.circumference()) // Error: Value of type 'any Shape' has no member 'circumference'
+```
+
+Here's the breakdown:
+
+*   **`some Protocol` (Opaque Type)**:
+    *   **One specific underlying type**: The function *always* returns the same concrete type for a given call. The compiler knows this type, even if the caller doesn't.
+    *   **Type identity preserved**: Because the compiler knows the type, it can perform optimizations and satisfy generic constraints (especially with associated types).
+    *   **No runtime overhead**: The compiler resolves the concrete type at compile time.
+    *   **Use case**: When you want to hide implementation details but guarantee a single, consistent return type for a function. SwiftUI `body` is the prime example.
+
+*   **`any Protocol` (Existential Type / Type Erasure)**:
+    *   **Potentially multiple underlying types**: The function can return different concrete types each time it's called (as shown in `makeAnyShape()`).
+    *   **Type identity erased**: The compiler only knows that the value conforms to the protocol, not its specific type. This means you cannot satisfy generic constraints or work with associated types directly without further type erasure.
+    *   **Runtime overhead**: Requires a "box" to hold the value and dynamic dispatch, which can have a performance cost.
+    *   **Use case**: When you need to store or return a collection of heterogeneous types that all conform to a protocol.
+
+Think of `some` as a promise from the function: "I will give you *a* `Shape`, and it will always be the *same kind* of `Shape` every time you call me (e.g., always a `Circle`), but I won't tell you its name."
+Think of `any` as a broader statement: "I will give you *some* `Shape`, and it could be a `Circle` now, a `Square` later, or anything else that's a `Shape`. I make no guarantees about its specific kind."
+
+This distinction is vital for writing performant and type-safe Swift code.
+
+```
+┌────────────────────────────────┐     ┌─────────────────────────────────┐
+│        `some Protocol`         │     │         `any Protocol`          │
+├────────────────────────────────┤     ├─────────────────────────────────┤
+│ - Single, Specific Type        │     │ - Potentially Multiple Types    │
+│ - Compiler Knows Exact Type    │     │ - Compiler Doesn't Know Exact   │
+│ - Type Identity Preserved      │     │   Type (Runtime Dispatch)       │
+│ - No Runtime Overhead (Static) │     │ - Runtime Overhead (Dynamic)    │
+│ - Satisfies Generic Constraints│     │ - Cannot Satisfy Generic        │
+│   (e.g., with Associated Types)│     │   Constraints Directly          │
+└────────────────────────────────┘     └─────────────────────────────────┘
+```
+
+## When to Use Opaque Types
+
+1.  **Simplifying API Return Types**: When you have a complex, nested return type (like in SwiftUI's `body` property) that conforms to a protocol, `some Protocol` hides the complexity and makes the API cleaner.
+2.  **Working with Protocols with Associated Types**: This is arguably the most powerful use case. Opaque types allow functions to return values conforming to protocols with associated types, without forcing the caller to specify the concrete type.
+3.  **Encapsulation**: You can return an opaque type to hide the specific implementation details of a type, only exposing its protocol-conforming interface. This gives you flexibility to change the underlying concrete type later without affecting API consumers.
+4.  **Fluent APIs/Builder Patterns**: When building a chainable API where each step returns a new value that conforms to a protocol, `some Protocol` can maintain type information necessary for subsequent calls while still hiding the exact intermediate types.
+
+## Limitations of Opaque Types
+
+While powerful, opaque types have some constraints:
+
+*   **Single Return Type**: A function returning an opaque type must *always* return the same concrete type. You cannot use conditional statements (`if/else`) to return different concrete types for the same opaque return type from a single function, as shown in the original `makeRandomShape()` example. (Unless those different types are themselves opaque types that resolve to the same underlying specific type, which gets complex).
+    *   Workaround: You can use `if` statements if both branches return a type that *resolves to the same underlying concrete type* (e.g., two different `View` modifiers that ultimately wrap the same base view type, or two different functions each returning `some P` but one returning `A` and the other `B` where `A` and `B` are different concrete types but both conform to `P`).
+*   **No `some Protocol` for properties**: You cannot declare stored properties as `some Protocol`. They must be a concrete type or an `any Protocol` (existential type).
+*   **Cannot return `some Self`**: Inside a protocol, you cannot return `some Self`.
+
+## Summary
+
+Opaque types, enabled by the `some` keyword, are a sophisticated feature in Swift that allow you to define functions and properties that return a value of a specific type, but without revealing that specific type to the caller. This preserves type identity at compile time, enables working with protocols that have associated types, and significantly simplifies API design, especially evident in SwiftUI. By understanding the distinction between `some Protocol`, `any Protocol`, and generics, you can write more robust, flexible, and performant Swift code.
+
+Happy Swifting!
+</li></ul></div><div class="article-tags"><span class="tags-label">Tagged: </span><ul class="tag-list"><li><a href="/tags/swift">Swift</a></li><li><a href="/tags/ios">iOS</a></li><li><a href="/tags/programming">Programming</a></li></ul></div><div class="ads-container"><ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-9268892677399703" data-ad-slot="8133392181" data-ad-format="auto" data-full-width-responsive="true"></ins><script>(adsbygoogle = window.adsbygoogle || []).push({});</script></div></div></div></div></article></div><footer><div class="wrapper"><p>© Swift By Rahul · <a href="/feed.rss">RSS</a> · <a href="https://github.com/bandalrahul">GitHub</a> · Built with <a href="https://github.com/johnsundell/publish">Publish</a></p></div></footer></body></html>

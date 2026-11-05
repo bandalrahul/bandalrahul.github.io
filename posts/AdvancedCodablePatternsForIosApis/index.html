@@ -1,0 +1,127 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"/><meta property="og:site_name" content="Swift By Rahul"/><link rel="canonical" href="https://www.swiftbyrahul.com/posts/AdvancedCodablePatternsForIosApis"/><meta name="twitter:url" content="https://www.swiftbyrahul.com/posts/AdvancedCodablePatternsForIosApis"/><meta property="og:url" content="https://www.swiftbyrahul.com/posts/AdvancedCodablePatternsForIosApis"/><title>Advanced Codable Patterns for iOS APIs | Swift By Rahul</title><meta name="twitter:title" content="Advanced Codable Patterns for iOS APIs | Swift By Rahul"/><meta property="og:title" content="Advanced Codable Patterns for iOS APIs | Swift By Rahul"/><meta name="description" content="Explore advanced Codable patterns for iOS APIs"/><meta name="twitter:description" content="Explore advanced Codable patterns for iOS APIs"/><meta property="og:description" content="Explore advanced Codable patterns for iOS APIs"/><meta name="twitter:card" content="summary"/><link rel="stylesheet" href="/styles.css" type="text/css"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><link rel="shortcut icon" href="/images/favicon.png" type="image/png"/><link rel="alternate" href="/feed.rss" type="application/rss+xml" title="Subscribe to Swift By Rahul"/></head><head><link rel="stylesheet" href="/css/prism.css" type="text/css"/><script src="/js/prism.js"></script><script src="/js/article.js"></script><script src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9268892677399703" async></script><meta name="twitter:card" content="summary_large_image"/><meta property="og:image" content="https://www.swiftbyrahul.com/images/posts/AdvancedCodablePatternsForIosApis.png"/><meta property="og:image:alt" content="Advanced Codable Patterns for iOS APIs"/><meta name="twitter:image" content="https://www.swiftbyrahul.com/images/posts/AdvancedCodablePatternsForIosApis.png"/></head><body class="item-page"><header><div class="wrapper"><a href="/" class="site-name">Swift By Rahul</a><nav class="site-nav"><ul><li><a href="/">Home</a></li><li><a href="/posts/" class="selected">Posts</a></li><li><a href="/tags">Tags</a></li><li><a href="https://github.com/bandalrahul">GitHub</a></li></ul></nav></div></header><div class="wrapper"><article><div><button class="toc-toggle" id="toc-toggle" type="button" aria-expanded="false">On this page</button><div class="article-layout"><aside class="toc" id="article-toc"><p class="toc-heading">On this page</p><nav class="toc-nav" id="article-toc-nav"></nav></aside><div class="article-main"><div class="article-meta"><span>July 30, 2026</span><span> · </span><span>3 min read</span><span> · </span><ul class="tag-list"><li><a href="/tags/swift">Swift</a></li><li><a href="/tags/networking">Networking</a></li><li><a href="/tags/ios">iOS</a></li></ul></div><div class="content"><h1>Advanced Codable Patterns for iOS APIs</h1><p>As iOS developers, we often work with external APIs to fetch data for our apps. The <code>Codable</code> protocol in Swift provides an easy way to encode and decode data to and from JSON. However, when dealing with complex APIs, we may need to use more advanced patterns to handle the data. In this article, we will explore some of these patterns and learn how to use them effectively.</p><h2>Introduction to Codable</h2><p>The <code>Codable</code> protocol is a combination of the <code>Encodable</code> and <code>Decodable</code> protocols. It allows us to encode and decode data to and from external formats like JSON. To use <code>Codable</code>, we need to conform our data structures to the protocol and provide a way to encode and decode the data.</p><div style="text-align: center; margin: 2em 0;">
+<svg viewBox="0 0 600 220" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Codable Protocol">
+  <title>Codable Protocol</title>
+  <rect x="50" y="50" width="100" height="50" fill="#2A8367" rx="10"/>
+  <text x="100" y="90" text-anchor="middle" fill="#ffffff" font-size="18">Codable</text>
+  <line x1="150" y1="90" x2="250" y2="90" stroke="#000000" stroke-width="2"/>
+  <rect x="250" y="50" width="100" height="50" fill="#F04B3E" rx="10"/>
+  <text x="300" y="90" text-anchor="middle" fill="#ffffff" font-size="18">Encodable</text>
+  <line x1="350" y1="90" x2="450" y2="90" stroke="#000000" stroke-width="2"/>
+  <rect x="450" y="50" width="100" height="50" fill="#1565c0" rx="10"/>
+  <text x="500" y="90" text-anchor="middle" fill="#ffffff" font-size="18">Decodable</text>
+</svg>
+</div><h2>Nested Codable Structures</h2><p>When dealing with complex APIs, we often encounter nested data structures. To handle these structures, we can use nested <code>Codable</code> conformances. For example, let's say we have an API that returns a list of users, and each user has a nested address object.</p><pre><code class="language-swift">struct User: Codable {
+    let id: Int
+    let name: String
+    let address: Address
+}
+
+struct Address: Codable {
+    let street: String
+    let city: String
+    let state: String
+    let zip: String
+}
+</code></pre><p>In this example, the <code>User</code> struct has a nested <code>Address</code> struct. Both structs conform to the <code>Codable</code> protocol, which allows us to encode and decode the data easily.</p><h2>Custom Codable Keys</h2><p>Sometimes, the API may use different key names than our Swift structs. To handle this, we can use custom <code>Codable</code> keys. For example, let's say the API uses the key "first_name" instead of "firstName".</p><pre><code class="language-swift">struct User: Codable {
+    let id: Int
+    let firstName: String
+    let lastName: String
+    
+    enum CodingKeys: String, CodingKey {
+        case id
+        case firstName = "first_name"
+        case lastName
+    }
+}
+</code></pre><p>In this example, we define a custom <code>CodingKeys</code> enum that maps the Swift property names to the API key names.</p><h2>Advanced Codable Patterns</h2><p>There are many other advanced <code>Codable</code> patterns that we can use to handle complex APIs. For example, we can use <code>Codable</code> arrays, dictionaries, and sets to handle collections of data.</p><pre><code class="language-swift">struct User: Codable {
+    let id: Int
+    let name: String
+    let friends: [User]
+}
+
+struct Group: Codable {
+    let id: Int
+    let name: String
+    let users: [String: User]
+}
+</code></pre><p>In this example, the <code>User</code> struct has an array of <code>User</code> objects, and the <code>Group</code> struct has a dictionary of <code>User</code> objects.</p><div style="text-align: center; margin: 2em 0;">
+<svg viewBox="0 0 600 220" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Advanced Codable Patterns">
+  <title>Advanced Codable Patterns</title>
+  <rect x="50" y="50" width="100" height="50" fill="#2A8367" rx="10"/>
+  <text x="100" y="90" text-anchor="middle" fill="#ffffff" font-size="18">Arrays</text>
+  <line x1="150" y1="90" x2="250" y2="90" stroke="#000000" stroke-width="2"/>
+  <rect x="250" y="50" width="100" height="50" fill="#F04B3E" rx="10"/>
+  <text x="300" y="90" text-anchor="middle" fill="#ffffff" font-size="18">Dictionaries</text>
+  <line x1="350" y1="90" x2="450" y2="90" stroke="#000000" stroke-width="2"/>
+  <rect x="450" y="50" width="100" height="50" fill="#1565c0" rx="10"/>
+  <text x="500" y="90" text-anchor="middle" fill="#ffffff" font-size="18">Sets</text>
+</svg>
+</div><h2>Real-World Example</h2><p>Let's say we have an API that returns a list of posts, and each post has a nested user object and a list of comments.</p><pre><code class="language-swift">struct Post: Codable {
+    let id: Int
+    let title: String
+    let user: User
+    let comments: [Comment]
+}
+
+struct User: Codable {
+    let id: Int
+    let name: String
+}
+
+struct Comment: Codable {
+    let id: Int
+    let text: String
+    let user: User
+}
+</code></pre><p>In this example, the <code>Post</code> struct has a nested <code>User</code> object and a list of <code>Comment</code> objects. The <code>Comment</code> struct also has a nested <code>User</code> object.</p><pre><code>┌─────────────┐     ┌─────────────┐
+│   Post     │ ──► │  User      │
+└─────────────┘     └─────────────┘
+       │               │
+       │               │
+       │               │
+       │               │
+       │               │
+       └───────┬───────┘
+               │
+               │
+               │
+               │
+               │
+               │
+               v
+       ┌─────────────┐
+       │  Comments  │
+       └─────────────┘
+               │
+               │
+               │
+               │
+               │
+               │
+               v
+       ┌─────────────┐
+       │  Comment   │
+       └─────────────┘
+               │
+               │
+               │
+               │
+               │
+               │
+               v
+       ┌─────────────┐
+       │  User      │
+       └─────────────┘
+</code></pre><h2>Summary</h2><p>In this article, we explored advanced <code>Codable</code> patterns for iOS APIs. We learned how to use nested <code>Codable</code> structures, custom <code>Codable</code> keys, and advanced <code>Codable</code> patterns like arrays, dictionaries, and sets. We also saw a real-world example of using <code>Codable</code> to handle complex API data.</p><div style="text-align: center; margin: 2em 0;">
+<svg viewBox="0 0 600 220" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Codable Patterns Comparison">
+  <title>Codable Patterns Comparison</title>
+  <rect x="50" y="50" width="100" height="50" fill="#2A8367" rx="10"/>
+  <text x="100" y="90" text-anchor="middle" fill="#ffffff" font-size="18">Nested</text>
+  <line x1="150" y1="90" x2="250" y2="90" stroke="#000000" stroke-width="2"/>
+  <rect x="250" y="50" width="100" height="50" fill="#F04B3E" rx="10"/>
+  <text x="300" y="90" text-anchor="middle" fill="#ffffff" font-size="18">Custom Keys</text>
+  <line x1="350" y1="90" x2="450" y2="90" stroke="#000000" stroke-width="2"/>
+  <rect x="450" y="50" width="100" height="50" fill="#1565c0" rx="10"/>
+  <text x="500" y="90" text-anchor="middle" fill="#ffffff" font-size="18">Advanced</text>
+</svg>
+</div><p>Happy Swifting!</p></div><div class="article-tags"><span class="tags-label">Tagged: </span><ul class="tag-list"><li><a href="/tags/swift">Swift</a></li><li><a href="/tags/networking">Networking</a></li><li><a href="/tags/ios">iOS</a></li></ul></div><div class="ads-container"><ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-9268892677399703" data-ad-slot="8133392181" data-ad-format="auto" data-full-width-responsive="true"></ins><script>(adsbygoogle = window.adsbygoogle || []).push({});</script></div></div></div></div></article></div><footer><div class="wrapper"><p>© Swift By Rahul · <a href="/feed.rss">RSS</a> · <a href="https://github.com/bandalrahul">GitHub</a> · Built with <a href="https://github.com/johnsundell/publish">Publish</a></p></div></footer></body></html>

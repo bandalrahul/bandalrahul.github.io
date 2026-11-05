@@ -1,0 +1,190 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"/><meta property="og:site_name" content="Swift By Rahul"/><link rel="canonical" href="https://www.swiftbyrahul.com/posts/UnderstandingMacrosInSwift"/><meta name="twitter:url" content="https://www.swiftbyrahul.com/posts/UnderstandingMacrosInSwift"/><meta property="og:url" content="https://www.swiftbyrahul.com/posts/UnderstandingMacrosInSwift"/><title>Understanding Macros in Swift | Swift By Rahul</title><meta name="twitter:title" content="Understanding Macros in Swift | Swift By Rahul"/><meta property="og:title" content="Understanding Macros in Swift | Swift By Rahul"/><meta name="description" content="Dive deep into Swift Macros, exploring their types, how they transform code at compile time, and practical use cases for reducing boilerplate."/><meta name="twitter:description" content="Dive deep into Swift Macros, exploring their types, how they transform code at compile time, and practical use cases for reducing boilerplate."/><meta property="og:description" content="Dive deep into Swift Macros, exploring their types, how they transform code at compile time, and practical use cases for reducing boilerplate."/><meta name="twitter:card" content="summary"/><link rel="stylesheet" href="/styles.css" type="text/css"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><link rel="shortcut icon" href="/images/favicon.png" type="image/png"/><link rel="alternate" href="/feed.rss" type="application/rss+xml" title="Subscribe to Swift By Rahul"/></head><head><link rel="stylesheet" href="/css/prism.css" type="text/css"/><script src="/js/prism.js"></script><script src="/js/article.js"></script><script src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9268892677399703" async></script><meta name="twitter:card" content="summary_large_image"/><meta property="og:image" content="https://www.swiftbyrahul.com/images/posts/UnderstandingMacrosInSwift.png"/><meta property="og:image:alt" content="Understanding Macros in Swift"/><meta name="twitter:image" content="https://www.swiftbyrahul.com/images/posts/UnderstandingMacrosInSwift.png"/></head><body class="item-page"><header><div class="wrapper"><a href="/" class="site-name">Swift By Rahul</a><nav class="site-nav"><ul><li><a href="/">Home</a></li><li><a href="/posts/" class="selected">Posts</a></li><li><a href="/tags">Tags</a></li><li><a href="https://github.com/bandalrahul">GitHub</a></li></ul></nav></div></header><div class="wrapper"><article><div><button class="toc-toggle" id="toc-toggle" type="button" aria-expanded="false">On this page</button><div class="article-layout"><aside class="toc" id="article-toc"><p class="toc-heading">On this page</p><nav class="toc-nav" id="article-toc-nav"></nav></aside><div class="article-main"><div class="article-meta"><span>October 18, 2026</span><span> · </span><span>9 min read</span><span> · </span><ul class="tag-list"><li><a href="/tags/swift">Swift</a></li><li><a href="/tags/ios">iOS</a></li><li><a href="/tags/programming">Programming</a></li></ul></div><div class="content"><h1>Understanding Macros in Swift</h1><p>Swift Macros, introduced in Swift 5.9, represent a significant evolution in how developers can generate and transform code. While many developers might be familiar with the basic concept of macros in other languages, Swift's implementation offers a safe, type-checked, and powerful way to reduce boilerplate and create highly expressive APIs without sacrificing compiler guarantees.</p><p>This article goes beyond a basic introduction, aiming to provide a deeper understanding of how Swift Macros work under the hood, their different forms, and how they integrate into the Swift compilation process. If you've ever found yourself writing repetitive code or wishing Swift had a feature that could generate code for you, understanding macros is your next step.</p><p>At its core, a Swift Macro is a piece of code that runs at compile time to transform your source code. It takes your existing Swift code as input and produces new or modified Swift code as output, which is then compiled alongside the rest of your project. This compile-time code generation is incredibly powerful for automating repetitive tasks and building domain-specific language features.</p><div style="text-align: center; margin: 2em 0;">
+<svg viewBox="0 0 600 220" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Swift Macro Transformation Flow">
+  <title>Swift Macro Transformation Flow</title>
+  <style>
+    .box { fill: #1565c0; stroke: #1565c0; stroke-width: 2; rx: 8; ry: 8; }
+    .arrow { stroke: #2A8367; stroke-width: 2; marker-end: url(#arrowhead); }
+    .text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; font-size: 16px; fill: white; text-anchor: middle; dominant-baseline: middle; }
+    .label { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; font-size: 14px; fill: #333; text-anchor: middle; dominant-baseline: middle; }
+  </style>
+  <defs>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="0" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#2A8367" />
+    </marker>
+  </defs>
+
+  <!-- Source Code Box -->
+  <rect x="50" y="70" width="150" height="80" class="box" />
+  <text x="125" y="110" class="text">Source Code</text>
+  <text x="125" y="170" class="label">Contains Macro Call</text>
+
+  <!-- Arrow to Macro Expansion -->
+  <line x1="200" y1="110" x2="270" y2="110" class="arrow" />
+  <text x="235" y="90" class="label">Compile Time</text>
+
+  <!-- Macro Expansion Box -->
+  <rect x="270" y="70" width="150" height="80" class="box" />
+  <text x="345" y="110" class="text">Macro Expansion</text>
+  <text x="345" y="170" class="label">Generates Code</text>
+
+  <!-- Arrow to Transformed Code -->
+  <line x1="420" y1="110" x2="490" y2="110" class="arrow" />
+  <text x="455" y="90" class="label">Result</text>
+
+  <!-- Transformed Code Box -->
+  <rect x="490" y="70" width="150" height="80" class="box" />
+  <text x="565" y="110" class="text">Transformed Code</text>
+  <text x="565" y="170" class="label">Ready for Compilation</text>
+</svg>
+</div><h2>Types of Swift Macros</h2><p>Swift Macros are categorized into two main groups: <strong>Freestanding Macros</strong> and <strong>Attached Macros</strong>. Each serves different purposes and operates on different parts of your code.</p><h3>Freestanding Macros</h3><p>Freestanding macros are invoked like global functions or declarations using a <code>#</code> prefix. They stand alone and are not attached to any specific declaration.</p><h4>Expression Macros (<code>#expression</code>)</h4><p>These macros are used to generate an expression. They take arguments and return a single expression. A common example is <code>#stringify</code>, which takes an expression and returns a tuple containing the string representation of the expression and its evaluated value.</p><pre><code class="language-swift">// Macro definition (conceptual, actual definition is in a plugin)
+@freestanding(expression)
+public macro stringify&lt;T&gt;(_ value: T) -&gt; (T, String) = #externalMacro(module: "MyMacros", type: "StringifyMacro")
+
+// Usage
+func exampleStringify() {
+    let x = 10
+    let y = 20
+    let (result, source) = #stringify(x + y * 2)
+    print("The value \(result) was produced from the expression `\(source)`")
+    // Expected output: "The value 50 was produced from the expression `x + y * 2`"
+}
+</code></pre><p>In this example, <code>#stringify(x + y * 2)</code> is expanded at compile time into something like <code>(x + y * 2, "x + y * 2")</code>. The magic is that the macro can inspect the <em>source code</em> of its argument.</p><h4>Declaration Macros (<code>#declaration</code>)</h4><p>Declaration macros are used to generate new declarations (e.g., new structs, classes, enums, functions, or properties). They are less common than expression macros but can be incredibly powerful for generating entire blocks of code.</p><pre><code class="language-swift">// Macro definition (conceptual)
+@freestanding(declaration)
+public macro defineStruct&lt;T: StringProtocol&gt;(named: T) = #externalMacro(module: "MyMacros", type: "StructDefinitionMacro")
+
+// Usage
+#defineStruct(named: "Point")
+// This macro would expand to something like:
+// struct Point {
+//     var x: Double
+//     var y: Double
+// }
+</code></pre><h3>Attached Macros</h3><p>Attached macros are applied to an existing declaration using an <code>@</code> prefix, similar to property wrappers or attribute declarations. They can modify, add to, or inspect the declaration they are attached to. There are several kinds of attached macros:</p><h4>Peer Macros (<code>@peer</code>)</h4><p>Peer macros add new sibling declarations alongside the declaration they are attached to. This is useful for generating associated types, helper functions, or other related declarations.</p><pre><code class="language-swift">// Macro definition (conceptual)
+@attached(peer)
+public macro AddHashable() = #externalMacro(module: "MyMacros", type: "AddHashableMacro")
+
+// Usage
+@AddHashable
+struct MyStruct {
+    let id: UUID
+    let name: String
+}
+// This macro could expand to add `extension MyStruct: Hashable { ... }` as a peer.
+</code></pre><h4>Member Macros (<code>@member</code>)</h4><p>Member macros add new members (properties, methods, initializers) <em>inside</em> the declaration they are attached to. This is perfect for boilerplate code that every instance of a type needs.</p><pre><code class="language-swift">// Macro definition (conceptual)
+@attached(member, names: named(init))
+public macro DefaultInit() = #externalMacro(module: "MyMacros", type: "DefaultInitMacro")
+
+// Usage
+@DefaultInit
+struct User {
+    let id: UUID
+    var name: String
+    var email: String
+}
+// Expands to add:
+// init(id: UUID, name: String, email: String) {
+//     self.id = id
+//     self.name = name
+//     self.email = email
+// }
+</code></pre><h4>Member Attribute Macros (<code>@memberAttribute</code>)</h4><p>These macros add attributes to the members of the declaration they are attached to. For example, you could add <code>@Observable</code> to all stored properties of a class.</p><pre><code class="language-swift">// Macro definition (conceptual)
+@attached(memberAttribute)
+public macro ObservableProperties() = #externalMacro(module: "MyMacros", type: "ObservablePropertiesMacro")
+
+// Usage
+@ObservableProperties
+class MyViewModel {
+    var title: String = "Hello" // This would get @Observable added
+    var count: Int = 0          // This would get @Observable added
+}
+</code></pre><h4>Accessor Macros (<code>@accessor</code>)</h4><p>Accessor macros add accessors (getters and setters) to a property. This is highly specialized and often used for implementing features like copy-on-write or custom storage.</p><pre><code class="language-swift">// Macro definition (conceptual)
+@attached(accessor)
+public macro CopyOnWrite() = #externalMacro(module: "MyMacros", type: "CopyOnWriteMacro")
+
+// Usage
+struct MyValue {
+    @CopyOnWrite var data: [Int] = []
+}
+// Expands to add custom get/set accessors for `data` that implement CoW logic.
+</code></pre><h4>Extension Macros (<code>@extension</code>)</h4><p>Extension macros add new extensions to the type they are attached to, allowing you to conform the type to new protocols or add new functionality.</p><pre><code class="language-swift">// Macro definition (conceptual)
+@attached(extension, conformances: Decodable, Encodable)
+public macro Codable() = #externalMacro(module: "MyMacros", type: "CodableMacro")
+
+// Usage
+@Codable
+struct Product {
+    let id: String
+    let name: String
+    let price: Double
+}
+// Expands to add `extension Product: Decodable { ... }` and `extension Product: Encodable { ... }`.
+</code></pre><h2>How Macros Work: The Two-Phase Compilation</h2><p>Understanding macros requires a look into the Swift compilation process. Unlike C/C++ preprocessor macros, which are textual substitutions, Swift Macros are deeply integrated with the compiler's syntax tree and perform type-checked transformations. This process occurs in two distinct phases:</p><ol><li><strong>Macro Expansion Phase</strong>: When the Swift compiler encounters a macro, it doesn't immediately compile it. Instead, it invokes the associated macro <em>plugin</em>. The plugin, written in Swift using the <code>SwiftSyntax</code> library, takes the source code of the macro invocation and its arguments (represented as a syntax tree) and produces new or transformed Swift source code (also as a syntax tree). This expanded code is then returned to the compiler.</li><li><strong>Compilation Phase</strong>: After all macros have been expanded, the compiler proceeds with its regular compilation, treating the expanded code as if it were originally written by the developer. This includes type-checking, optimization, and code generation.</li></ol><p>This two-phase approach ensures that the code generated by macros is just as safe and performant as manually written Swift code. The <code>SwiftSyntax</code> library is crucial here; it allows macro authors to parse, inspect, and generate Swift source code programmatically.</p><div style="text-align: center; margin: 2em 0;">
+<svg viewBox="0 0 600 250" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Swift Macro Compilation Flow">
+  <title>Swift Macro Compilation Flow</title>
+  <style>
+    .box { fill: #1565c0; stroke: #1565c0; stroke-width: 2; rx: 8; ry: 8; }
+    .compiler-box { fill: #2A8367; stroke: #2A8367; stroke-width: 2; rx: 8; ry: 8; }
+    .red-box { fill: #F04B3E; stroke: #F04B3E; stroke-width: 2; rx: 8; ry: 8; }
+    .arrow { stroke: #2A8367; stroke-width: 2; marker-end: url(#arrowhead); }
+    .text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; font-size: 16px; fill: white; text-anchor: middle; dominant-baseline: middle; }
+    .label { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; font-size: 14px; fill: #333; text-anchor: middle; dominant-baseline: middle; }
+  </style>
+  <defs>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="0" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#2A8367" />
+    </marker>
+  </defs>
+
+  <!-- Developer Writes Code -->
+  <rect x="20" y="30" width="120" height="60" class="box" />
+  <text x="80" y="60" class="text">Source Code</text>
+  <text x="80" y="100" class="label">with Macro Calls</text>
+
+  <!-- Arrow to Compiler -->
+  <line x1="140" y1="60" x2="190" y2="60" class="arrow" />
+
+  <!-- Swift Compiler -->
+  <rect x="190" y="30" width="120" height="60" class="compiler-box" />
+  <text x="250" y="60" class="text">Swift Compiler</text>
+  <text x="250" y="100" class="label">Detects Macro</text>
+
+  <!-- Arrow to Macro Plugin -->
+  <line x1="310" y1="60" x2="360" y2="60" class="arrow" />
+  <text x="335" y="40" class="label">Invokes</text>
+
+  <!-- Macro Plugin -->
+  <rect x="360" y="30" width="120" height="60" class="red-box" />
+  <text x="420" y="60" class="text">Macro Plugin</text>
+  <text x="420" y="100" class="label">(SwiftSyntax)</text>
+
+  <!-- Arrow back to Compiler -->
+  <line x1="480" y1="60" x2="530" y2="60" class="arrow" />
+  <text x="505" y="40" class="label">Returns</text>
+
+  <!-- Expanded Code -->
+  <rect x="530" y="30" width="120" height="60" class="box" />
+  <text x="590" y="60" class="text">Expanded Code</text>
+  <text x="590" y="100" class="label">to Compiler</text>
+
+  <!-- Second compilation phase -->
+  <line x1="320" y1="150" x2="320" y2="180" class="arrow" />
+  <text x="320" y="130" class="label">Final</text>
+
+  <!-- Final Compilation -->
+  <rect x="260" y="180" width="120" height="60" class="compiler-box" />
+  <text x="320" y="210" class="text">Swift Compiler</text>
+  <text x="320" y="240" class="label">Compiles Expanded Code</text>
+</svg>
+</div><h2>Macro Implementation and Project Structure</h2><p>A key aspect of "understanding" macros is realizing that the macro definition (what you write in your main app target) and its <em>implementation</em> (the code that performs the transformation) live in separate modules. The implementation resides in a special Swift Package Manager (SPM) target called a "macro plugin."</p><p>This separation is crucial: <em> The macro plugin is executed by the compiler, not linked into your app. </em> It uses <code>SwiftSyntax</code> to analyze and generate code. <em> Your app target only sees the </em>definition* of the macro and its public interface.</p><p>Here’s a simplified view of a project structure using macros:</p><pre><code>MyProject/
+├── Sources/
+│   ├── MyApp/
+│   │   └── MyApp.swift         // Uses the macro
+│   └── MyMacros/
+│       ├── MyMacros.swift      // Contains macro declarations (e.g., #stringify)
+│       └── MyMacrosPlugin/
+│           └── Plugin.swift    // Contains macro implementations (SwiftSyntax code)
+├── Tests/
+│   └── MyMacrosTests/
+│       └── MyMacrosTests.swift // Tests for the macro implementation
+└── Package.swift               // Defines the macro package and plugin
+</code></pre><p>The <code>MyMacros.swift</code> file in the <code>MyMacros</code> target would contain the <code>@freestanding(expression) public macro stringify&lt;T&gt;(...)</code> declaration. The actual logic for transforming <code>_ value: T</code> into <code>(T, String)</code> would be in <code>Plugin.swift</code> within the <code>MyMacrosPlugin</code> target.</p><h2>Practical Use Cases and Benefits</h2><p>Macros excel at solving problems where repetitive code patterns are common, or where a domain-specific language (DSL) would greatly enhance readability and safety.</p><ul><li><strong>Boilerplate Reduction</strong>: Automatically synthesize <code>Codable</code>, <code>Hashable</code>, <code>Equatable</code>, or <code>Identifiable</code> conformance for complex types, or generate common initializers, logging methods, or property observers.</li><li><strong>Domain-Specific Languages (DSLs)</strong>: Create custom syntax that feels native to Swift for specific domains, like UI layout, networking definitions, or data modeling. The <code>Observation</code> framework's <code>@Observable</code> macro is a prime example.</li><li><strong>Compile-Time Verification</strong>: Enforce constraints or generate warnings/errors at compile time based on code structure, catching issues before runtime.</li><li><strong>Cross-Platform Abstractions</strong>: Generate platform-specific code from a single, high-level declaration.</li><li><strong>Performance Optimizations</strong>: Generate specialized code paths for different scenarios that would be cumbersome to write manually.</li></ul><h2>Considerations and Best Practices</h2><p>While powerful, macros should be used judiciously:</p><ul><li><strong>Readability and Debugging</strong>: Macro-generated code can sometimes be harder to debug if not well-understood. Xcode's "Expand Macro" feature is invaluable here.</li><li><strong>Complexity</strong>: Writing macro implementations with <code>SwiftSyntax</code> can be complex. Start with simple transformations.</li><li><strong>Discoverability</strong>: Well-documented macros are essential. Make it clear what code a macro generates.</li><li><strong>Testing</strong>: Macro implementations should be thoroughly unit tested to ensure they generate the correct code for various inputs.</li></ul><p>Macros are not a replacement for good API design or Swift's existing features like generics, protocols, or property wrappers. Instead, they complement these features by providing a mechanism to generate the boilerplate <em>around</em> them, making your code cleaner and more expressive.</p><h2>Summary</h2><p>Swift Macros empower developers to perform compile-time code transformations, significantly reducing boilerplate and enabling new levels of expressiveness in Swift. By understanding the distinction between freestanding and attached macros, their various forms (expression, declaration, peer, member, accessor, extension), and the two-phase compilation process, you can leverage this powerful feature effectively. Remember that macro definitions and their <code>SwiftSyntax</code>-based implementations live in separate modules, a design choice that ensures safety and flexibility. When used thoughtfully, macros can elevate your Swift code to be more concise, maintainable, and robust.</p><p>Happy Swifting!</p></div><div class="article-tags"><span class="tags-label">Tagged: </span><ul class="tag-list"><li><a href="/tags/swift">Swift</a></li><li><a href="/tags/ios">iOS</a></li><li><a href="/tags/programming">Programming</a></li></ul></div><div class="ads-container"><ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-9268892677399703" data-ad-slot="8133392181" data-ad-format="auto" data-full-width-responsive="true"></ins><script>(adsbygoogle = window.adsbygoogle || []).push({});</script></div></div></div></div></article></div><footer><div class="wrapper"><p>© Swift By Rahul · <a href="/feed.rss">RSS</a> · <a href="https://github.com/bandalrahul">GitHub</a> · Built with <a href="https://github.com/johnsundell/publish">Publish</a></p></div></footer></body></html>

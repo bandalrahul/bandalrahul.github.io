@@ -1,0 +1,230 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"/><meta property="og:site_name" content="Swift By Rahul"/><link rel="canonical" href="https://www.swiftbyrahul.com/posts/CustomViewControllerTransitionsInUikit"/><meta name="twitter:url" content="https://www.swiftbyrahul.com/posts/CustomViewControllerTransitionsInUikit"/><meta property="og:url" content="https://www.swiftbyrahul.com/posts/CustomViewControllerTransitionsInUikit"/><title>Custom View Controller Transitions in UIKit | Swift By Rahul</title><meta name="twitter:title" content="Custom View Controller Transitions in UIKit | Swift By Rahul"/><meta property="og:title" content="Custom View Controller Transitions in UIKit | Swift By Rahul"/><meta name="description" content="Learn how to create stunning custom view controller transitions in UIKit using UIViewControllerTransitioningDelegate and UIViewControllerAnimatedTransitioning."/><meta name="twitter:description" content="Learn how to create stunning custom view controller transitions in UIKit using UIViewControllerTransitioningDelegate and UIViewControllerAnimatedTransitioning."/><meta property="og:description" content="Learn how to create stunning custom view controller transitions in UIKit using UIViewControllerTransitioningDelegate and UIViewControllerAnimatedTransitioning."/><meta name="twitter:card" content="summary"/><link rel="stylesheet" href="/styles.css" type="text/css"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><link rel="shortcut icon" href="/images/favicon.png" type="image/png"/><link rel="alternate" href="/feed.rss" type="application/rss+xml" title="Subscribe to Swift By Rahul"/></head><head><link rel="stylesheet" href="/css/prism.css" type="text/css"/><script src="/js/prism.js"></script><script src="/js/article.js"></script><script src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9268892677399703" async></script><meta name="twitter:card" content="summary_large_image"/><meta property="og:image" content="https://www.swiftbyrahul.com/images/posts/CustomViewControllerTransitionsInUikit.png"/><meta property="og:image:alt" content="Custom View Controller Transitions in UIKit"/><meta name="twitter:image" content="https://www.swiftbyrahul.com/images/posts/CustomViewControllerTransitionsInUikit.png"/></head><body class="item-page"><header><div class="wrapper"><a href="/" class="site-name">Swift By Rahul</a><nav class="site-nav"><ul><li><a href="/">Home</a></li><li><a href="/posts/" class="selected">Posts</a></li><li><a href="/tags">Tags</a></li><li><a href="https://github.com/bandalrahul">GitHub</a></li></ul></nav></div></header><div class="wrapper"><article><div><button class="toc-toggle" id="toc-toggle" type="button" aria-expanded="false">On this page</button><div class="article-layout"><aside class="toc" id="article-toc"><p class="toc-heading">On this page</p><nav class="toc-nav" id="article-toc-nav"></nav></aside><div class="article-main"><div class="article-meta"><span>July 22, 2026</span><span> · </span><span>7 min read</span><span> · </span><ul class="tag-list"><li><a href="/tags/uikit">UIKit</a></li><li><a href="/tags/ios">iOS</a></li><li><a href="/tags/development">Development</a></li></ul></div><div class="content"><h1>Custom View Controller Transitions in UIKit</h1><p>UIKit provides a robust set of default transitions for presenting and dismissing view controllers, like the familiar slide-up modal or the push/pop navigation animations. While these work well for most standard interactions, sometimes you need to go beyond the defaults to create a truly unique and engaging user experience. This is where custom view controller transitions come in.</p><p>Custom transitions allow you to define precisely how one view controller animates on or off the screen, offering endless possibilities for creative UI. Whether you want a dramatic zoom, a subtle fade, or a bespoke card-stacking effect, UIKit's powerful transition APIs give you the control you need.</p><p>In this article, we'll dive deep into the core protocols and steps required to build your own custom view controller transitions. We'll walk through a practical example of creating a "zoom-in" presentation and "zoom-out" dismissal animation.</p><h2>The Core Protocols of Custom Transitions</h2><p>At the heart of UIKit's custom transition system are three key players:</p><ol><li><strong><code>UIViewControllerTransitioningDelegate</code></strong>: This protocol acts as the coordinator for your custom transition. When a view controller is presented with <code>modalPresentationStyle = .custom</code> and its <code>transitioningDelegate</code> property is set, UIKit will ask this delegate for the appropriate animator objects for both presentation and dismissal.</li></ol><ol start="2"><li><strong><code>UIViewControllerAnimatedTransitioning</code></strong>: This is where the actual animation logic lives. An object conforming to this protocol is responsible for defining the duration of the transition and, most importantly, performing the visual animations that move views from their "before" state to their "after" state. You'll implement the <code>animateTransition(using:)</code> method here.</li></ol><ol start="3"><li><strong><code>UIViewControllerContextTransitioning</code></strong>: This protocol provides the animator with all the necessary information about the transition. It gives you access to the container view where all animations should take place, the "from" view controller and view, the "to" view controller and view, and other crucial details. Think of it as the animation's canvas and toolbox.</li></ol><p>Here's a simplified flow of how these components interact:</p><div style="text-align: center; margin: 2em 0;">
+<svg viewBox="0 0 600 220" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Flow of custom view controller transition initiation">
+  <title>Custom Transition Initiation Flow</title>
+
+  <!-- Presenting VC -->
+  <rect x="50" y="20" width="150" height="60" rx="10" ry="10" fill="#1565c0" stroke="#0e4b8f" stroke-width="2"/>
+  <text x="125" y="55" font-family="Arial, sans-serif" font-size="16" fill="white" text-anchor="middle">Presenting VC</text>
+
+  <!-- calls present() -->
+  <path d="M200 50 L250 50" stroke="#333" stroke-width="2" marker-end="url(#arrowhead)"/>
+  <text x="225" y="40" font-family="Arial, sans-serif" font-size="12" fill="#333" text-anchor="middle">present()</text>
+
+  <!-- Transitioning Delegate -->
+  <rect x="250" y="20" width="180" height="60" rx="10" ry="10" fill="#2A8367" stroke="#1c5a47" stroke-width="2"/>
+  <text x="340" y="55" font-family="Arial, sans-serif" font-size="16" fill="white" text-anchor="middle">Transitioning Delegate</text>
+
+  <!-- returns Animator -->
+  <path d="M340 80 L340 120" stroke="#333" stroke-width="2" marker-end="url(#arrowhead)"/>
+  <text x="340" y="100" font-family="Arial, sans-serif" font-size="12" fill="#333" text-anchor="middle">returns animator</text>
+
+  <!-- Custom Animator -->
+  <rect x="250" y="120" width="180" height="60" rx="10" ry="10" fill="#F04B3E" stroke="#b3382f" stroke-width="2"/>
+  <text x="340" y="155" font-family="Arial, sans-serif" font-size="16" fill="white" text-anchor="middle">Custom Animator</text>
+
+  <!-- performs animation -->
+  <path d="M340 180 L340 200 L500 200 L500 150" stroke="#333" stroke-width="2" marker-end="url(#arrowhead)"/>
+  <text x="420" y="190" font-family="Arial, sans-serif" font-size="12" fill="#333" text-anchor="middle">performs animation</text>
+
+  <!-- Presented VC -->
+  <rect x="450" y="120" width="100" height="60" rx="10" ry="10" fill="#1565c0" stroke="#0e4b8f" stroke-width="2"/>
+  <text x="500" y="155" font-family="Arial, sans-serif" font-size="16" fill="white" text-anchor="middle">Presented VC</text>
+
+  <!-- Arrowhead definition -->
+  <defs>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="0" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#333" />
+    </marker>
+  </defs>
+</svg>
+</div><h2>Step-by-Step: Building a Zoom Transition</h2><p>Let's create a custom transition where a presented view controller zooms in from a small point and fades in, and then zooms out and fades out upon dismissal.</p><h3>1. The Custom Transitioning Delegate</h3><p>First, we need a class that conforms to <code>UIViewControllerTransitioningDelegate</code>. This class will be responsible for providing the animator objects. It's crucial to keep a strong reference to this delegate instance, as UIKit does not retain it automatically. A common pattern is to make it a property of the presenting view controller.</p><pre><code class="language-swift">class ZoomTransitioningDelegate: NSObject, UIViewControllerTransitioningDelegate {
+    func animationController(forPresented presented: UIViewController, presenting: UIViewController, source: UIViewController) -&gt; UIViewControllerAnimatedTransitioning? {
+        return ZoomAnimator(isPresenting: true)
+    }
+
+    func animationController(forDismissed dismissed: UIViewController) -&gt; UIViewControllerAnimatedTransitioning? {
+        return ZoomAnimator(isPresenting: false)
+    }
+}
+</code></pre><p>As you can see, this delegate has two methods: one for presentation and one for dismissal. Both return an instance of our <code>ZoomAnimator</code> (which we'll define next), initialized with a flag to indicate whether it's handling a presentation or a dismissal.</p><h3>2. The Custom Animator Object</h3><p>This is where the actual animation code resides. Our <code>ZoomAnimator</code> class will conform to <code>UIViewControllerAnimatedTransitioning</code>.</p><pre><code class="language-swift">class ZoomAnimator: NSObject, UIViewControllerAnimatedTransitioning {
+    let isPresenting: Bool
+
+    init(isPresenting: Bool) {
+        self.isPresenting = isPresenting
+        super.init()
+    }
+
+    // MARK: - UIViewControllerAnimatedTransitioning
+
+    func transitionDuration(using transitionContext: UIViewControllerContextTransitioning?) -&gt; TimeInterval {
+        // Define the duration of the animation
+        return 0.6
+    }
+
+    func animateTransition(using transitionContext: UIViewControllerContextTransitioning) {
+        // Get the container view where all transition animations happen
+        let containerView = transitionContext.containerView
+
+        // Get the 'from' and 'to' views
+        guard let fromView = transitionContext.view(forKey: .from) else {
+            transitionContext.completeTransition(false)
+            return
+        }
+        
+        let toView = transitionContext.view(forKey: .to)! // The 'to' view is always available for presentation
+
+        if isPresenting {
+            // For presentation:
+            // 1. Add the 'to' view to the container view
+            containerView.addSubview(toView)
+
+            // 2. Set the 'to' view's initial state (small and transparent)
+            toView.transform = CGAffineTransform(scaleX: 0.1, y: 0.1)
+            toView.alpha = 0.0
+
+            // 3. Animate to its final state (full size and opaque)
+            UIView.animate(withDuration: transitionDuration(using: transitionContext), delay: 0, usingSpringWithDamping: 0.7, initialSpringVelocity: 0.5, options: .curveEaseInOut) {
+                toView.transform = .identity // Default, full-size state
+                toView.alpha = 1.0
+            } completion: { finished in
+                // 4. Crucially, inform the context that the transition is complete
+                transitionContext.completeTransition(finished)
+            }
+        } else {
+            // For dismissal:
+            // 1. Animate the 'from' view (the one being dismissed) to its final state (small and transparent)
+            UIView.animate(withDuration: transitionDuration(using: transitionContext), animations: {
+                fromView.transform = CGAffineTransform(scaleX: 0.1, y: 0.1)
+                fromView.alpha = 0.0
+            }) { finished in
+                // 2. Remove the 'from' view from the superview
+                fromView.removeFromSuperview()
+                // 3. Inform the context that the transition is complete
+                transitionContext.completeTransition(finished)
+            }
+        }
+    }
+}
+</code></pre><p>Let's break down <code>animateTransition(using:)</code>:</p><div style="text-align: center; margin: 2em 0;">
+<svg viewBox="0 0 600 220" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="UIViewControllerContextTransitioning components">
+  <title>UIViewControllerContextTransitioning Components</title>
+
+  <!-- Container View -->
+  <rect x="50" y="20" width="500" height="180" rx="10" ry="10" fill="#EEEEEE" stroke="#333" stroke-width="2"/>
+  <text x="300" y="45" font-family="Arial, sans-serif" font-size="16" fill="#333" text-anchor="middle">containerView (UIViewControllerContextTransitioning)</text>
+
+  <!-- fromView -->
+  <rect x="70" y="70" width="200" height="100" rx="8" ry="8" fill="#F04B3E" opacity="0.7" stroke="#b3382f" stroke-width="1"/>
+  <text x="170" y="125" font-family="Arial, sans-serif" font-size="14" fill="white" text-anchor="middle">fromView</text>
+  <text x="170" y="145" font-family="Arial, sans-serif" font-size="12" fill="white" text-anchor="middle">(fromVC.view)</text>
+
+  <!-- toView -->
+  <rect x="330" y="70" width="200" height="100" rx="8" ry="8" fill="#2A8367" opacity="0.7" stroke="#1c5a47" stroke-width="1"/>
+  <text x="430" y="125" font-family="Arial, sans-serif" font-size="14" fill="white" text-anchor="middle">toView</text>
+  <text x="430" y="145" font-family="Arial, sans-serif" font-size="12" fill="white" text-anchor="middle">(toVC.view)</text>
+
+  <!-- Label for animation -->
+  <text x="300" y="190" font-family="Arial, sans-serif" font-size="14" fill="#333" text-anchor="middle">Animator manipulates fromView and toView within containerView</text>
+</svg>
+</div><ul><li><strong><code>containerView</code></strong>: This is the temporary view that houses all the views participating in the transition. Your animations should always occur within this view.</li><li><strong><code>fromView</code> and <code>toView</code></strong>: These are the views of the <code>from</code> and <code>to</code> view controllers. For presentation, <code>toView</code> is the view of the view controller being presented. For dismissal, <code>fromView</code> is the view of the view controller being dismissed.</li><li><strong>Adding <code>toView</code></strong>: During presentation, it's <em>your</em> responsibility to add <code>toView</code> to the <code>containerView</code>. UIKit does not do this automatically for custom transitions. For dismissal, <code>fromView</code> is already in the <code>containerView</code>.</li><li><strong>Animation</strong>: Use <code>UIView.animate</code> to perform your desired visual effects. You manipulate properties like <code>transform</code>, <code>alpha</code>, <code>frame</code>, etc.</li><li><strong><code>completeTransition(finished)</code></strong>: This is the <strong>most critical step</strong>. You <em>must</em> call <code>transitionContext.completeTransition(true)</code> when your animations are finished. If you forget this, UIKit will be left in an inconsistent state, and your app might become unresponsive or behave unexpectedly. Pass <code>false</code> if the transition was cancelled (e.g., in an interactive transition).</li><li><strong>Removing <code>fromView</code></strong>: For dismissal, after the animation, it's good practice to remove the <code>fromView</code> from its superview using <code>removeFromSuperview()</code>.</li></ul><h3>3. Presenting the View Controller with Custom Transition</h3><p>Now, let's wire everything up in our view controllers. We'll need a <code>PresentingViewController</code> and a <code>PresentedViewController</code>.</p><pre><code class="language-swift">// MARK: - PresentedViewController
+
+class PresentedViewController: UIViewController {
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        view.backgroundColor = .systemRed.withAlphaComponent(0.8)
+        view.layer.cornerRadius = 15
+        view.clipsToBounds = true
+
+        let dismissButton = UIButton(type: .system)
+        dismissButton.setTitle("Dismiss", for: .normal)
+        dismissButton.setTitleColor(.white, for: .normal)
+        dismissButton.backgroundColor = .systemRed
+        dismissButton.layer.cornerRadius = 8
+        dismissButton.addTarget(self, action: #selector(dismissVC), for: .touchUpInside)
+        dismissButton.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(dismissButton)
+
+        NSLayoutConstraint.activate([
+            dismissButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            dismissButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -20),
+            dismissButton.widthAnchor.constraint(equalToConstant: 120),
+            dismissButton.heightAnchor.constraint(equalToConstant: 44)
+        ])
+    }
+
+    @objc func dismissVC() {
+        dismiss(animated: true, completion: nil)
+    }
+}
+
+// MARK: - PresentingViewController
+
+class PresentingViewController: UIViewController {
+    // IMPORTANT: Keep a strong reference to your transitioning delegate!
+    // UIKit does not retain it, so if it's a local variable, it will be deallocated.
+    let customTransitionDelegate = ZoomTransitioningDelegate()
+
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        view.backgroundColor = .systemBlue
+
+        let presentButton = UIButton(type: .system)
+        presentButton.setTitle("Present Custom VC", for: .normal)
+        presentButton.setTitleColor(.white, for: .normal)
+        presentButton.backgroundColor = .systemGreen
+        presentButton.layer.cornerRadius = 8
+        presentButton.addTarget(self, action: #selector(presentCustomVC), for: .touchUpInside)
+        presentButton.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(presentButton)
+
+        NSLayoutConstraint.activate([
+            presentButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            presentButton.centerYAnchor.constraint(equalTo: view.centerYAnchor),
+            presentButton.widthAnchor.constraint(equalToConstant: 200),
+            presentButton.heightAnchor.constraint(equalToConstant: 50)
+        ])
+    }
+
+    @objc func presentCustomVC() {
+        let presentedVC = PresentedViewController()
+        
+        // 1. Set the modal presentation style to .custom
+        presentedVC.modalPresentationStyle = .custom
+        
+        // 2. Assign our custom transitioning delegate
+        presentedVC.transitioningDelegate = customTransitionDelegate
+        
+        // 3. Present the view controller
+        present(presentedVC, animated: true, completion: nil)
+    }
+}
+</code></pre><p>In the <code>PresentingViewController</code>, notice these crucial lines:</p><ul><li><code>let customTransitionDelegate = ZoomTransitioningDelegate()</code>: We instantiate our delegate and keep a strong reference.</li><li><code>presentedVC.modalPresentationStyle = .custom</code>: This tells UIKit that we want to provide a custom presentation style, which then triggers the <code>transitioningDelegate</code> methods.</li><li><code>presentedVC.transitioningDelegate = customTransitionDelegate</code>: We assign our custom delegate to the view controller being presented.</li></ul><p>When <code>present(presentedVC, animated: true, completion: nil)</code> is called, UIKit will consult <code>customTransitionDelegate</code> to get the <code>ZoomAnimator</code>, and then the <code>ZoomAnimator</code> takes over to perform the animation.</p><h2>Beyond Basic Animations: Interactive Transitions</h2><p>While this article focuses on non-interactive custom transitions, it's worth noting that you can also create <em>interactive</em> transitions. This means the user can control the progress of the transition, for example, by dragging their finger across the screen to dismiss a view controller.</p><p>This involves implementing a <code>UIPercentDrivenInteractiveTransition</code> object, which works in conjunction with your <code>UIViewControllerAnimatedTransitioning</code> to update the animation's progress based on user gestures. The <code>UIViewControllerTransitioningDelegate</code> would then also implement <code>interactionControllerForPresentation(using:)</code> and <code>interactionControllerForDismissal(using:)</code> to return your interactive transition object.</p><pre><code>┌──────────────────────────┐     ┌───────────────────────────────────┐
+│                          │     │                                   │
+│  Presenting Controller   │────►│  `modalPresentationStyle = .custom`   │
+│                          │     │                                   │
+└──────────────────────────┘     └───────────────────────────────────┘
+             │                                   │
+             │  `transitioningDelegate`          │
+             V                                   V
+┌───────────────────────────────────┐     ┌───────────────────────────────────┐
+│                                   │     │                                   │
+│  `UIViewControllerTransitioningDelegate`  │────►│  `UIViewControllerAnimatedTransitioning`  │
+│                                   │     │                                   │
+└───────────────────────────────────┘     └───────────────────────────────────┘
+             │                                   │         │
+             │  Returns animator                 │         │  Performs Animations
+             V                                   V         V
+┌───────────────────────────────────┐     ┌───────────────────────────────────┐
+│                                   │     │                                   │
+│  `animationController(forPresented:)`   │────►│  `animateTransition(using:)`    │
+│                                   │     │                                   │
+└───────────────────────────────────┘     └───────────────────────────────────┘
+                                                       │
+                                                       │  Manipulates views in `containerView`
+                                                       V
+                                          ┌───────────────────────────────┐
+                                          │                               │
+                                          │ `transitionContext.completeTransition(true)` │
+                                          │                               │
+                                          └───────────────────────────────┘
+</code></pre><p>This diagram illustrates the lifecycle from initiating a custom presentation to completing the animation.</p><h2>Summary</h2><p>Custom view controller transitions in UIKit are a powerful tool for crafting unique and engaging user interfaces. By understanding and implementing the <code>UIViewControllerTransitioningDelegate</code> and <code>UIViewControllerAnimatedTransitioning</code> protocols, you gain granular control over the presentation and dismissal animations of your view controllers. Remember these key takeaways:</p><ul><li>Set <code>modalPresentationStyle = .custom</code> on the view controller being presented.</li><li>Assign a strong reference to your <code>UIViewControllerTransitioningDelegate</code> instance.</li><li>In your <code>UIViewControllerAnimatedTransitioning</code> object, add the <code>toView</code> to the <code>containerView</code> for presentations.</li><li>Always call <code>transitionContext.completeTransition(true)</code> when your animations are done.</li></ul><p>With these techniques, you're well-equipped to elevate your app's user experience beyond standard UIKit animations.</p><p>Happy Swifting!</p></div><div class="article-tags"><span class="tags-label">Tagged: </span><ul class="tag-list"><li><a href="/tags/uikit">UIKit</a></li><li><a href="/tags/ios">iOS</a></li><li><a href="/tags/development">Development</a></li></ul></div><div class="ads-container"><ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-9268892677399703" data-ad-slot="8133392181" data-ad-format="auto" data-full-width-responsive="true"></ins><script>(adsbygoogle = window.adsbygoogle || []).push({});</script></div></div></div></div></article></div><footer><div class="wrapper"><p>© Swift By Rahul · <a href="/feed.rss">RSS</a> · <a href="https://github.com/bandalrahul">GitHub</a> · Built with <a href="https://github.com/johnsundell/publish">Publish</a></p></div></footer></body></html>

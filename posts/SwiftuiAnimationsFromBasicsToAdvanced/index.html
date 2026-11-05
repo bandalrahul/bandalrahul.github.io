@@ -1,0 +1,227 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"/><meta property="og:site_name" content="Swift By Rahul"/><link rel="canonical" href="https://www.swiftbyrahul.com/posts/SwiftuiAnimationsFromBasicsToAdvanced"/><meta name="twitter:url" content="https://www.swiftbyrahul.com/posts/SwiftuiAnimationsFromBasicsToAdvanced"/><meta property="og:url" content="https://www.swiftbyrahul.com/posts/SwiftuiAnimationsFromBasicsToAdvanced"/><title>SwiftUI Animations: From Basics to Advanced | Swift By Rahul</title><meta name="twitter:title" content="SwiftUI Animations: From Basics to Advanced | Swift By Rahul"/><meta property="og:title" content="SwiftUI Animations: From Basics to Advanced | Swift By Rahul"/><meta name="description" content="Explore SwiftUI animations from foundational implicit/explicit techniques to advanced transitions, matchedGeometryEffect, and custom animatable properties."/><meta name="twitter:description" content="Explore SwiftUI animations from foundational implicit/explicit techniques to advanced transitions, matchedGeometryEffect, and custom animatable properties."/><meta property="og:description" content="Explore SwiftUI animations from foundational implicit/explicit techniques to advanced transitions, matchedGeometryEffect, and custom animatable properties."/><meta name="twitter:card" content="summary"/><link rel="stylesheet" href="/styles.css" type="text/css"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><link rel="shortcut icon" href="/images/favicon.png" type="image/png"/><link rel="alternate" href="/feed.rss" type="application/rss+xml" title="Subscribe to Swift By Rahul"/></head><head><link rel="stylesheet" href="/css/prism.css" type="text/css"/><script src="/js/prism.js"></script><script src="/js/article.js"></script><script src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9268892677399703" async></script><meta name="twitter:card" content="summary_large_image"/><meta property="og:image" content="https://www.swiftbyrahul.com/images/posts/SwiftuiAnimationsFromBasicsToAdvanced.png"/><meta property="og:image:alt" content="SwiftUI Animations: From Basics to Advanced"/><meta name="twitter:image" content="https://www.swiftbyrahul.com/images/posts/SwiftuiAnimationsFromBasicsToAdvanced.png"/></head><body class="item-page"><header><div class="wrapper"><a href="/" class="site-name">Swift By Rahul</a><nav class="site-nav"><ul><li><a href="/">Home</a></li><li><a href="/posts/" class="selected">Posts</a></li><li><a href="/tags">Tags</a></li><li><a href="https://github.com/bandalrahul">GitHub</a></li></ul></nav></div></header><div class="wrapper"><article><div><button class="toc-toggle" id="toc-toggle" type="button" aria-expanded="false">On this page</button><div class="article-layout"><aside class="toc" id="article-toc"><p class="toc-heading">On this page</p><nav class="toc-nav" id="article-toc-nav"></nav></aside><div class="article-main"><div class="article-meta"><span>July 12, 2026</span><span> · </span><span>6 min read</span><span> · </span><ul class="tag-list"><li><a href="/tags/swiftui">SwiftUI</a></li><li><a href="/tags/ios">iOS</a></li><li><a href="/tags/development">Development</a></li></ul></div><div class="content"><h1>SwiftUI Animations: From Basics to Advanced</h1><p>SwiftUI has revolutionized UI development on Apple platforms, and one of its most compelling features is its declarative approach to animations. Gone are the days of complex Core Animation layers or UIView.animate blocks for every little motion. With SwiftUI, animations often feel like magic – you simply declare your desired end state, and SwiftUI handles the smooth transition.</p><p>But SwiftUI animations are more than just magic. Understanding their underlying mechanisms and the various tools at your disposal allows you to craft truly dynamic and engaging user experiences. In this article, we'll embark on a journey from the foundational concepts of SwiftUI animations to more advanced techniques that will elevate your app's interactivity.</p><div style="text-align: center; margin: 2em 0;">
+<svg viewBox="0 0 600 220" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram showing the difference between implicit and explicit SwiftUI animations.">
+  <title>Implicit vs. Explicit SwiftUI Animations</title>
+
+  <!-- Implicit Animation Path -->
+  <rect x="50" y="20" width="200" height="50" rx="10" ry="10" fill="#F04B3E" stroke="#333" stroke-width="2"/>
+  <text x="150" y="50" font-family="Arial" font-size="16" fill="white" text-anchor="middle">View State Changes</text>
+
+  <path d="M150 75 L150 95" stroke="#333" stroke-width="2" marker-end="url(#arrowhead)"/>
+  <text x="150" y="115" font-family="Arial" font-size="14" fill="#333" text-anchor="middle">.animation(.default, value: state)</text>
+
+  <rect x="50" y="140" width="200" height="50" rx="10" ry="10" fill="#2A8367" stroke="#333" stroke-width="2"/>
+  <text x="150" y="170" font-family="Arial" font-size="16" fill="white" text-anchor="middle">Implicitly Animated View</text>
+
+  <!-- Explicit Animation Path -->
+  <rect x="350" y="20" width="200" height="50" rx="10" ry="10" fill="#F04B3E" stroke="#333" stroke-width="2"/>
+  <text x="450" y="50" font-family="Arial" font-size="16" fill="white" text-anchor="middle">View State Changes</text>
+
+  <path d="M450 75 L450 95" stroke="#333" stroke-width="2" marker-end="url(#arrowhead)"/>
+  <text x="450" y="115" font-family="Arial" font-size="14" fill="#333" text-anchor="middle">withAnimation { ... }</text>
+
+  <rect x="350" y="140" width="200" height="50" rx="10" ry="10" fill="#1565c0" stroke="#333" stroke-width="2"/>
+  <text x="450" y="170" font-family="Arial" font-size="16" fill="white" text-anchor="middle">Explicitly Animated View</text>
+
+  <!-- Arrowhead definition -->
+  <defs>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="0" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#333" />
+    </marker>
+  </defs>
+
+  <text x="150" y="5" font-family="Arial" font-size="18" fill="#333" text-anchor="middle">Implicit Animation (Older)</text>
+  <text x="450" y="5" font-family="Arial" font-size="18" fill="#333" text-anchor="middle">Explicit Animation (Recommended)</text>
+</svg>
+</div><h2>The Basics: Implicit and Explicit Animations</h2><p>At its core, SwiftUI animations revolve around state changes. When a view's state changes, and that change affects its appearance (e.g., size, color, position, opacity), SwiftUI can animate the transition between the old and new states.</p><h3>Implicit Animations (The <code>.animation()</code> Modifier)</h3><p>Initially, SwiftUI introduced the <code>.animation()</code> modifier. When applied to a view, any animatable change to that view or its children, if it depends on a state variable, would be animated.</p><pre><code class="language-swift">struct ImplicitAnimationExample: View {
+    @State private var scale: CGFloat = 1.0
+
+    var body: some View {
+        Circle()
+            .frame(width: 100 * scale, height: 100 * scale)
+            .foregroundColor(.blue)
+            .onTapGesture {
+                scale += 0.2
+            }
+            .animation(.easeInOut(duration: 0.5), value: scale) // Animates changes to 'scale'
+    }
+}
+</code></pre><p>While simple, this approach can sometimes be tricky. If you have multiple state changes, it might animate things you don't intend, or you might need to apply the modifier carefully to control scope. Modern SwiftUI prefers explicit animations.</p><h3>Explicit Animations (The <code>withAnimation</code> Block)</h3><p>The recommended way to trigger animations in SwiftUI is by wrapping your state changes within a <code>withAnimation</code> block. This makes it clear <em>what</em> state changes should be animated and <em>when</em>.</p><pre><code class="language-swift">struct ExplicitAnimationExample: View {
+    @State private var isScaled: Bool = false
+
+    var body: some View {
+        VStack {
+            Circle()
+                .frame(width: isScaled ? 150 : 100, height: isScaled ? 150 : 100)
+                .foregroundColor(isScaled ? .green : .red)
+            Button("Toggle Scale") {
+                withAnimation(.spring(response: 0.4, dampingFraction: 0.6, blendDuration: 0)) {
+                    isScaled.toggle()
+                }
+            }
+        }
+    }
+}
+</code></pre><p>Here, only the state change <code>isScaled.toggle()</code> within the <code>withAnimation</code> block will trigger the animation. Any other state changes outside this block would occur instantly. The <code>.spring()</code> animation curve provides a natural, bouncy feel, which is often preferred over simple linear or ease-in/out curves for user interaction.</p><p>Common animation types you can pass to <code>withAnimation</code> (or the <code>animation</code> modifier): <em> <code>.default</code>: A basic ease-in-out animation. </em> <code>.linear(duration: Double)</code>: Constant speed. <em> <code>.easeIn(duration: Double)</code>: Starts slow, speeds up. </em> <code>.easeOut(duration: Double)</code>: Starts fast, slows down. <em> <code>.easeInOut(duration: Double)</code>: Starts and ends slow, fast in the middle. </em> <code>.spring(response: Double, dampingFraction: Double, blendDuration: Double)</code>: Realistic spring-like motion. * <code>.interactiveSpring(response: Double, dampingFraction: Double, blendDuration: Double)</code>: Similar to spring, but designed for interactive gestures.</p><h2>Advanced Animation Techniques</h2><h3>Transitions: Animating View Appearance and Disappearance</h3><p>When views are added or removed from the view hierarchy (e.g., inside an <code>if</code> statement), SwiftUI can animate their insertion and removal using the <code>.transition()</code> modifier.</p><pre><code class="language-swift">struct TransitionExample: View {
+    @State private var showCircle: Bool = false
+
+    var body: some View {
+        VStack {
+            Button("Toggle Circle") {
+                withAnimation {
+                    showCircle.toggle()
+                }
+            }
+
+            if showCircle {
+                Circle()
+                    .fill(Color.purple)
+                    .frame(width: 100, height: 100)
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
+            }
+        }
+    }
+}
+</code></pre><p>In this example, when <code>showCircle</code> becomes <code>true</code>, the circle animates in from the bottom while fading in. When <code>showCircle</code> becomes <code>false</code>, it animates out the same way.</p><p>You can combine transitions using <code>.combined(with:)</code> and even make them asymmetric using <code>.asymmetric(insertion:removal:)</code> for different entry and exit animations.</p><pre><code class="language-swift">// Asymmetric transition example
+.transition(.asymmetric(
+    insertion: .scale.combined(with: .opacity),
+    removal: .slide
+))
+</code></pre><h3>Matched Geometry Effect: Seamless View Transitions</h3><p>One of the most powerful animation tools in SwiftUI is <code>matchedGeometryEffect</code>. This modifier allows you to match the geometry (position and size) of a view across different parent views or states, creating incredibly smooth and natural transitions. It's perfect for scenarios like expanding a list item into a detail view, or reordering elements.</p><p>To use <code>matchedGeometryEffect</code>, you need: 1. A <code>Namespace.ID</code> to identify the animation scope. 2. The <code>.matchedGeometryEffect</code> modifier applied to the views you want to match, using the same <code>id</code> and <code>namespace</code>.</p><pre><code class="language-swift">struct MatchedGeometryExample: View {
+    @Namespace private var animationNamespace
+    @State private var showDetail: Bool = false
+
+    var body: some View {
+        VStack {
+            if !showDetail {
+                CardView(showDetail: $showDetail, namespace: animationNamespace)
+                    .frame(width: 150, height: 100)
+                    .onTapGesture {
+                        withAnimation(.spring()) {
+                            showDetail = true
+                        }
+                    }
+            } else {
+                DetailCardView(showDetail: $showDetail, namespace: animationNamespace)
+                    .frame(width: 300, height: 200)
+                    .onTapGesture {
+                        withAnimation(.spring()) {
+                            showDetail = false
+                        }
+                    }
+            }
+        }
+    }
+}
+
+struct CardView: View {
+    @Binding var showDetail: Bool
+    var namespace: Namespace.ID
+
+    var body: some View {
+        RoundedRectangle(cornerRadius: 15)
+            .fill(Color.blue)
+            .matchedGeometryEffect(id: "card", in: namespace)
+            .overlay(Text("Tap Me").foregroundColor(.white))
+    }
+}
+
+struct DetailCardView: View {
+    @Binding var showDetail: Bool
+    var namespace: Namespace.ID
+
+    var body: some View {
+        RoundedRectangle(cornerRadius: 15)
+            .fill(Color.blue)
+            .matchedGeometryEffect(id: "card", in: namespace)
+            .overlay(Text("Detail View!").foregroundColor(.white).font(.title))
+    }
+}
+</code></pre><p>In this example, tapping the <code>CardView</code> expands it into the <code>DetailCardView</code>, with SwiftUI animating the size and position change of the <code>RoundedRectangle</code> because they share the same <code>id</code> within the <code>animationNamespace</code>.</p><div style="text-align: center; margin: 2em 0;">
+<svg viewBox="0 0 600 240" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Flow diagram of Matched Geometry Effect">
+  <title>Matched Geometry Effect Flow</title>
+
+  <!-- Initial State -->
+  <rect x="50" y="20" width="200" height="80" rx="10" ry="10" fill="#F04B3E" stroke="#333" stroke-width="2"/>
+  <text x="150" y="50" font-family="Arial" font-size="16" fill="white" text-anchor="middle">Initial View State (Small)</text>
+  <rect x="100" y="65" width="100" height="30" rx="5" ry="5" fill="#1565c0" stroke="#333" stroke-width="1"/>
+  <text x="150" y="85" font-family="Arial" font-size="14" fill="white" text-anchor="middle">ID: "item"</text>
+
+  <!-- Arrow to Transition -->
+  <path d="M250 60 L300 60" stroke="#333" stroke-width="2" marker-end="url(#arrowhead)"/>
+  <text x="275" y="80" font-family="Arial" font-size="14" fill="#333" text-anchor="middle">State Change</text>
+
+  <!-- Transition -->
+  <rect x="350" y="20" width="200" height="80" rx="10" ry="10" fill="#2A8367" stroke="#333" stroke-width="2"/>
+  <text x="450" y="50" font-family="Arial" font-size="16" fill="white" text-anchor="middle">withAnimation { ... }</text>
+  <text x="450" y="75" font-family="Arial" font-size="14" fill="white" text-anchor="middle">.matchedGeometryEffect(id: "item", in: namespace)</text>
+
+  <!-- Arrow to Final State -->
+  <path d="M450 100 L450 150" stroke="#333" stroke-width="2" marker-end="url(#arrowhead)"/>
+
+  <!-- Final State -->
+  <rect x="350" y="160" width="200" height="80" rx="10" ry="10" fill="#F04B3E" stroke="#333" stroke-width="2"/>
+  <text x="450" y="190" font-family="Arial" font-size="16" fill="white" text-anchor="middle">Final View State (Large)</text>
+  <rect x="375" y="205" width="150" height="30" rx="5" ry="5" fill="#1565c0" stroke="#333" stroke-width="1"/>
+  <text x="450" y="225" font-family="Arial" font-size="14" fill="white" text-anchor="middle">ID: "item"</text>
+
+  <!-- Arrowhead definition -->
+  <defs>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="0" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#333" />
+    </marker>
+  </defs>
+</svg>
+</div><h3>Custom Animatable Properties</h3><p>For truly custom animations, you might need to animate properties that SwiftUI doesn't automatically recognize as animatable. This is where the <code>Animatable</code> protocol comes in. You can conform a <code>Shape</code> or a <code>ViewModifier</code> to <code>Animatable</code> to define how certain properties should interpolate during an animation.</p><p>Let's create a simple custom shape that animates its progress:</p><pre><code class="language-swift">struct ProgressArc: Shape {
+    var progress: Double // This is our animatable property
+
+    // Conform to Animatable by providing the animatableData
+    var animatableData: Double {
+        get { progress }
+        set { progress = newValue }
+    }
+
+    func path(in rect: CGRect) -&gt; Path {
+        var path = Path()
+        path.addArc(center: CGPoint(x: rect.midX, y: rect.midY),
+                    radius: rect.width / 2,
+                    startAngle: .degrees(0),
+                    endAngle: .degrees(360 * progress),
+                    clockwise: false)
+        return path
+            .strokedPath(StrokeStyle(lineWidth: 10, lineCap: .round))
+    }
+}
+
+struct CustomAnimatableExample: View {
+    @State private var currentProgress: Double = 0.0
+
+    var body: some View {
+        VStack {
+            ProgressArc(progress: currentProgress)
+                .frame(width: 150, height: 150)
+                .foregroundColor(.orange)
+
+            Button("Animate Progress") {
+                withAnimation(.easeInOut(duration: 1.0)) {
+                    currentProgress = (currentProgress &lt; 1.0) ? 1.0 : 0.0
+                }
+            }
+        }
+    }
+}
+</code></pre><p>By conforming <code>ProgressArc</code> to <code>Animatable</code> and implementing <code>animatableData</code>, SwiftUI knows how to interpolate the <code>progress</code> property, resulting in a smooth drawing animation of the arc.</p><h3>Animation Flow Diagram</h3><p>To summarize how explicit animations work:</p><pre><code>┌─────────────────┐
+│  View State A   │
+└─────────────────┘
+         │
+         ▼
+┌─────────────────┐
+│  withAnimation  │
+│  { State B }    │
+└─────────────────┘
+         │
+         ▼
+┌─────────────────┐
+│  Animated View  │
+│    Transition   │
+└─────────────────┘
+</code></pre><p>This diagram illustrates that <code>withAnimation</code> acts as a trigger, telling SwiftUI to smoothly transition any animatable properties from their current values (based on State A) to their new values (based on State B).</p><h2>Summary</h2><p>SwiftUI offers a powerful and intuitive animation system, moving away from imperative animations to a declarative approach. By understanding <code>withAnimation</code> for explicit state transitions, <code>transitions</code> for view appearance/disappearance, <code>matchedGeometryEffect</code> for seamless cross-view animations, and <code>Animatable</code> for custom property interpolation, you have a comprehensive toolkit to build highly engaging and interactive user interfaces. Embrace these techniques, and your SwiftUI apps will truly come alive.</p><p>Happy Swifting!</p></div><div class="article-tags"><span class="tags-label">Tagged: </span><ul class="tag-list"><li><a href="/tags/swiftui">SwiftUI</a></li><li><a href="/tags/ios">iOS</a></li><li><a href="/tags/development">Development</a></li></ul></div><div class="ads-container"><ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-9268892677399703" data-ad-slot="8133392181" data-ad-format="auto" data-full-width-responsive="true"></ins><script>(adsbygoogle = window.adsbygoogle || []).push({});</script></div></div></div></div></article></div><footer><div class="wrapper"><p>© Swift By Rahul · <a href="/feed.rss">RSS</a> · <a href="https://github.com/bandalrahul">GitHub</a> · Built with <a href="https://github.com/johnsundell/publish">Publish</a></p></div></footer></body></html>
