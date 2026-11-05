@@ -140,6 +140,7 @@
     "understanding-lazy-properties-in-swift",
     "understanding-computed-properties-in-swift",
     "understanding-subscripts-in-swift",
-    "understanding-custom-operators-in-swift"
+    "understanding-custom-operators-in-swift",
+    "understanding-literal-protocols-in-swift"
   ]
 }
